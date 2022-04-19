@@ -1,0 +1,624 @@
+* R Settings                                                       :noexport:
+Remember to exceture (C-c C-c) the following line:
+#+PROPERTY: header-args:R  :results output verbatim  :exports results  :session *R* :cache yes
+* Validating risk prediction models
+** Disclaimer -- unfinished work
+Mostly theory and not so much implementation and "results".
+
+\vfill \pause
+
+You have the opportunity to influence the project!
+
+** Validating risk prediction models
+
+*** Full data
+   - $X \in \R^p$ :: Static covariates measured at baseline ($t=0$).
+
+   - $T \in \R_+$ :: Time of event
+
+   - $t \in \R_+$ :: Fixed time horizon
+
+   - $r(t \mid X) \in [0,1]$ :: Risk prediction at time $t$ given baseline covariates
+
+\pause     
+*** Risk prediction model
+   We assume the risk prediction model $r$ is fixed (i.e., non-random); for instance, it could have
+   been fitted on a separate data set. We want to use the data $(X_i, T_i)$, $i=1,\dots,n$ to
+   evaluate the performance of $r$. \pause
+*** Example
+    Is a particular bio-marker relevant for predicting the risk of developing some disease within
+    the next two years? Is it relevant when other risk factors are measured?
+
+** The Brier score
+   - $Y(t) \in \{0,1\}$ :: Event indicator at time $t$, i.e., $Y(t):= \1\{T \leq t\}$
+
+   \vfill \pause
+
+   The (average) Brier score of the risk model $r$ is the (average of the) squared difference
+   between $Y(t)$ and the predicted risk according to the model, i.e.,
+   #+begin_export latex
+   \begin{equation*}
+     \E\left[ 
+       \left\{
+	 Y(t) - r(t \mid X)
+       \right\}^2 \right].
+   \end{equation*}
+   #+end_export
+   \pause \vspace{-1cm}
+   
+*** Comparison to other models                                   :B_noheader:
+    :PROPERTIES:
+    :BEAMER_env: noheader
+    :END:
+**** Table                                                            :BMCOL:
+     :PROPERTIES:
+     :BEAMER_col: .45
+     :END:
+     | Benchmark prediction | Brier score |
+     |----------------------+-------------|
+     | 50% always           |         25% |
+     | Overall event prob.  |  See figure |
+     | Coin toss            |         50% |
+     | Uniform[0,1]         |         33% |
+
+**** Picture                                                          :BMCOL:
+     :PROPERTIES:
+     :BEAMER_col: 0.45
+     :END:
+   #+ATTR_LATEX: :width .8\textwidth :caption \citep{gerds2021medical}
+   [[./gerds-kattan-brier-viz.png]]
+      
+** Obtaining the Brier score from censored data
+   In many cases we do not get to observe the event time $T$. \pause
+
+*** Observed data
+    - $X \in \R^p$ :: Static covariates measured at baseline ($t=0$).
+    - $\tilde T \in \R_+$ :: Observation time ($\tilde T := T \wedge C$)
+    - $\Delta \in \{0,1\}$ :: Event indicator ($\Delta := \1\{\tilde T = T\}$)
+
+    Let $(X, T) \sim Q$ and $O := (X, \tilde T, \Delta) \sim P$. \pause
+   
+*** Inverse probability of censoring weights (IPCW)
+    #+begin_export latex
+    When $T \independent C \mid X$ the Brier score is identifiable from the observed
+    data\footnote<3->{Note that $W(t)\{Y(t)-r(t\mid X)\}^2$ is a function of the observed data, as
+      $Y(t)$ is observed whenever $W(t)$ is non-zero.}:
+    \begin{equation*}
+      \E_Q\left[ 
+	\left\{
+	  Y(t) - r(r \mid X)
+	\right\}^2 \right]
+      = \E_P\left[
+	W(t)
+	\left\{
+	  Y(t) - r(r \mid X)
+	\right\}^2 \right],
+    \end{equation*}
+    with
+    \begin{equation*}
+      W(t) = \frac{\1({\tilde{T} >t})}{G(t \mid X)} + \frac{\1({\tilde{T}\leq
+	  t})\Delta}{G(\tilde{T}\mid X)}.
+    \end{equation*}
+    #+end_export
+
+    
+** Visualizing the reweighting
+   
+#+BEGIN_SRC R :results silent
+  library(ggplot2)
+  library(data.table)
+  
+  p.weights <- function(data, label.height=2.8){
+    pp0 <- ggplot(data, aes(x=patient, y=weight, fill=factor(observed))) + theme_classic() + 
+      geom_col() + facet_wrap(~group, scales="free_x", strip.position = "bottom") +
+      xlab("") +
+      theme(axis.ticks.x=element_blank(), axis.text.x=element_blank(), legend.position="none") +
+      scale_y_continuous(expand=c(0,0), limits=c(-0.05,label.height)) +
+      geom_text(data=data[patient %in% c(3, 8)], aes(label=label, y=label.height-0.2), size=10)
+    if(data[,any(observed==0)])
+      pp0 <- pp0+ scale_fill_manual(labels=c(0,1), values=c("grey90", "grey20"))
+    else
+      pp0 <- pp0+ scale_fill_manual(values=c("grey20"))
+    return(pp0)
+  }
+  
+  dd <- data.table(patient=factor(1:10),
+		   group=factor(rep(c("a","b"), each=5)),
+		   weight=1,
+		   observed=1)
+  dd[, label:=paste(round(sum(weight), digits=1), "patients"), by=group]    
+  
+  a.cens <- 0.2
+  b.cens <- 0.6
+  dd1 <- copy(dd)
+  set.seed(3)
+  dd1[group=="a", observed:=sample(c(0,1), size=.N, prob=c(a.cens, 1-a.cens), replace=TRUE)]
+  dd1[group=="b", observed:=sample(c(0,1), size=.N, prob=c(b.cens, 1-b.cens), replace=TRUE)]
+  dd1[, label:=paste(round(sum(weight*observed), digits=1), "patients"), by=group]
+  dd1
+  
+  dd2 <- copy(dd1)
+  dd2[, weight:=1/(1-ifelse(group=="a", a.cens, b.cens))]
+  dd2[, label:=paste(round(sum(weight*observed), digits=1), "patients"), by=group]
+  dd2[observed==0, weight:=NA]
+#+END_SRC
+
+
+*** full data
+    :PROPERTIES:
+    :BEAMER_act: <1>
+    :BEAMER_env: onlyenv
+    :END:
+    
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 5
+p.weights(dd)
+#+END_SRC     
+
+#+RESULTS[(2021-09-20 09:09:53) 13cedee4381bd58b77c89e31a052ff264e30cf9f]:
+[[file:/tmp/babel-uSK2rt/figure-63LY1z.pdf]]
+     
+
+*** missing data
+    :PROPERTIES:
+    :BEAMER_act: <2>
+    :BEAMER_env: onlyenv
+    :END:
+    
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 5
+p.weights(dd1)
+#+END_SRC     
+
+#+RESULTS[(2021-09-20 09:09:53) e294c53872dd9a38fa522c4eba07d5971da8abe0]:
+[[file:/tmp/babel-uSK2rt/figure-hngddQ.pdf]]
+     
+
+*** reweighted data
+    :PROPERTIES:
+    :BEAMER_act: <3>
+    :BEAMER_env: onlyenv
+    :END:
+    
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 5
+p.weights(dd2)
+#+END_SRC     
+
+#+RESULTS[(2021-09-20 09:09:53) c56f8daa2614b06f40fe0b039bdb426d9e9632b7]:
+[[file:/tmp/babel-uSK2rt/figure-Jnvx9e.pdf]]
+     
+** Estimating the Brier score from censored data
+   \small
+   By estimating the censoring distribution $G$ we obtain the IPCW estimator
+   #+begin_export latex
+   \begin{equation*}
+     \widehat{W}_i(t)=\frac{\1({\tilde{T}_i >t})}{\hat{G}(t \mid X_i)} + \frac{\1({\tilde{T}_i\leq
+	 t})\Delta_i}{\hat{G}(\tilde{T}_i\mid X_i)},
+     \quad \hat{\theta}_n^t = \empmeas[\widehat{W}_i(t)
+     \left\{
+       Y_i(t) - r(t \mid X_i)
+     \right\}^2]
+   \end{equation*}
+   #+end_export
+
+   \vfill \pause
+   - The parametric ($n^{-1/2}$) rate of convergence of $\hat G_n$ is obtainable under suitable
+     assumptions on the censoring distribution (for instance random censoring or a Cox model),
+     giving also $n^{-1/2}$ convergence and asymptotic normality of $\hat\theta^t_n$. \pause
+   - Such assumptions can be unpleasant, in particular if we are validating a risk prediction model
+     for which we /do not/ make similar assumptions (e.g., random forests or other "data-adaptive"
+     estimator). \pause
+   - When modeling $G$ with flexible, data-adaptive methods we cannot expect \(n^{-1/2}\)-rate
+     convergence, and hence the simple plug-in estimator $\hat\theta^t_n$ cannot be expected to be
+     $n^{-1/2}$ consistent and asymptotically normal in this setting. \pause
+              \vfill
+
+*** gray                                        :B_beamercolorbox:
+    :PROPERTIES:
+    :BEAMER_env: beamercolorbox
+    :BEAMER_opt: rounded=true
+    :END:
+
+    \normalsize \centering Can we construct an IPCW estimator using "flexible/data-adaptive"
+    estimation of G?
+
+** Brier score estimation with "flexible" censoring modeling
+   By "flexible" we mean estimators of the censoring distribution not converging at parametric
+   ($n^{-1/2}$) rate. The problem with the plug-in estimation using such nuisance parameter
+   estimators is *bias*.
+   \vfill \pause
+
+*** DML \small \citep{chernozhukov2017double} \large / one-step estimation
+    Construct estimators as the solution to the empirical efficient score equation. The obtained
+    estimator is no longer an IPCW estimator. \pause
+   
+*** Undersmoothing
+    Challenging to do for general nuisance parameter estimators, but some recent work for the Highly
+    Adaptive Lasso (HAL) estimator \small
+    \citep{ertefaie2020nonparametric,van2019efficient}\normalsize. Seems computationally
+    challenging. \pause
+    
+*** TMLE \small \citep{van2011targeted,van2006targeted}
+    TMLE constructs a *plug-in estimator* that solves the efficient score equation. Typically based
+    on the G-formula, but theoretically this should not be important.
+       
+* IPCW estimator using TMLE
+** Using TMLE to obtain a "debiased" IPWC-type estimator :noexport:
+*** Summary
+    #+ATTR_LATEX: :options [<+->]
+    - We want to obtain an IPCW estimator to keep the interpretation of the estimator as a /weighted
+      Brier score/.
+    - We want to be able use "flexible" estimators of the censoring distribution $G$, which do not
+      converge at parametric rate.
+    - Use the plug-in property of the TMLE approach to achieve this.
+    - Update "the other" nuisance parameter than typically done with TMLE.
+   
+** Different ways to the target
+   The target parameter (average Brier score) can be identified from the observed data using either
+   the censoring or the survival distribution as nuisance parameter:
+   #+begin_export latex
+   \begin{equation*}
+     \E_Q\left[ 
+       \left\{
+	 Y(t) - r(t \mid X)
+       \right\}^2 \right]
+     = \E_P\left[ \phi^t_{\mathrm{IPCW}}(O; G) \right]
+     = \E_P\left[ \phi^t_{\mathrm{alt}}(O; S) \right],
+   \end{equation*}
+   with
+   \begin{equation*}
+     \phi^t_{\mathrm{IPCW}}(O; G) = 
+     \left(
+       \frac{\1({\tilde{T}_i >t})}{G(t \mid X_i)} + \frac{\1({\tilde{T}_i\leq
+	   t})\Delta_i}{G(\tilde{T}_i\mid X_i)}
+     \right) \left\{
+       Y(t) - r(t \mid X)
+     \right\}^2,
+   \end{equation*}
+   and
+   \begin{equation*}
+     \phi^t_{\mathrm{alt}}(O; S) = 
+     \left(
+       1- S(t \mid X)
+     \right) \left\{
+       1 - 2r(t \mid X) 
+     \right\}  + r(t\mid X)^2.
+   \end{equation*}
+   #+end_export
+
+** Representations of the efficient influence function
+   #+begin_export latex
+   The functions $\phi^t_{\mathrm{IPCW}}$ and $\phi^t_{\mathrm{alt}}$ are influence functions in
+   models where, respectively, $G$ or $S$ are known. \pause Semiparametric efficiency theory then
+   tells us that the efficient influence function $\phi^t$ (under the non-parametric model) can be
+   obtained as either
+   \begin{equation*}
+     \phi^t = 
+     \phi^t_{\mathrm{IPCW}} - \Pi
+     \left[
+       \phi^t_{\mathrm{IPCW}} \midd \mathcal{T}_{G}
+     \right],
+   \end{equation*}
+   or
+   \begin{equation*}
+     \phi^t = 
+     \phi^t_{\mathrm{alt}} - \Pi
+     \left[
+       \phi^t_{\mathrm{alt}} \midd \mathcal{T}_{S}
+     \right],
+   \end{equation*}
+   where $\mathcal{T}_G$ and $\mathcal{T}_S$ are the orthogonal components of the tangent space
+   corresponding to the parameters $G$ and $S$, i.e., $\mathcal{T} = \mathcal{T}_G \oplus \mathcal{T}_S$.
+   #+end_export
+
+   \vfill \pause
+
+   Both representation can be useful; and starting from one, it might not be complete
+   straightforward to derive the alternative one.
+
+** The efficient influence function
+
+   The two representations give
+   #+begin_export latex
+   \begin{align*}
+     \phi^t(O; S, G) =   & \phi^t_{\mathrm{IPCW}}(O; G)
+     \\ & \quad +
+	  \{1-r(t \mid X)\}^2 \int_0^t \frac{M^C(\diff s \mid X; G)}{G(s \mid X)}
+     \\ & \quad -
+	  \{1-2r(t \mid X)\} S(t \mid X) \int_0^t \frac{M^C(\diff s \mid X; G)}{G(s \mid X) S(s
+	  \mid X)},
+   \end{align*}
+   and
+   \begin{align*}
+     \phi^t(O; S, G) = & \phi^t_{\mathrm{alt}}(O; S)
+     \\ & \quad + \left[ % sign!
+       \int_0^t \frac{M(\diff s \mid X; S)}{S(s\mid X)G(s \mid X)} \right] S(t \mid X)
+     (1 - 2r(t\mid X)).
+   \end{align*}
+   #+end_export
+
+** Decomposition
+   \small
+   #+begin_export latex
+   We want to pick the nuisance estimator $\hat G_n$ such that the estimator
+   \begin{equation*}
+     \hat{\theta}^t_n = \tilde{\Psi}^t(\hat G_n, \empmeas) =
+     \empmeas
+     \left[
+       \phi^t_{\mathrm{IPCW}}(O; \hat{G}_n)
+     \right]
+   \end{equation*}
+   is asymptotically linear (and efficient), i.e., such that
+   \begin{equation*}
+     \hat{\theta}^t_n - \theta = (\empmeas-P)[\phi^t(O;G_P, S_P)] + \smallO_P(n^{-1/2}).
+   \end{equation*}
+   \pause Let $f^t:= -\Pi(\phi^t_{\mathrm{IPWC}} \mid \mathcal{T}_G)$ and consider
+   the decomposition
+   \begin{align*}
+     & \tilde{\Psi}^t(\hat G_n, \empmeas) - \tilde{\Psi}^t(G_P, P)
+     \\ & = \empmeas
+	  \left[
+	  \phi^t_{\mathrm{IPCW}}(O; \hat{G}_n)
+	  \right] - \tilde{\Psi}^t(G_P, P)
+	  \pm \empmeas
+	  \left[
+	  f^t(O; \hat{G}_n, \hat{S}_n)
+	  \right]
+     \\ & = \empmeas
+	  \left[
+	  \phi^t(O; \hat{G}_n, \hat{S}_n)
+	  \right] - \tilde{\Psi}^t(G_P, P)
+	  - \empmeas
+	  \left[
+	  f^t(O; \hat{G}_n, \hat{S}_n)
+	  \right]
+     \\ & = (\empmeas-P)
+	  \left[
+	  \phi^t(O; \hat{G}_n, \hat{S}_n)
+	  \right] 
+	  +\mathrm{Rem}(\hat{G}_n, \hat{S}_n, P)
+	  - \empmeas
+	  \left[
+	  f^t(O; \hat{G}_n, \hat{S}_n)
+	  \right],
+	  \\ & =: (A) + (B) + (C)
+   \end{align*}
+   with
+   \begin{equation*}
+     \mathrm{Rem}(G, S, P) := P[\phi^t(O ; G, S)] - \tilde{\Psi}^t(G_P, P).
+   \end{equation*}
+   #+end_export
+
+** Donsker condition and remainder term
+   \small
+
+*** \small $(\empmeas-P) [\phi^t(O; \hat{G}_n, \hat{S}_n) ]$: :B_ignoreheading:
+    :PROPERTIES:
+    :BEAMER_env: ignoreheading
+    :END:
+   #+begin_export latex
+   Donsker class conditions (or sample splitting) gives
+   \begin{equation*}
+    (A) = (\empmeas-P) \left[ \phi^t(O; \hat{G}_n, \hat{S}_n) \right]
+     = (\empmeas-P) \left[ \phi^t(O ; G, S) \right] + \smallO_P(n^{-1/2}).
+   \end{equation*}
+   #+end_export
+
+*** \small $\mathrm{Rem}(P, \hat{G}_n, \hat{S}_n)$:         :B_ignoreheading:
+    :PROPERTIES:
+    :BEAMER_env: ignoreheading
+    :END:
+    #+begin_export latex
+    \vfill \pause
+
+   As $\mathrm{Rem}(P, \hat{G}_n, \hat{S}_n) = \tilde{\Psi}^t(\hat{G}_n, P) - \tilde{\Psi}^t(G_P, P) +
+   P[f^t(O; \hat{G}_n, \hat{S}_n)]$ and $f^t(O; \hat{G}_n, \hat{S}_n)$ acts like the derivative of $G
+   \mapsto \tilde{\Psi}^t(G, P)$, a functional Taylor expansion would suggest that
+   \begin{equation*}
+     (B) = \mathrm{Rem}(P, \hat{G}_n, \hat{S}_n) = \mathcal{O}_P
+     \left(
+       \Vert (\hat G_n, \hat S_n) - ( G,  S) \Vert^2
+     \right).
+   \end{equation*}
+    #+end_export
+
+*** Conclusion                                              :B_ignoreheading:
+    :PROPERTIES:
+    :BEAMER_env: ignoreheading
+    :END:
+#+begin_export latex
+\vfill \pause   
+Thus, when the Donsker condition holds, and $\Vert\hat{G}_n- G\Vert = \smallO_P(n^{-1/4})$ and
+$\Vert\hat{S}_n- S\Vert = \smallO_P(n^{-1/4})$, we have
+\begin{equation*}
+  \tilde{\Psi}^t(\hat G_n, \empmeas) - \tilde{\Psi}^t(G_P, P)
+  =  (\empmeas-P)
+  \left[
+    \phi^t(O; G_P, S_P)
+  \right] 
+  - \empmeas
+  \left[
+    f^t(O; \hat{G}_n, \hat{S}_n)
+  \right] + \smallO_P(n^{-1/2})
+\end{equation*}
+\pause TMLE focuses on constructing $\hat{G}_n$ such that
+$ (C) = \empmeas \left[ f^t(O; \hat{G}_n, \hat{S}_n) \right] \approx 0$.\footnote<5->{Note that the exact same
+  arguments would hold if we replaced $\phi^t_{\mathrm{IPCW}}$ with $\phi^t_{\mathrm{alt}}$ and used
+  $f^t=-\Pi(\phi^t_{\mathrm{alt}} \mid \mathcal{T}_S)$ instead of
+  $f^t=-\Pi(\phi^t_{\mathrm{IPWC}} \mid \mathcal{T}_G)$.}   
+#+end_export
+
+** The TMLE strategy for controlling the remaining component
+   #+begin_export latex
+   We construct the estimator $\hat{G}$ of $G$ as $\hat{G} = e^{-\hat{\Lambda}_C}$ where
+   $\hat{\Lambda}_C$ is the cumulative hazard of censoring. \pause We assume available (initial
+   estimators) $\hat{\Lambda}_C^0$ and $\hat{\Lambda}$, where $\hat{\Lambda}$ is the cumulative
+   hazard of the event of interest. \pause To construct $\hat{\Lambda}_C$ in the right way, we
+   recursively construct fluctuation models
+   \begin{equation*}
+     \mathcal{F}^{k}:=
+     \left\{
+       \hat{\Lambda}_C^{k}(\blank;\epsilon) \, : \, \epsilon \in \R
+     \right\} \subset \mathcal{F}, \quad k = 1, 2, \dots, 
+   \end{equation*}
+   and let $\epsilon^*_k$ denote the MLE of the fluctuation model $\mathcal{F}^{k}$, and
+   $\hat{\Lambda}_C^k := \hat{\Lambda}_C^k(\blank; \epsilon^*_k)$ the model corresponding to the MLE. \pause
+   These should be constructed such that
+   \begin{enumerate}
+   \item \label{item:1} At $\epsilon = 0$, $\hat{\Lambda}_C^1(\blank; 0) = \hat{\Lambda}_C^0$ and
+     $\hat{\Lambda}_C^{k+1}(\blank;0) = \hat{\Lambda}_C^{k} =
+     \hat{\Lambda}_C^{k}(\blank;\epsilon^*_k)$. \pause
+   \item \label{item:2} The score function of the model
+     $\hat{P}_n^{k+1}(\blank;\epsilon)$ equals $f^t$, i.e.,
+     \begin{equation*}
+       \frac{\partial }{\partial \epsilon} \Big\vert_{\epsilon=0} \log\diff\hat{P}_n^{k+1}(\blank;\epsilon) = f^t(\blank; e^{-\hat{\Lambda}_C^{k}}, e^{-\hat{\Lambda}}).
+     \end{equation*}
+   \end{enumerate}
+   #+end_export
+
+** The obtained estimator works
+   #+begin_export latex   
+   If the procedure converges after some $K$, we set
+   $\hat{\Lambda}_C = \hat{\Lambda}_C(\blank \; ; \epsilon^*_K)$; then
+   \begin{align*}
+     \empmeas[f^t(O; e^{-\hat{\Lambda}_C}, e^{-\hat{\Lambda}})]
+     & \approx \empmeas[f^t(O; e^{-\hat{\Lambda}_C^{K-1}}, e^{-\hat{\Lambda}})]
+     \\ &  = \frac{\partial }{\partial \epsilon} \Big\vert_{\epsilon=0}\empmeas
+	  \left[
+	  \log\diff\hat{P}_n^{K}(\blank;\epsilon)
+	  \right]
+     \\ &
+	  \approx \frac{\partial }{\partial \epsilon} \Big\vert_{\epsilon=\epsilon^*_K}\empmeas
+	  \left[
+	  \log\diff\hat{P}_n^{K}(\blank;\epsilon)
+	  \right]
+	  = 0,
+   \end{align*}
+   as $\epsilon^*_K \approx 0$ because the procedure is converging. 
+   #+end_export
+
+** Fluctuation model
+   #+begin_export latex
+   We can choose a multiplicative update step to get the fluctuation model
+   \begin{equation*}
+     \mathcal{F}^{k+1}:=
+     \left\{
+       \hat{\Lambda}_C^{k+1}(\blank;\epsilon) \midd 
+       \hat{\Lambda}_C^{k+1}(\diff s \mid x ; \epsilon) :=  e^{\epsilon g(s, x ;
+	 \hat{\Lambda}_C^k, \hat{\Lambda} )}  \hat{\Lambda}_C^{k}( \diff s \mid x ),
+       \epsilon \in \R
+     \right\},
+   \end{equation*}
+   where
+   \begin{equation*}
+     g(s, x ; \Lambda_C, \Lambda) :=
+     \1(s \leq t)\left\{
+       \frac{\{1-r(t \mid x)\}^2}{e^{-\Lambda_C(s \mid x)}}
+       - \frac{\{1-2r(t \mid x)\} e^{-\Lambda(t \mid x)}} {e^{-\Lambda_C(s \mid x) - \Lambda(s \mid x)}}
+     \right\}.
+   \end{equation*}
+   \pause One can then verify that $\hat{\Lambda}_C^{k+1}(\blank;0) = \hat{\Lambda}_C^{k}$ and 
+   \begin{align*}
+     \frac{\partial }{\partial \epsilon} \Big\vert_{\epsilon=0}\log\diff \hat{P}_n^{k+1}(O; \epsilon)
+     & = \int g(s, X; \hat{\Lambda}_C^k, \hat{\Lambda})  M_C(\diff s \mid X; \hat{\Lambda}_C)
+     \\ & = f^t(O; e^{-\hat{\Lambda}_C^k}, e^{-\hat{\Lambda}}).
+   \end{align*}
+   #+end_export
+
+** Final algorithm
+   \small
+   #+begin_export latex
+   \begin{algorithm}[H]
+     \caption{TMLE-based IPCW estimator of the average Brier score.}
+     \SetKwInOut{KwIn}{Input}
+     \SetKwInOut{KwOut}{Output}
+     
+     \KwIn{Data $O_i$, $i=1, \dots, n$, risk prediction model $r$, and estimates $\hat{\Lambda}_C^0$ and $\hat{\Lambda}$}
+     
+     \KwOut{Estimate of the average Brier score}
+       $\epsilon^* \gets \infty$
+     
+     $\hat{\Lambda}_C \gets \hat{\Lambda}_C^0$
+   
+     \While{$\epsilon^* \not \approx 0$}{
+   
+       $
+       g(s, x ; \hat{\Lambda}_C, \hat{\Lambda}) \gets \1(s \leq t)\left\{ \frac{\{1-r(t \mid x)\}^2}{e^{-\hat{\Lambda}_C(s \mid x)}}
+	 - \frac{\{1-2r(t \mid x)\} e^{-\hat{\Lambda}(t \mid x)}} {e^{-\hat{\Lambda}_C(s \mid x) - \hat{\Lambda}(s \mid x)}}
+       \right\}
+       $
+       
+       $\hat{\Lambda}_C^{\dagger}(\diff s \mid x ; \epsilon) \gets e^{\epsilon g(s, x ; \hat{\Lambda}_C, \hat{\Lambda} )} \hat{\Lambda}_C(
+       \diff s \mid x ) $
+   
+       $\epsilon^* \gets \mathrm{argsmax}_{\epsilon}\sum_{i=1}^{n} \left\{ (1- \Delta_i)\log(\diff
+	 \hat{\Lambda}_C^{\dagger}(\tilde{T}_i \mid X_i; \epsilon)) -\hat{\Lambda}_C^{\dagger}(\tilde{T}_i \mid X_i;
+	 \epsilon) \right\} $
+   
+       $\hat{\Lambda}_C \gets \hat{\Lambda}_C(\blank; \epsilon^*)$
+     }
+   
+     $\hat{G}(s \mid x) \gets e^{-\hat{\Lambda}_C(s\mid x)}$
+   
+     $\widehat{W}_i\gets \frac{\1({\tilde{T}_i >t})}{\hat{G}(t \mid X_i)} + \frac{\1({\tilde{T}_i\leq
+	 t})\Delta_i}{\hat{G}(\tilde{T}_i\mid X_i)}$, for $i = 1, \dots, n$
+   
+     $\hat{\theta}^t_n \gets \frac{1}{n}\sum_{i=1}^{n}\widehat{W}_i\{r(t\mid X_i) - Y_i\}^2$
+     
+     \Return $\hat{\theta}^t_n$
+   \end{algorithm}
+   #+end_export
+
+* Thoughts and discussion
+
+** Next steps and discussion   
+  - Implement the estimator...
+  - Construct both type of TMLE plug-in estimators -- is the are finite sample difference, and are
+    they more or sensitive to mis-specification of which nuisance model?
+  - Compare with undersmoothing -- should be quite similar, and maybe they don't have to construct a
+    fluctuation model?
+  - Extend to time-dependent covariates.
+  - General discussion about cross validation in the presence of censoring. 
+
+** Thank you!
+
+   \centering Thought and comments?
+
+* References 
+
+** References
+\small \bibliography{/home/amnudn/Documents/latex/default-bib.bib}
+
+
+* HEADER :noexport:
+#+TITLE: Debiased Brier score estimation using TMLE
+#+Author: Anders Munch (with Thomas G., Helene, and Paul)
+#+Date: \today
+
+#+LANGUAGE:  en
+#+OPTIONS:   H:2 num:t toc:nil ':t ^:t
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LATEX_CLASS_OPTIONS: [smaller]
+#+LaTeX_HEADER: \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+#+LaTeX_HEADER: \bibliographystyle{abbrvnat}
+#+LaTeX_HEADER: \input{/home/amnudn/Documents/latex/standard-commands.tex}
+#+BIBLIOGRAPHY: /home/amnudn/Documents/latex/default-bib plain
+#+LaTeX_HEADER: \usepackage[noend,ruled]{algorithm2e}
+
+# Beamer settins:
+# #+LaTeX_HEADER: \usefonttheme[onlymath]{serif} 
+#+LaTeX_HEADER: \setbeamertemplate{footline}[frame number]
+#+LaTeX_HEADER: \beamertemplatenavigationsymbolsempty
+#+LaTeX_HEADER: \usepackage{appendixnumberbeamer}
+#+LaTeX_HEADER: \setbeamercolor{gray}{bg=white!90!black}
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+
+# Check this:
+# #+LaTeX_HEADER: \lstset{basicstyle=\ttfamily\small}
+
+# For handout mode: (check order...)
+# #+LATEX_CLASS_OPTIONS: [handout]
+# #+LaTeX_HEADER: \pgfpagesuselayout{4 on 1}[border shrink=1mm]
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{1}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{2}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{3}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{4}{border code=\pgfusepath{stroke}}

@@ -1,0 +1,461 @@
+* Setting: Estimation of the ATE and undersmoothing
+
+** The article
+*** overlay block 
+    :PROPERTIES:
+    :BEAMER_act: <1>
+    :BEAMER_env: onlyenv
+    :END:
+    
+#+ATTR_LATEX: :width 0.75\textwidth
+[[./screenshots/abstract.png]]
+
+*** overlay block 
+    :PROPERTIES:
+    :BEAMER_act: <2>
+    :BEAMER_env: onlyenv
+    :END:
+
+    #+ATTR_LATEX: :width 0.9\textwidth
+    [[./screenshots/abstract2.png]]
+
+
+** Setting and notation -- the average treatment effect
+#+ATTR_LATEX: :options [<+->]
+- We observe $n$ iid. samples from \(O = (W, A, Y) \sim P_0 \in \mathcal M\), where \(\mathcal M\)
+  is the nonparametric model.
+- \(W \in \mathcal W\) are baseline covariates, \(A \in \{0,1\}\) is treatment indicator, and \(Y\)
+  is the outcome of interest.
+- \(G \colon \mathcal M \rightarrow \mathcal G\) with \(\mathcal G := \{G(P) \, : \, P \in \mathcal
+  M\}\) is the functional nuisance parameter \(G := G(P) \) denoting the treatment mechanism, i.e.,
+  \(G(P)(a \mid w) := \E_{P}(A=a \mid W=w)\).
+- We let \(Y^a\) denote the potential outcome under the intervention \(\mathrm{do}(A = a)\), and the
+  full data unit as \(X = (W, Y^0, Y^1) \sim P_X \in \mathcal M^F\).
+- The target parameter is \(\Psi^F \colon \mathcal M^F \rightarrow \R\), \(\Psi^F(P_X) :=
+  \E_{P_X}(Y^1)\), i.e., the mean counterfactual outcome under treatment.
+- Under standard identification assumptions
+  #+BEGIN_EXPORT latex
+  \begin{equation*}
+    \Psi^F(P_X) = \Psi(P) := \E_{P}[\E_{P}(Y \mid A=1, W)],
+  \end{equation*}
+  #+END_EXPORT
+  where $\Psi\colon \mathcal M \rightarrow \R$.
+
+** Score functions and canonical gradient
+#+ATTR_LATEX: :options [<+->]
+Score function using inverse probability weights:
+#+BEGIN_EXPORT latex
+\begin{equation*}
+  U_G(O; \Psi) := \frac{AY}{G(1 \mid W)} - \Psi(P).
+\end{equation*}
+#+END_EXPORT
+\pause Score function based on the canonical gradient
+#+BEGIN_EXPORT latex
+\begin{equation*}
+  D^{\star}(O; P) := U_G(O; \Psi) - D_{\text{CAR}}(P),
+\end{equation*}
+#+END_EXPORT
+where \(D_{\text{CAR}}(P) = \Pi(U_G(\Psi) \mid T_{\text{CAR}})\) is the projection onto the nuisance
+tangent space \(T_{\text{CAR}}\). \pause The projection is given as
+#+BEGIN_EXPORT latex
+\begin{equation*}
+  D_{\text{CAR}}(P) = \frac{A - G(A \mid W)}{G(A \mid W)}Q(1, W),
+\end{equation*}
+#+END_EXPORT
+where \(Q(1, W) := \E_{P}(Y \mid A=1, W)\) is the conditional mean outcome \citep{robins1994estimation,van2003unified}.
+
+
+** Estimating the ATE -- solve a score function
+\pause
+*** Solve \(P_n[U_{G_n}] = 0\): The inverse probability weighted estimator
+    :PROPERTIES:
+    :END:
+#+BEGIN_EXPORT latex
+\begin{equation*}
+  \Psi(P_n, G_n) = \frac{1}{n}\sum_{i=1}^{n}\frac{A_iY_i}{G_n(A_i \mid W_i)}.
+\end{equation*}
+#+END_EXPORT
+\pause
+*** Solve \(P_n[D^{\star}_{G_n, Q_n}] = 0\): The augmented IPW estimator
+    :PROPERTIES:
+    :END:
+#+BEGIN_EXPORT latex
+\begin{equation*}
+  \Psi^{\star}(P_n, G_n, Q_n) = \frac{1}{n}\sum_{i=1}^{n}\frac{A_iY_i}{G_n(A_i \mid W_i)} -
+  \frac{A_i - G_n(A_i \mid W_i)}{G_n(A_i \mid W_i)}Q_n(1, W_i).
+\end{equation*}
+#+END_EXPORT
+
+\hfill
+
+\pause
+#+ATTR_LATEX: :options [\leftmargin=1em]
+- \color{green}\checkmark :: Vanishing first order bias -- rate \(n^{-1/4}\) sufficient for \(G_n\)
+     and \(Q_n\) \pause
+- \color{red}$\times$ :: Two nuisance parameters to estimate \pause
+- \color{red}$\times$ :: Need to find the EIF
+
+* HAL
+** The Highly Adaptive Lasso (HAL) -- nuisance estimator
+*** overlay block 
+    :PROPERTIES:
+    :BEAMER_act: <2>
+    :BEAMER_env: onlyenv
+    :END:
+    
+   \(\mathbb{D}[0, \tau]\) is the Banach space of real-valued càdlàg functions on a cube \([0,\tau]
+   \in \R^d\). For a function $f \in \mathbb{D}[0, \tau]$ and a subset \(s \subset \{1, \dots, d\}\)
+   define
+#+BEGIN_EXPORT latex
+\begin{equation*}
+  f_s \colon [0_s, \tau_s] \rightarrow \R, \quad f_s(u_s) := f(u_s, 0_{-s}),
+\end{equation*}
+#+END_EXPORT
+where \(u_s = (u_j \, : \, j \in s)\) and \(u_{-s}\) is the complement of \(u_s\). 
+
+\vfill
+
+The sectional variation norm of a function \(f \in \mathbb{D}[0, \tau]\) is
+#+BEGIN_EXPORT latex
+\begin{equation*}
+  \Vert f \Vert_{\nu}^{\star} := |f(0)| + \sum_{s \subset \{1, \dots, d \}}\int_{0_s}^{\tau_s}  |\diff f_s(u_s)|,
+\end{equation*}
+#+END_EXPORT
+where the sum is over all subset of the coordinates \(\{1, \dots, d\}\).
+
+*** overlay block 
+    :PROPERTIES:
+    :BEAMER_act: <3>
+    :BEAMER_env: onlyenv
+    :END:
+
+    
+#+ATTR_LATEX: :width 1.03\textwidth
+[[./screenshots/hal.png]]
+
+** The smoothing hyperparameter
+#+PROPERTY: header-args:R  :results output verbatim  :exports results  :session *R* :cache yes
+#+BEGIN_SRC R :results none :exports none
+  library(data.table)
+  library(hal9001)
+  library(ggplot2)
+  set.seed(1)
+  x <- sort(runif(9))
+  y <- c(1,1,0,1,0,1,0,0,1)
+  hal.fit <- fit_hal(X=x, Y=y, cv_select = FALSE, lambda = c(1,0.2, 0.17, 0.15, 0.1, 0.0000001))
+  plot.dat <- cbind(data.table(X=x, Y=y),
+		    predict(hal.fit, new_data=x))
+  plot.dat2 <- cbind(data.table(X=c(0,1,x)),
+		    predict(hal.fit, new_data=c(0,1,x)))
+  ## Don't get why larger lambda is *more* penalty?...
+#+END_SRC
+
+*** overlay block 
+    :PROPERTIES:
+    :BEAMER_act: <1>
+    :BEAMER_env: onlyenv
+    :END:
+    \color{white}     \center small $\lambda \quad \quad \quad \quad \quad$ large
+    #+BEGIN_SRC R :results graphics :exports results :file ./hal-smoothing-dat.pdf :width 5 :height 4
+ggplot(plot.dat, aes(x=X, y=Y)) + 
+    geom_point(aes(col=factor(Y)), size=3) + xlim(c(0,1)) +
+    ylab("A") + theme_classic() + theme(legend.position="none")
+#+END_SRC
+
+#+RESULTS[<2021-05-25 23:36:28> 932a23a0e0b3048465e39f3cfc33fa00a1b0f126]:
+[[file:./hal-smoothing-dat.pdf]]
+
+*** overlay block 
+    :PROPERTIES:
+    :BEAMER_act: <2>
+    :BEAMER_env: onlyenv
+    :END:
+
+    \center small $\quad \lambda \quad \quad \quad \quad \quad \quad$ large
+    
+#+BEGIN_SRC R :results graphics :exports results :file ./hal-smoothing0.pdf :width 5 :height 4
+ggplot(plot.dat, aes(x=X, y=Y)) + 
+    geom_step(data=plot.dat2, aes(x=X, y=s0), size=2) +
+    geom_point(aes(col=factor(Y)), size=3) + 
+    ylab("A") + theme_classic() + theme(legend.position="none")
+#+END_SRC
+
+#+RESULTS[<2021-05-25 23:29:08> bbe279a654954661170ec16237e615192c6f7080]:
+[[file:./hal-smoothing0.pdf]]
+
+*** overlay block 
+    :PROPERTIES:
+    :BEAMER_act: <3>
+    :BEAMER_env: onlyenv
+    :END:
+
+    \center small $\quad \quad \lambda \quad \quad \quad \quad \quad$ large
+    
+#+BEGIN_SRC R :results graphics :exports results :file ./hal-smoothing1.pdf :width 5 :height 4
+ggplot(plot.dat, aes(x=X, y=Y)) + 
+    geom_step(data=plot.dat2, aes(x=X, y=s1), size=2) +
+    geom_point(aes(col=factor(Y)), size=3) + 
+    ylab("A") + theme_classic() + theme(legend.position="none")
+#+END_SRC
+
+#+RESULTS[<2021-05-25 23:29:28> cb00c70e4d7efe9e187a99af5e71becc9a9e9107]:
+[[file:./hal-smoothing1.pdf]]
+
+*** overlay block 
+    :PROPERTIES:
+    :BEAMER_act: <4>
+    :BEAMER_env: onlyenv
+    :END:
+
+    \center small $\quad \quad \quad  \lambda \quad \quad \quad \quad$ large
+    
+#+BEGIN_SRC R :results graphics :exports results :file ./hal-smoothing2.pdf :width 5 :height 4
+ggplot(plot.dat, aes(x=X, y=Y)) + 
+    geom_step(data=plot.dat2, aes(x=X, y=s2), size=2) +
+    geom_point(aes(col=factor(Y)), size=3) + 
+    ylab("A") + theme_classic() + theme(legend.position="none")
+#+END_SRC
+
+#+RESULTS[<2021-05-25 23:30:31> dbe78b2323f9b70c5eff63e61f9a2549125a2dba]:
+[[file:./hal-smoothing2.pdf]]
+
+*** overlay block 
+    :PROPERTIES:
+    :BEAMER_act: <5>
+    :BEAMER_env: onlyenv
+    :END:
+
+    \center small $\quad \quad \quad \quad   \lambda \quad \quad \quad$ large
+    
+#+BEGIN_SRC R :results graphics :exports results :file ./hal-smoothing3.pdf :width 5 :height 4
+ggplot(plot.dat, aes(x=X, y=Y)) + 
+    geom_step(data=plot.dat2, aes(x=X, y=s3), size=2) +
+    geom_point(aes(col=factor(Y)), size=3) + 
+    ylab("A") + theme_classic() + theme(legend.position="none")
+#+END_SRC
+
+#+RESULTS[<2021-05-25 23:30:27> 1b6f0a9e6fe9dae8c6f854b77786e0149eebd373]:
+[[file:./hal-smoothing3.pdf]]
+
+*** overlay block 
+    :PROPERTIES:
+    :BEAMER_act: <6>
+    :BEAMER_env: onlyenv
+    :END:
+
+    \center small $\quad \quad \quad \quad \quad   \lambda \quad \quad$ large
+    
+#+BEGIN_SRC R :results graphics :exports results :file ./hal-smoothing4.pdf :width 5 :height 4
+ggplot(plot.dat, aes(x=X, y=Y)) + 
+    geom_step(data=plot.dat2, aes(x=X, y=s4), size=2) +
+    geom_point(aes(col=factor(Y)), size=3) + 
+    ylab("A") + theme_classic() + theme(legend.position="none")
+#+END_SRC
+
+#+RESULTS[<2021-05-25 23:31:16> e7e296d54bcfbe6dbb8e8fe58868337f165559b4]:
+[[file:./hal-smoothing4.pdf]]
+
+*** overlay block 
+    :PROPERTIES:
+    :BEAMER_act: <7>
+    :BEAMER_env: onlyenv
+    :END:
+
+    \center small $\quad \quad \quad \quad \quad \quad   \lambda \quad$ large
+    
+#+BEGIN_SRC R :results graphics :exports results :file ./hal-smoothing5.pdf :width 5 :height 4
+ggplot(plot.dat, aes(x=X, y=Y)) + 
+    geom_step(data=plot.dat2, aes(x=X, y=s5), size=2) +
+    geom_point(aes(col=factor(Y)), size=3) + 
+    ylab("A") + theme_classic() + theme(legend.position="none")
+#+END_SRC
+
+#+RESULTS[<2021-05-25 23:31:46> 9366fabef960ff5ada7950921549dd98de93ad6c]:
+[[file:./hal-smoothing5.pdf]]
+
+** Properties of the HAL estimator
+#+ATTR_LATEX: :options [<+->]
+- Only assumption is that the target function is càdlàg with finite sectional variation norm.
+- Converges at rate faster than \(n^{-1/4}\) regardless of the dimension \(d\) of the covariate
+  space; specifically, at rate \(n^{-1/3} \log(n)^{d/2}\) \citep{van2017uniform,van2017generally}.
+- Belongs to a Donsker function class.
+- We can use cross-validation to select the penalization/smoothing parameter $\lambda$.
+
+*** Undersmoothed HAL
+    :PROPERTIES:
+    :BEAMER_act: <5->
+    :END:
+    Using CV we find the choice of $\lambda$ which gives the optimal bias-vaiance trade-off with
+    respect to the /nuisance parameter/. \pause We want instead to pick the hyperparamter $\lambda$
+    to get the correct bias-vaiance trade-off with respect to the /target parameter/ \pause
+    $\rightarrow$ undersmooth the HAL estimator.
+
+\hfill
+
+\pause Old-school knowledge that undersmoothing is needed in other similar settings (density
+estimation)
+\citep{laurent1996efficient,goldstein1996efficient,bickel2003nonparametric,goldstein1992optimal}.
+
+** Undersmoothing
+*** overlay block 
+    :PROPERTIES:
+    :BEAMER_act: <1>
+    :BEAMER_env: onlyenv
+    :END:
+    
+    \center Optimizing the nuisance estimator
+#+ATTR_LATEX: :width 1\textwidth
+[[./Undersmooth-tradeoff1.pdf]]
+
+*** overlay block 
+    :PROPERTIES:
+    :BEAMER_act: <2>
+    :BEAMER_env: onlyenv
+    :END:
+
+    \center Undersmoothing the nuisance estimator
+#+ATTR_LATEX: :width 1\textwidth
+[[./Undersmooth-tradeoff2.pdf]]
+
+* Undersmoothed HAL
+** Undersmoothing in theory
+\pause
+*** Lemma 1 and Theorem 1 of the article                                             :B_theorem:
+    :PROPERTIES:
+    :BEAMER_env: theorem
+    :END:
+
+#+BEGIN_EXPORT latex
+Let \(G_{n,\lambda_n}\) be a HAL estimator of \(G_0\) with $\lambda_n$ chosen to satisfy
+\begin{equation}
+  \label{eq:1}
+  \min_{(s,j) \in \mathcal{J}_n}\left\Vert P_n 
+  \left[
+    \frac{\partial }{\partial \epsilon} L(\mathrm{logit} G_{n, \lambda_n} + \epsilon \phi_{s,j}) 
+  \right] 
+\right\Vert = \smallO_P(n^{- \frac 1 2}),
+\end{equation}
+where $L(\blank)$ is the log-likelihood loss and $\mathcal{J}_n$ is a set of indices for the basis
+functions such that $\beta_{n,j,s} \not = 0$. Then the (IPW) estimator
+\begin{equation*}
+  \Psi(P_n, G_{n, \lambda_n}) = \frac{1}{n}\sum_{i=1}^{n}\frac{A_iY_i}{G_{n,\lambda_n}(A_i \mid W_i)}
+\end{equation*}
+is asymptotically efficient. \pause
+#+END_EXPORT
+
+*** Sketch of proof:                                                :B_proof:
+    :PROPERTIES:
+    :BEAMER_env: proof
+    :END:
+Use empirical process theory and convergence rates of HAL to write
+#+BEGIN_EXPORT latex
+\begin{equation*}
+  \Psi(P_n, G_{n, \lambda_n}) - \Psi(P_0, G_0) = P_n[D^{\star}]
+  - P_n[D_{\text{CAR}}(Q_0, G_0, G_{n,\lambda_n})] + \smallO_P(n^{- \frac 1 2})
+\end{equation*}
+#+END_EXPORT
+\pause Lemma 1 states that eqref:eq:1 implies \(P_n[D_{\text{CAR}}(Q_0, G_0, G_{n,\lambda_n})] =
+\smallO_P(n^{- \frac 1 2})\)
+
+** Undersmoothing in practice
+\pause
+
+*** overlay block 
+    :PROPERTIES:
+    :BEAMER_act: <2>
+    :BEAMER_env: onlyenv
+    :END:
+
+    #+ATTR_LATEX: :width 1.02\textwidth
+    [[./screenshots/undersmoothing-practice0.png]]
+
+*** overlay block 
+    :PROPERTIES:
+    :BEAMER_act: <3->
+    :BEAMER_env: onlyenv
+    :END:
+
+    #+ATTR_LATEX: :width 1.02\textwidth
+    [[./screenshots/undersmoothing-practice1.png]]
+
+*** \color{red} But no theoretical results about this in the article
+    :PROPERTIES:
+    :BEAMER_act: <4->
+    :END:
+
+No proof that this achieves the theoretical undersmoothing rate...?
+
+* Numerical studies (and application)
+** Numerical studies:
+
+#+ATTR_LATEX: :width 1\textwidth
+[[./screenshots/numerical-results.png]]
+
+- Scenario 1 :: Correctly specified parametric model
+- Scenario 2 :: Mis-specified parametric model
+
+** Scenario 1: Correctly specified parametric model
+#+ATTR_LATEX: :width 1\textwidth
+[[./screenshots/scenario1.png]]
+
+*** \color{red} Coverage... how?
+    :PROPERTIES:
+    :BEAMER_act: <2>
+    :END:
+
+    No variance estimator?
+
+** Scenario 2: Mis-specified parametric model
+#+ATTR_LATEX: :width 1\textwidth
+[[./screenshots/scenario2.png]]
+
+* Thoughts and perspective
+** Perspective, thoughts, summary, and discussion
+*** Perspective
+- Nice to not need to find the EIF. Probably not so important for the ATE but potentially for more
+  complex problems.
+- Spend computational energy on optimizing the right bias-variance trade-off.
+- Could be nice to generalize to other nuisance estimators. These might not achieve \(n^{-1/4}\)
+  convergence in high-dimensions, so undersmoothing could be needed even when using the EIF.
+\pause
+*** Thoughts
+- No theoretical result for how to do undersmoothing in practice.
+- Variance estimator???
+\pause
+*** Questions and comments?
+* References
+\bibliography{/home/amnudn/Documents/latex/default-bib.bib}
+
+* HEADER :noexport:
+#+TITLE: Journal club -- undersmoothed HAL
+#+Author: Anders Munch
+#+Date: \today
+
+#+LANGUAGE:  en
+#+OPTIONS:   H:2 num:t toc:nil ':t ^:t
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LATEX_CLASS_OPTIONS: [smaller]
+#+LaTeX_HEADER: \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+#+LaTeX_HEADER: \bibliographystyle{abbrvnat}
+#+LaTeX_HEADER: \input{/home/amnudn/Documents/latex/standard-commands.tex}
+#+BIBLIOGRAPHY: /home/amnudn/Documents/latex/default-bib plain
+
+# Beamer settins:
+# #+LaTeX_HEADER: \usefonttheme[onlymath]{serif} 
+#+LaTeX_HEADER: \setbeamertemplate{footline}[frame number]
+#+LaTeX_HEADER: \beamertemplatenavigationsymbolsempty
+#+LaTeX_HEADER: \usepackage{appendixnumberbeamer}
+#+LaTeX_HEADER: \setbeamercolor{gray}{bg=white!90!black}
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+
+# Check this:
+# #+LaTeX_HEADER: \lstset{basicstyle=\ttfamily\small}
+
+# For handout mode: (check order...)
+# #+LATEX_CLASS_OPTIONS: [handout]
+# #+LaTeX_HEADER: \pgfpagesuselayout{4 on 1}[border shrink=1mm]
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{1}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{2}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{3}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{4}{border code=\pgfusepath{stroke}}

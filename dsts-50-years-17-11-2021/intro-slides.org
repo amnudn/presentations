@@ -1,0 +1,133 @@
+# Make logo here to not have in on front page
+#+BEGIN_EXPORT latex
+\logo{\includegraphics[height=1.5cm]{logo.png}}
+#+END_EXPORT
+
+* Setting :noexport:
+Remember to exceture (C-c C-c) the following line:
+#+PROPERTY: header-args:R  :results output verbatim  :exports results  :session *R* :cache yes
+Other setting can also be useful:
+# #+PROPERTY: header-args:R  :results output raw drawer  :exports results  :session *R* :cache yes
+
+* Intro
+** Young Statisticians Denmark (YSD)
+
+   \small
+
+   A society that plans social and scientific events, especially for students and young
+   professionals working with statistics.
+   \vfill
+
+   - Share knowledge in a relaxed atmosphere.
+   - "Young" and "Statistician" is broadly defined.
+   - Part of the Danish Society for Theoretical Statistics.
+
+   \vfill     
+
+** Previous events
+   22 events since 2015.
+
+   \vfill
+
+   | /Neurobiology meets Statistics/ |
+   | /Science talk and pub quiz/     |
+   | /Career event/                  |
+   | /Talking about the p-word/      |
+   | ...                             |
+
+** Crowd
+   #+BEGIN_SRC R :results graphics file :exports results :file "./crowd-plot.pdf" :width 7 :height 3.5
+     library(ggplot2)
+     library(data.table)
+     
+     tilm <- rbind(fread("tilmeldte.csv")[,.(Occupation, get("How many Young Statisticians Denmark events have you attended in the past?"))][,event:=1],
+		   fread("tilmeldte2.csv")[,.(Occupation, get("How many Young Statisticians Denmark events have you attended in the past?"))][,event:=2],
+		   fread("tilmeldte3.csv")[,.(Occupation, get("How many Young Statisticians Denmarks events have you attended in the past?"))][,event:=3])
+     setnames(tilm, c("Occupation","V2"), c("raw.occu","Events"))
+     
+     tilm[grepl("student", tolower(raw.occu)), Occupation:="Student"]
+     tilm[grepl("phd|professor|assistant|post", tolower(raw.occu)), Occupation:="University"]
+     tilm[is.na(Occupation), Occupation:="Industry"]
+     
+     tilm[, attended:=paste("n =", .N), by=event]
+     
+     ggplot(tilm, aes(x=Occupation, y=..count.., fill=Occupation)) +
+       geom_bar() + facet_wrap(~attended) + theme_classic() +
+       ylab("") + xlab("") +
+       theme(axis.text.x=element_blank(),
+	     axis.ticks.x=element_blank())
+   #+END_SRC
+
+   #+RESULTS[(2021-11-16 16:17:22) 6ce7cca10471251b86911fc316b17c4949d44e61]:
+   [[file:./crowd-plot.pdf]]
+
+** Upcoming events
+   2 upcoming events within the next two months.
+
+   \vfill
+
+   - November 23 :: Statisticians in the wild (vol. 2)
+   - January 13 :: Event on causality
+
+   \vfill
+
+** Young statistical research in Denmark
+   What questions occupy the minds of young statistical researchers in Denmark? What topics do they
+   spend their time on studying?
+      
+* Sneha
+** YSD presents:
+*** \centering Sneha Das
+    \small
+    - Postdoc at the Section of Statistics and Data Analysis (The Technical University of Denmark)
+    - PhD from Aalto University Finland (defense in one week)
+** 
+* Nikolaj
+** YSD presents:
+*** \centering Nikolaj Thams
+    \small
+    - PhD student at Copenhagen Causality Lab, MATH (University of Copenhagen)
+    - Master in Statistics from University of Copenhagen 
+* HEADER :noexport:
+#+TITLE: Young statistical research in Denmark
+#+Date: November 17, 2021
+
+#+LANGUAGE:  en
+#+OPTIONS:   H:2 num:t toc:nil ':t ^:t author:nil
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LATEX_CLASS_OPTIONS: [14pt]
+#+LaTeX_HEADER: \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+#+LaTeX_HEADER: \bibliographystyle{abbrvnat}
+#+LATEX_HEADER: \usepackage{enumerate}
+#+LaTeX_HEADER: \input{/home/amnudn/Documents/latex/standard-commands.tex}
+#+LaTeX_HEADER: \usecolortheme{crane}
+#+LaTeX_HEADER: \beamertemplatenavigationsymbolsempty
+#+BEAMER_HEADER: \titlegraphic{\includegraphics[height=3cm]{logo.png}}
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+
+# # Beamer settings:
+# # #+LaTeX_HEADER: \usefonttheme[onlymath]{serif} 
+# # #+LaTeX_HEADER: \setbeamertemplate{footline}[frame number]
+# #+LaTeX_HEADER: \beamertemplatenavigationsymbolsempty
+# #+LaTeX_HEADER: \usepackage{appendixnumberbeamer}
+#+LaTeX_HEADER: \setbeamercolor{gray}{bg=white!90!black}
+
+#+LATEX_HEADER: \setbeamertemplate{itemize items}{$\circ$}
+
+# # Check this:
+# #+LaTeX_HEADER: \lstset{basicstyle=\ttfamily\small}
+
+# # For handout mode: (check order...)
+# # #+LATEX_CLASS_OPTIONS: [handout]
+# # #+LaTeX_HEADER: \pgfpagesuselayout{4 on 1}[border shrink=1mm]
+# # #+LaTeX_HEADER: \pgfpageslogicalpageoptions{1}{border code=\pgfusepath{stroke}}
+# # #+LaTeX_HEADER: \pgfpageslogicalpageoptions{2}{border code=\pgfusepath{stroke}}
+# # #+LaTeX_HEADER: \pgfpageslogicalpageoptions{3}{border code=\pgfusepath{stroke}}
+# # #+LaTeX_HEADER: \pgfpageslogicalpageoptions{4}{border code=\pgfusepath{stroke}}
+* pdf compress note :noexport:
+  #+BEGIN_SRC sh
+    pdftk A=intro-slides.pdf B=sneha-DSTS_YSD_presentation.pdf C=slides-nikolaj-ny.pdf cat A1-7 B A8-9 C output all-slides.pdf
+  #+END_SRC
+
+  #+RESULTS:

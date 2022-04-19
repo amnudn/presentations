@@ -1,0 +1,230 @@
+% Created 2022-04-19 Tue 23:50
+% Intended LaTeX compiler: pdflatex
+\documentclass[smaller]{beamer}\usepackage{listings}
+\usepackage{color}
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage[T1]{fontenc}
+\usepackage{natbib}
+\lstset{
+keywordstyle=\color{blue},
+commentstyle=\color{red},stringstyle=\color[rgb]{0,.5,0},
+literate={~}{$\sim$}{1},
+basicstyle=\ttfamily\small,
+columns=fullflexible,
+breaklines=true,
+breakatwhitespace=false,
+numbers=left,
+numberstyle=\ttfamily\tiny\color{gray},
+stepnumber=1,
+numbersep=10pt,
+backgroundcolor=\color{white},
+tabsize=4,
+keepspaces=true,
+showspaces=false,
+showstringspaces=false,
+xleftmargin=.23in,
+frame=single,
+basewidth={0.5em,0.4em},
+}
+\usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+\bibliographystyle{abbrvnat}
+\input{/home/amnudn/Documents/latex/standard-commands.tex}
+\setbeamertemplate{footline}[frame number]
+\beamertemplatenavigationsymbolsempty
+\usepackage{appendixnumberbeamer}
+\setbeamercolor{gray}{bg=white!90!black}
+\setbeamertemplate{itemize items}{$\circ$}
+
+\renewcommand*\familydefault{\sfdefault}
+\itemsep2pt
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\usetheme{default}
+\author{Anders Munch}
+\date{\today}
+\title{Journal club -- Models as Approximations}
+\begin{document}
+
+\maketitle
+\section{The paper}
+\label{sec:org45e84a5}
+\begin{frame}[label={sec:org3e05215}]{The paper}
+\hfill
+
+\begin{center}
+\includegraphics[width=.9\linewidth]{./quotes/abstract.png}
+\end{center}
+\end{frame}
+
+\begin{frame}[label={sec:orgf36b83d}]{Discussion paper}
+\begin{itemize}
+\item Memorial Issue for Lawrence D. Brown
+\item Paper in two parts: Special case of linear regression (part I, \cite{buja2019models}) and general
+case (part II, \cite{buja2019models2})
+\end{itemize}
+\hfill
+
+\begin{block}{Comments by}
+\begin{itemize}
+\item \citeauthor*{ghanem2019discussion} (UC Davis and Washington University in St. Louis)
+\item \citeauthor*{rinaldo2019comment} (Carnegie Mellon University, Pittsburgh)
+\item \citeauthor*{whitney2019comment} (Imperial College London, University of Washington, Seattle)
+\item and others.
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}[label={sec:org448081a}]{Overall idea}
+Understand what is estimated with linear a linear regression (or more general M-estimators) when the
+model is mis-specified. 
+
+\hfill
+
+Define the parameter \(\beta\) as a functional defined on the data distribution \(P \in \mathcal{P}\):
+
+\hfill
+
+\begin{center}
+\includegraphics[width=.9\linewidth]{./quotes/sect3-main-def.png}
+\end{center}
+\end{frame}
+
+\begin{frame}[label={sec:orga2a5d76}]{One consequence}
+\begin{center}
+\includegraphics[width=.9\linewidth]{./quotes/sect4-implication.png}
+\end{center}
+
+\begin{center}
+\includegraphics[width=.9\linewidth]{./quotes/sect4-fig2.png}
+\end{center}
+\end{frame}
+
+\begin{frame}[label={sec:org77bea80}]{Is this a problem?}
+This seems to only be a problem because we do not understand how to interpret \(\beta(P)\).
+
+\begin{block}{Average treatment effect (ATE)}
+The ATE, \[\E[Y^1 - Y^0] = \E_P{[ \E_P[Y \mid X, A=1] - \E_P[Y \mid X, A=0]]}, \] should naturally
+depend on the background distribution of \(X\).
+\end{block}
+
+\begin{block}{Conditional average treatment effect (CATE)}
+The CATE, \[ \E[Y^1 - Y^0 \mid X=x] = \E_P[Y \mid X=x, A=1] - \E_P[Y \mid X=x, A=0], \] would not
+depend on the background distribution \(X\) (right?).
+\end{block}
+\end{frame}
+
+\begin{frame}[label={sec:org9b58380}]{Interpretation of ``slopes'' in the presence of non-linearity}
+\begin{onlyenv}<1>
+\begin{center}
+\includegraphics[width=.9\linewidth]{./quotes/sect10-interpretation.png}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<2>
+\begin{center}
+\includegraphics[width=.9\linewidth]{./quotes/sect10-figure.png}
+\end{center}
+
+\begin{center}
+\includegraphics[width=.9\linewidth]{./quotes/sect10-interpretation-text.png}
+\end{center}
+\end{onlyenv}
+\end{frame}
+
+\section{Discussion papers}
+\label{sec:org575171f}
+\begin{frame}[label={sec:orgf088758}]{The best approximation depends on how you measure}
+\begin{quote} %% 
+In the context of prediction, the objective is often to minimize a particular criterion or scoring
+rule. \ldots{} [In the] case of misspecification, it is not clear which criterion should be used for
+estimation. In the context of forecasting conditional probabilities of binary outcomes, Elliott,
+Ghanem and Krüger (2016) examine this question and illustrate that \alert{the choice of scoring rule
+yields different best approximations to the true conditional probability function of the outcome of
+interest under misspecification}, except under restrictive conditions. \citep{ghanem2019discussion}
+\end{quote}
+\end{frame}
+
+\begin{frame}[label={sec:orge378b0d}]{Predictive performance}
+\cite{rinaldo2019comment} argue that we should give up the parameter \(\beta\) and instead consider:
+
+\begin{block}{Proper causal effect}
+\(\beta\) is often mis-interpreted as a causal quantity effect. Drop the parameter \(\beta\) and instead
+define a causal quantity of interest rigorously using counterfactuals, SEMs, DAGs.
+\end{block}
+
+\begin{block}{Variable importance measure}
+Non-parametric variable importance measures defined without reference to a model, for instance
+proportion of variance explained or Shapley values.
+\end{block}
+\end{frame}
+
+\begin{frame}[label={sec:org840d4da}]{The best approximation is ill-defined when data is coarsened}
+\begin{center}
+\includegraphics[width=7cm]{./quotes/comment-whitney-figure.png}
+\end{center}
+
+\begin{quote} %% 
+\alert{The fact that the censoring distribution defines the estimand is particularly alarming}. In
+commenting on this finding, O’Quigley (2008) states that the partial likelihood-based regression
+functional is not itself particularly useful nor interpretable -- we agree with this viewpoint.
+\citep{whitney2019comment}
+\end{quote}
+\end{frame}
+
+\section{Additional thoughts}
+\label{sec:org84bae79}
+\begin{frame}[label={sec:orgd181180}]{Fully non-parametric (model-free) parameter definition}
+\begin{block}{Model \(\rightarrow\) parameter (more or less interpretable)}
+Extend parameter from linear (or other) model to general (non-parametric) setting. The parameter
+interpretation simplifies to well-known quantity when the model is correct
+\citep{buja2019models,buja2019models2}.
+\end{block}
+
+\begin{block}{Interpretable parameter \(\rightarrow\) estimation by using model}
+Define parameter of interest directly on the non-parametric family of probability measure --
+model-agnostic parameter \citep{whitney2019comment}. Separate parameter definition and estimation
+completely.
+\end{block}
+\end{frame}
+
+\begin{frame}[label={sec:org35b1e3f}]{Flawed models as a fact of life?}
+Back to the main paper: In the end we are going to use a model.
+\begin{center}
+\includegraphics[width=.9\linewidth]{./quotes/sect10-model-approx.png}
+\end{center}
+
+The effect of estimation the nuisance parameter with an approximate nuisance model on the estimator
+of a \emph{target parameter}:
+\begin{itemize}
+\item Assume the parameter of interest \(\Psi\) is identified through the nuisance parameter \(\nu\), i.e.,
+\(\Psi(P) = \tilde\Psi(\nu(P))\).
+\item If \(\hat \nu\) is an estimator of \(\nu\), then what effect does mis-specification/approximation for
+the nuisance component have on the plug-in estimator \(\hat \Psi = \tilde\Psi(\hat \nu)\)?
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label={sec:org8732e7f}]{\normalsize Illustration of the effect of approximate nuisance model on target estimator}
+\begin{block}{$\;$}
+\begin{center}
+\includegraphics[width=.9\linewidth]{./fig-approximate-nuisance.pdf}
+\end{center}
+\end{block}
+\end{frame}
+
+\section{References}
+\label{sec:orga8e3e3b}
+
+\begin{frame}[label={sec:org71d9a1d}]{References}
+\small \bibliography{/home/amnudn/Documents/latex/default-bib.bib}
+\end{frame}
+\end{document}

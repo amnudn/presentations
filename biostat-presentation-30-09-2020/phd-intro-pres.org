@@ -1,0 +1,792 @@
+* Structure
+** Introduction to PhD project
+- The problem
+- The data
+- Some thoughts/ideas so far
+
+* Overall setting
+** People involved
+- Thomas Gerds and Claus Ekstrøm from here
+- Christian Torp-Pedersen, Professor of Cardiology and Senior Consultant, Gentofte Hospital and University of Copenhagen
+- Charlotte Andersson, MD PhD, Herlev Hospital and Boston Medical Center
+
+** Overall motivation / "hypothesis"
+- Better understanding of the causes of HF. In particular a focus on the genetic effects. \pause
+- Heterogeneous disease / syndrome. \pause
+- Better HF sub-diagnoses or disease pattern \rightarrow identify genetic effects. \pause
+- Use machine learning for this ... 
+
+** Data
+- Coronary arteries examiniation: :: $\sim 6,000$ individuals + DST data. Weird selection criteria,
+     non-representative population. 
+- Blood donors: :: $\sim 300,000$ individuals in "computer room". Very healthy individuals.
+- Framingham: :: Participants from a small city. Detailed medical information measured repeatedly
+                 over many years and generations. Genetic data for later generations.
+
+* Clustering of diseases patterns leading to HF
+** Initial thoughts
+*** Points
+    :PROPERTIES:
+    :BEAMER_col: .4
+    :END:
+**** \center Cluster disease patterns
+    :PROPERTIES:
+    :BEAMER_act: <2->
+    :END:
+
+**** \center Mediation
+    :PROPERTIES:
+    :BEAMER_act: <3->
+    :END:
+
+**** \center $\downarrow$
+    :PROPERTIES:
+    :BEAMER_act: <4->
+    :END:
+
+**** \center Local independence?
+    :PROPERTIES:
+    :BEAMER_act: <4->
+    :END:
+
+*** Drawing
+    :PROPERTIES:
+    :BEAMER_col:  0.5
+    :END:
+[[./figs/disease-pattern-drawing.pdf]]
+
+* Setting
+** Formalization of the problem 
+*** One rough initial formalization 
+#+BEGIN_EXPORT latex
+We observe a multivariate process $ X = (G, D, Y)$,
+\begin{equation*}
+  Y(t), \quad D(t), \quad G(t) = G, \quad t \in [0, T],
+\end{equation*}
+where $Y \in \{0, 1\}$ denotes if heart failure has occurred, $D$ denotes status of some disease
+(for instance diabetes or not at time $t$), $G$ is constant and contains genetic information, and
+$T$ is time of death.
+#+END_EXPORT
+\pause
+
+*** Later
+- much more complicated $D$
+- very high-dimensional $G$
+
+For now, focus on the time dynamic issues so we assume both are one-dimensional.
+
+** Informal questions we might want to ask
+\pause
+- Are there some particular disease patterns for which the genetic disposition is particularly
+  important for the risk of HF? 
+\pause
+- How does the genetic mechanisms work? Direct influence on the risk of HF or indirect influence
+  through increased risk of precursors for HF?
+
+\pause
+*** Doubtful illustrations
+#+BEGIN_EXPORT latex
+\def\shift{3}
+\begin{center}
+\begin{tikzpicture}
+  \node[] (G) at (0,0) {G};
+  \node[] (D) at (1,1) {D};
+  \node[] (Y) at (2,0) {Y};
+  \draw[->] (G) -- (D);
+  \draw[->] (G) -- (Y);
+  \draw[->] (D) -- (Y);
+
+  \node[] (G) at (0 + \shift,0) {G};
+  \node[] (D) at (1 + \shift,1) {D};
+  \node[] (Y) at (2 + \shift,0) {Y};
+  \draw[->] (G) -- (D);
+  \draw[->] (D) -- (Y);
+
+  \node[] (G) at (0 + \shift *2,0) {G};
+  \node[] (D) at (1 + \shift *2,1) {D};
+  \node[] (Y) at (2 + \shift *2,0) {Y};
+  \draw[->] (G) -- (Y);
+  \draw[->] (D) -- (Y);
+\end{tikzpicture}
+\end{center}
+#+END_EXPORT
+
+What does the above mean when $D$ and $Y$ are processes?
+
+* Local independence
+** Local independence
+\pause
+*** Informal                                                   :B_definition:
+    :PROPERTIES:
+    :BEAMER_env: definition
+    :END:
+
+#+BEGIN_EXPORT latex
+For a multivariate stochastic $X$
+\begin{equation*}
+  X(t) = (X^1(t), X^2(t), \dots, X^k(t)), \quad t \in [0, T], 
+\end{equation*}
+with $V:=\{1, \dots, k\}$, we say that for $A, B, C \subset V$, $X^B$ is \textit{locally
+  independent} of $X^A$ given $X^C$ if
+\begin{equation*}
+  X^B(t) \independent X^A([0,t)) \mid X^C([0,t)), \quad \forall t \in [0, T].
+\end{equation*}
+This is written as $  A \not \rightarrow B \mid C$.
+#+END_EXPORT
+
+\pause
+*** 
+    :PROPERTIES:
+    :BEAMER_act: <2->
+    :END:
+
+#+BEGIN_EXPORT latex
+"In words, the process $X^B$ is locally independent of $X^A$ given $X^C$ if, for each time point,
+the past up until time $t$ of $X^C$ gives us the same \textit{predictable} information about
+$\E[X^{\beta}(t) \mid \mathcal{F}_t^{A\cup C}]$ as the past of $X^{A \cup C}$ until time $t$." \citep{mogensen2020markov}
+#+END_EXPORT
+** Local independence -- visualization 
+*** Dynamic system 1
+    :PROPERTIES:
+    :BEAMER_act: <+>
+    :BEAMER_env: onlyenv
+    :END:
+
+#+HEADER: :results output silent :file ./figs/dyn-sys1.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")
+#+BEGIN_src latex 
+  \def\time{2.5}
+  \begin{tikzpicture}
+    \draw[line width =1mm, red] (0.5,3) -- (2, 3);
+    \draw[line width =1mm, red] (4,3) -- (7, 3);
+    \draw[line width =1mm, green] (1,2) -- (6, 2);
+    \draw[line width =1mm, blue] (0,1) -- (7, 1);
+    \fill[white, opacity=1] (\time, 0.5) -- (\time, 3.5) -- (7, 3.5) -- (7, 0.5);
+    \draw[] (\time, 0.5) -- (\time, 3.5);
+  \end{tikzpicture}
+#+END_src
+
+[[./figs/dyn-sys1.pdf]]
+
+*** Dynamic system 2
+    :PROPERTIES:
+    :BEAMER_act: <+>
+    :BEAMER_env: onlyenv
+    :END:
+
+#+HEADER: :results output silent :file ./figs/dyn-sys2.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")
+#+BEGIN_src latex 
+  \def\time{3.5}
+  \begin{tikzpicture}
+    \draw[line width =1mm, red] (0.5,3) -- (2, 3);
+    \draw[line width =1mm, red] (4,3) -- (7, 3);
+    \draw[line width =1mm, green] (1,2) -- (6, 2);
+    \draw[line width =1mm, blue] (0,1) -- (7, 1);
+    \fill[white, opacity=1] (\time, 0.5) -- (\time, 3.5) -- (7, 3.5) -- (7, 0.5);
+    \draw[] (\time, 0.5) -- (\time, 3.5);
+  \end{tikzpicture}
+#+END_src
+
+[[./figs/dyn-sys2.pdf]]
+
+*** Dynamic system 3
+    :PROPERTIES:
+    :BEAMER_act: <+>
+    :BEAMER_env: onlyenv
+    :END:
+
+#+HEADER: :results output silent :file ./figs/dyn-sys3.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")
+#+BEGIN_src latex 
+  \def\time{4.5}
+  \begin{tikzpicture}
+    \draw[line width =1mm, red] (0.5,3) -- (2, 3);
+    \draw[line width =1mm, red] (4,3) -- (7, 3);
+    \draw[line width =1mm, green] (1,2) -- (6, 2);
+    \draw[line width =1mm, blue] (0,1) -- (7, 1);
+    \fill[white, opacity=1] (\time, 0.5) -- (\time, 3.5) -- (7, 3.5) -- (7, 0.5);
+    \draw[] (\time, 0.5) -- (\time, 3.5);
+  \end{tikzpicture}
+#+END_src
+
+[[./figs/dyn-sys3.pdf]]
+
+*** Local independence 1
+    :PROPERTIES:
+    :BEAMER_act: <+>
+    :BEAMER_env: onlyenv
+    :END:
+  
+#+HEADER: :results output silent :file ./figs/local-ind1.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")
+#+BEGIN_src latex 
+  \def\time{4.5}
+  \begin{tikzpicture}
+    \draw[line width =1mm, red] (0.5,3) -- (2, 3);
+    \draw[line width =1mm, red] (4,3) -- (7, 3);
+    \draw[line width =1mm, green] (1,2) -- (6, 2);
+    \draw[line width =1mm, blue] (0,1) -- (7, 1);
+    \fill[white, opacity=1] (\time, 0.5) -- (\time, 3.5) -- (7, 3.5) -- (7, 0.5);
+    \draw[] (\time, 0.5) -- (\time, 3.5);
+    \draw[red, fill=red] (\time,3) circle (.5ex);
+  \end{tikzpicture}
+#+END_src
+
+[[./figs/local-ind1.pdf]]
+
+*** Local independence 2
+    :PROPERTIES:
+    :BEAMER_act: <+>
+    :BEAMER_env: onlyenv
+    :END:
+  
+#+HEADER: :results output silent :file ./figs/local-ind2.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")
+#+BEGIN_src latex 
+  \def\time{4.5}
+  \begin{tikzpicture}
+    \draw[line width =1mm, red] (0.5,3) -- (2, 3);
+    \draw[line width =1mm, red] (4,3) -- (7, 3);
+    \draw[line width =1mm, green] (1,2) -- (6, 2);
+    \draw[line width =1mm, blue] (0,1) -- (7, 1);
+    \fill[white, opacity=1] (\time, 0.5) -- (\time, 3.5) -- (7, 3.5) -- (7, 0.5);
+    \fill[white, opacity=0.9] (-0.01, 0.5) -- (-0.01, 1.5) -- (\time, 1.5) -- (\time, 0.5);
+    \draw[] (\time, 0.5) -- (\time, 3.5);
+    \draw[red, fill=red] (\time,3) circle (.5ex);
+  \end{tikzpicture}
+#+END_src
+
+[[./figs/local-ind2.pdf]]
+
+** Local independence -- history
+Introduced by \cite{schweder1970composable} and elaborated and applied in \cite{aalen1987dynamic}
+and \cite{aalen1980interaction}. \vfill \pause
+
+Relation to graphical models considered by \cite{didelez2008graphical} and
+\cite{mogensen2020markov}. \vfill \pause
+
+\cite{aalen2016can} and \cite{aalen2012causality} discuss and give examples as to why local
+independence might be better suited for modeling (causal) dependencies in a dynamical system. \vfill
+\pause
+
+*** Quote                                                           :B_quote:
+    :PROPERTIES:
+    :BEAMER_env: quote
+    :END:
+"We suggest that when people attempt to draw causal diagrams it is often most natural to think of
+the nodes as processes and use local independence" \citep[p.2300]{aalen2016can}.
+
+* Advantages with LI
+** How might local independence be relevant in our setting?
+\pause
+1. Model of temporal dependence \pause
+2. An approach to mediation in a dynamical system \pause
+3. "Dynamic" point of view 
+** 1. Clustering disease patterns
+
+*** Brunak Group
+\cite{jensen2014temporal} used Danish registries data to identify and cluster disease progressions.
+
+\pause
+
+[[./figs/Brunak-disease-cluster.png]]
+
+** 1. Clustering disease patterns -- use local dependence?
+*** Brunak Group's approach to clustering
+    :PROPERTIES:
+    :BEAMER_act: <+->
+    :BEAMER_env: block
+    :END:
+
+- Matching every exposed patient to a non-exposed group with similar age and sex.
+- Test for association between diagnoses occurring within 4 years, and then test for "temporal
+  direction".
+- Various ad hoc choices.
+- Censoring and death not taken into account.
+- Interpretation unclear. 
+
+*** Try to use local dependence?
+    :PROPERTIES:
+    :BEAMER_act: <+->
+    :BEAMER_env: block
+    :END:
+
+- Better way to model "temporal association"? Nicer interpretation?
+- Easier to handle stopped processes -- take death and censoring into account.
+- Perhaps fewer arbitrary choices.
+
+** 2. Mediation analysis in time
+
+Mediation analysis in time seems to be complicated. \pause
+
+*** Example:
+**** counterfact survival quote                                     :B_quote:
+    :PROPERTIES:
+    :BEAMER_env: quote
+    :END:
+"To [...] define the relevant direct and indirect effects in the survival context, we will have to
+allow for hypothetical interventions on survival. [...] The difficulty that otherwise arises is that
+for those who do not survive the subsequent values of the mediator are always undefined. [...] While
+the mathematical development is precise, the interpretation of what such an intervention on survival
+means is ambiguous." \citep[p.4154]{lin2017mediation}
+
+\pause
+*** discrete observation                                    :B_ignoreheading:
+    :PROPERTIES:
+    :BEAMER_env: ignoreheading
+    :END:
+
+In addition, causal mechanisms can be "smeared out" or "distorted" by discretization
+\citep{aalen2016can}.
+
+** 2. Mediation in time -- visualization 
+*** System
+    :PROPERTIES:
+    :BEAMER_act: <1>
+    :BEAMER_env: onlyenv
+    :END:
+
+#+HEADER: :results output silent :file ./med-system.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")    
+#+BEGIN_src latex
+\def\dist{1.5}
+\begin{tikzpicture}
+  \node[] (G) at (0,0) {$G$};
+  \node[] (D1) at (\dist,\dist) {$D_1$};
+  \node[] (D2) at (2*\dist,\dist) {$D_2$};
+  \node[] (D3) at (3* \dist,\dist) {$D_3$};
+  \node[] (D4) at (4* \dist,\dist) {$D_4$};
+  \node[] (Y1) at (\dist,2* \dist) {$Y_1$};
+  \node[] (Y2) at (2*\dist,2* \dist) {$Y_2$};
+  \node[] (Y3) at (3* \dist,2* \dist) {$Y_3$};
+  \node[] (Y4) at (4* \dist,2* \dist) {$Y_4$};
+  \node[] (Y5) at (5* \dist,2* \dist) {$Y_5$};
+  \draw[->] (G) -- (D1);   \draw[->] (G) -- (D2);   \draw[->] (G) -- (D3);   \draw[->] (G) -- (D4); 
+  \draw[->] (D1) -- (D2);
+  \draw[->] (D2) -- (D3);
+  \draw[->] (D3) -- (D4);
+  \draw[->] (Y1) -- (Y2);
+  \draw[->] (Y2) -- (Y3);
+  \draw[->] (Y3) -- (Y4);
+  \draw[->] (Y4) -- (Y5);
+  \draw[->] (D1) -- (Y2);
+  \draw[->] (D2) -- (Y3);
+  \draw[->] (D3) -- (Y4);
+  \draw[->] (D4) -- (Y5);  
+\end{tikzpicture}
+#+END_src
+
+[[./figs/med-system.pdf]]
+    
+*** Discrete observation
+    :PROPERTIES:
+    :BEAMER_act: <2>
+    :BEAMER_env: onlyenv
+    :END:
+
+#+HEADER: :results output silent :file ./med-discrete-obs.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")
+#+BEGIN_src latex 
+\def\dist{1.5}
+\begin{tikzpicture}
+  \node[rectangle, draw] (G) at (0,0) {$G$};
+  \node[] (D1) at (\dist,\dist) {$D_1$};
+  \node[rectangle, draw] (D2) at (2*\dist,\dist) {$D_2$};
+  \node[] (D3) at (3* \dist,\dist) {$D_3$};
+  \node[] (D4) at (4* \dist,\dist) {$D_4$};
+  \node[] (Y1) at (\dist,2* \dist) {$Y_1$};
+  \node[] (Y2) at (2*\dist,2* \dist) {$Y_2$};
+  \node[] (Y3) at (3* \dist,2* \dist) {$Y_3$};
+  \node[] (Y4) at (4* \dist,2* \dist) {$Y_4$};
+  \node[rectangle, draw] (Y5) at (5* \dist,2* \dist) {$Y_5$};
+  \draw[->] (G) -- (D1);   \draw[->, green, thick] (G) -- (D2);
+  \draw[->] (G) -- (D3);   \draw[->, red, thick] (G) -- (D4); 
+  \draw[->] (D1) -- (D2);
+  \draw[->] (D2) -- (D3);
+  \draw[->] (D3) -- (D4);
+  \draw[->] (Y1) -- (Y2);
+  \draw[->] (Y2) -- (Y3);
+  \draw[->, green, thick] (Y3) -- (Y4);
+  \draw[->, green, thick] (Y4) -- (Y5);
+  \draw[->] (D1) -- (Y2);
+  \draw[->, green, thick] (D2) -- (Y3);
+  \draw[->] (D3) -- (Y4);
+  \draw[->, red, thick] (D4) -- (Y5);  
+\end{tikzpicture}
+#+END_src
+
+[[./figs/med-discrete-obs.pdf]]
+
+*** Longitudinal mediation
+    :PROPERTIES:
+    :BEAMER_act: <3>
+    :BEAMER_env: onlyenv
+    :END:
+
+#+HEADER: :results output silent :file ./med-long1.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")        
+#+BEGIN_src latex
+\def\dist{1.5}
+\begin{tikzpicture}
+  \node[rectangle, draw] (G) at (0,0) {$G$};
+  \node[rectangle, draw] (D1) at (\dist,\dist) {$D_1$};
+  \node[rectangle, draw] (D2) at (2*\dist,\dist) {$D_2$};
+  \node[rectangle, draw] (D3) at (3* \dist,\dist) {$D_3$};
+  \node[rectangle, draw] (D4) at (4* \dist,\dist) {$D_4$};
+  \node[] (Y1) at (\dist,2* \dist) {$Y_1$};
+  \node[] (Y2) at (2*\dist,2* \dist) {$Y_2$};
+  \node[] (Y3) at (3* \dist,2* \dist) {$Y_3$};
+  \node[] (Y4) at (4* \dist,2* \dist) {$Y_4$};
+  \node[rectangle, draw] (Y5) at (5* \dist,2* \dist) {$Y_5$};
+  \draw[->, green, thick] (G) -- (D1);   \draw[->, green, thick] (G) -- (D2);   \draw[->, green, thick] (G) -- (D3);   \draw[->, green, thick] (G) -- (D4); 
+  \draw[->] (D1) -- (D2);
+  \draw[->] (D2) -- (D3);
+  \draw[->] (D3) -- (D4);
+  \draw[->] (Y1) -- (Y2);
+  \draw[->] (Y2) -- (Y3);
+  \draw[->] (Y3) -- (Y4);
+  \draw[->] (Y4) -- (Y5);
+  \draw[->] (D1) -- (Y2);
+  \draw[->] (D2) -- (Y3);
+  \draw[->] (D3) -- (Y4);
+  \draw[->] (D4) -- (Y5);  
+\end{tikzpicture}
+#+END_src
+
+[[./figs/med-long1.pdf]]
+    
+*** Longitudinal mediation 2
+    :PROPERTIES:
+    :BEAMER_act: <4>
+    :BEAMER_env: onlyenv
+    :END:
+
+#+HEADER: :results output silent :file ./med-long2.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")            
+#+BEGIN_src latex
+\def\dist{1.5}
+\begin{tikzpicture}
+  \node[rectangle, draw] (G) at (0,0) {$G$};
+  \node[rectangle, draw] (D1) at (\dist,\dist) {$D_1$};
+  \node[rectangle, draw] (D2) at (2*\dist,\dist) {$D_2$};
+  \node[rectangle, draw] (D3) at (3* \dist,\dist) {?};
+  \node[rectangle, draw] (D4) at (4* \dist,\dist) {?};
+  \node[] (Y1) at (\dist,2* \dist) {$Y_1$};
+  \node[] (Y2) at (2*\dist,2* \dist) {$Y_2$};
+  \node[] (Y3) at (3* \dist,2* \dist) {$Y_3$};
+  \node[] (Y4) at (4* \dist,2* \dist) {$Y_4$};
+  \node[rectangle, draw] (Y5) at (5* \dist,2* \dist) {$Y_5$};
+  \draw[->, green, thick] (G) -- (D1);   \draw[->, green, thick] (G) -- (D2);   \draw[->, green, thick] (G) -- (D3);   \draw[->, green, thick] (G) -- (D4); 
+  \draw[->] (D1) -- (D2);
+  \draw[->] (D2) -- (D3);
+  \draw[->] (D3) -- (D4);
+  \draw[->] (Y1) -- (Y2);
+  \draw[->] (Y2) -- (Y3);
+  \draw[->] (Y3) -- (Y4);
+  \draw[->] (Y4) -- (Y5);
+  \draw[->] (D1) -- (Y2);
+  \draw[->] (D2) -- (Y3);
+  \draw[->] (D3) -- (Y4);
+  \draw[->] (D4) -- (Y5);  
+  \draw[dashed]  (2.5* \dist, 0) -- (2.5* \dist,3.28);
+  \fill[white, opacity=0.7] (2.5* \dist,0) -- (2.5* \dist, 3.28) -- (2.5* \dist + 4.05,3.28) -- (2.5* \dist + 4.05, 0) -- (2.5* \dist,0);
+\end{tikzpicture}
+#+END_src
+
+[[./figs/med-long2.pdf]]
+    
+*** LI 1
+    :PROPERTIES:
+    :BEAMER_act: <5>
+    :BEAMER_env: onlyenv
+    :END:
+
+#+HEADER: :results output silent :file ./med-li1.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")                
+#+BEGIN_src latex 
+\def\dist{1.5}
+\begin{tikzpicture}
+  \node[rectangle, draw] (G) at (0,0) {$G$};
+  \node[rectangle, draw] (D1) at (\dist,\dist) {$D_1$};
+  \node[] (D2) at (2*\dist,\dist) {$D_2$};
+  \node[] (D3) at (3* \dist,\dist) {$D_3$};
+  \node[] (D4) at (4* \dist,\dist) {$D_4$};
+  \node[rectangle, draw] (Y1) at (\dist,2* \dist) {$Y_1$};
+  \node[rectangle, draw] (Y2) at (2*\dist,2* \dist) {$Y_2$};
+  \node[] (Y3) at (3* \dist,2* \dist) {$Y_3$};
+  \node[] (Y4) at (4* \dist,2* \dist) {$Y_4$};
+  \node[] (Y5) at (5* \dist,2* \dist) {$Y_5$};
+  \draw[->, green, thick] (G) -- (D1);   \draw[->] (G) -- (D2);   \draw[->] (G) -- (D3);   \draw[->] (G) -- (D4); 
+  \draw[->] (D1) -- (D2);
+  \draw[->] (D2) -- (D3);
+  \draw[->] (D3) -- (D4);
+  \draw[->] (Y1) -- (Y2);
+  \draw[->] (Y2) -- (Y3);
+  \draw[->] (Y3) -- (Y4);
+  \draw[->] (Y4) -- (Y5);
+  \draw[->, green, thick] (D1) -- (Y2);
+  \draw[->] (D2) -- (Y3);
+  \draw[->] (D3) -- (Y4);
+  \draw[->] (D4) -- (Y5);  
+\end{tikzpicture}
+#+END_src
+
+[[./figs/med-li1.pdf]]
+
+*** LI 2
+    :PROPERTIES:
+    :BEAMER_act: <6>
+    :BEAMER_env: onlyenv
+    :END:
+
+#+HEADER: :results output silent :file ./med-li2.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")                   
+#+BEGIN_src latex 
+\def\dist{1.5}
+\begin{tikzpicture}
+  \node[rectangle, draw] (G) at (0,0) {$G$};
+  \node[rectangle, draw] (D1) at (\dist,\dist) {$D_1$};
+  \node[rectangle, draw] (D2) at (2*\dist,\dist) {$D_2$};
+  \node[] (D3) at (3* \dist,\dist) {$D_3$};
+  \node[] (D4) at (4* \dist,\dist) {$D_4$};
+  \node[rectangle, draw] (Y1) at (\dist,2* \dist) {$Y_1$};
+  \node[rectangle, draw] (Y2) at (2*\dist,2* \dist) {$Y_2$};
+  \node[rectangle, draw] (Y3) at (3* \dist,2* \dist) {$Y_3$};
+  \node[] (Y4) at (4* \dist,2* \dist) {$Y_4$};
+  \node[] (Y5) at (5* \dist,2* \dist) {$Y_5$};
+  \draw[->, green, thick] (G) -- (D1);   \draw[->, green, thick] (G) -- (D2);   \draw[->] (G) -- (D3);   \draw[->] (G) -- (D4); 
+  \draw[->, green, thick] (D1) -- (D2);
+  \draw[->] (D2) -- (D3);
+  \draw[->] (D3) -- (D4);
+  \draw[->] (Y1) -- (Y2);
+  \draw[->] (Y2) -- (Y3);
+  \draw[->] (Y3) -- (Y4);
+  \draw[->] (Y4) -- (Y5);
+  \draw[->, green, thick] (D1) -- (Y2);
+  \draw[->, green, thick] (D2) -- (Y3);
+  \draw[->] (D3) -- (Y4);
+  \draw[->] (D4) -- (Y5);  
+\end{tikzpicture}
+#+END_src
+
+[[./figs/med-li2.pdf]]
+    
+*** LI 3
+    :PROPERTIES:
+    :BEAMER_act: <7>
+    :BEAMER_env: onlyenv
+    :END:
+
+#+HEADER: :results output silent :file ./med-li3.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")                    
+#+BEGIN_src latex 
+\def\dist{1.5}
+\begin{tikzpicture}
+  \node[rectangle, draw] (G) at (0,0) {$G$};
+  \node[rectangle, draw] (D1) at (\dist,\dist) {$D_1$};
+  \node[rectangle, draw] (D2) at (2*\dist,\dist) {$D_2$};
+  \node[rectangle, draw] (D3) at (3* \dist,\dist) {$D_3$};
+  \node[] (D4) at (4* \dist,\dist) {$D_4$};
+  \node[rectangle, draw] (Y1) at (\dist,2* \dist) {$Y_1$};
+  \node[rectangle, draw] (Y2) at (2*\dist,2* \dist) {$Y_2$};
+  \node[rectangle, draw] (Y3) at (3* \dist,2* \dist) {$Y_3$};
+  \node[rectangle, draw] (Y4) at (4* \dist,2* \dist) {$Y_4$};
+  \node[] (Y5) at (5* \dist,2* \dist) {$Y_5$};
+  \draw[->, green, thick] (G) -- (D1);   \draw[->, green, thick] (G) -- (D2);   \draw[->, green, thick] (G) -- (D3);   \draw[->] (G) -- (D4); 
+  \draw[->, green, thick] (D1) -- (D2);
+  \draw[->, green, thick] (D2) -- (D3);
+  \draw[->] (D3) -- (D4);
+  \draw[->] (Y1) -- (Y2);
+  \draw[->] (Y2) -- (Y3);
+  \draw[->] (Y3) -- (Y4);
+  \draw[->] (Y4) -- (Y5);
+  \draw[->, green, thick] (D1) -- (Y2);
+  \draw[->, green, thick] (D2) -- (Y3);
+  \draw[->, green, thick] (D3) -- (Y4);
+  \draw[->] (D4) -- (Y5);  
+\end{tikzpicture}
+#+END_src
+
+[[./figs/med-li3.pdf]]
+
+*** LI 4
+    :PROPERTIES:
+    :BEAMER_act: <8>
+    :BEAMER_env: onlyenv
+    :END:
+#+HEADER: :results output silent :file ./med-li4.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")                
+#+BEGIN_src latex 
+\def\dist{1.5}
+\begin{tikzpicture}
+  \node[rectangle, draw] (G) at (0,0) {$G$};
+  \node[rectangle, draw] (D1) at (\dist,\dist) {$D_1$};
+  \node[rectangle, draw] (D2) at (2*\dist,\dist) {$D_2$};
+  \node[rectangle, draw] (D3) at (3* \dist,\dist) {$D_3$};
+  \node[rectangle, draw] (D4) at (4* \dist,\dist) {$D_4$};
+  \node[rectangle, draw] (Y1) at (\dist,2* \dist) {$Y_1$};
+  \node[rectangle, draw] (Y2) at (2*\dist,2* \dist) {$Y_2$};
+  \node[rectangle, draw] (Y3) at (3* \dist,2* \dist) {$Y_3$};
+  \node[rectangle, draw] (Y4) at (4* \dist,2* \dist) {$Y_4$};
+  \node[rectangle, draw] (Y5) at (5* \dist,2* \dist) {$Y_5$};
+  \draw[->, green, thick] (G) -- (D1);   \draw[->, green, thick] (G) -- (D2);   \draw[->, green, thick] (G) -- (D3);   \draw[->, green, thick] (G) -- (D4); 
+  \draw[->, green, thick] (D1) -- (D2);
+  \draw[->, green, thick] (D2) -- (D3);
+  \draw[->, green, thick] (D3) -- (D4);
+  \draw[->] (Y1) -- (Y2);
+  \draw[->] (Y2) -- (Y3);
+  \draw[->] (Y3) -- (Y4);
+  \draw[->] (Y4) -- (Y5);
+  \draw[->, green, thick] (D1) -- (Y2);
+  \draw[->, green, thick] (D2) -- (Y3);
+  \draw[->, green, thick] (D3) -- (Y4);
+  \draw[->, green, thick] (D4) -- (Y5);  
+\end{tikzpicture}
+#+END_src       
+
+[[./figs/med-li4.pdf]]
+
+** 2. Mediation analysis in time -- use local independence?
+*** mechanistic mediation                                           :B_quote:
+    :PROPERTIES:
+    :BEAMER_env: quote
+    :END:
+
+"If a direct effect cannot reasonably be defined as a controlled or natural direct effect in the
+counterfactual sense because the required hypothetical manipulation of the mediator is
+inconceivable, then we can alternatively view these effects as being represented by flow in a
+dynamic system, so that the direct effect corresponds to the flow not passing through the mediator."
+\citep{aalen2012causality}
+
+** 3. Fixed time points (landmark analysis)
+*** Overcome the time problem by fixing time points
+    :PROPERTIES:
+    :BEAMER_act: <+->
+    :BEAMER_env: block
+    :END:
+
+Fix $t_0$ and $l >0$ and consider 
+#+BEGIN_EXPORT latex
+\begin{equation*}
+  \P\left(Y(t_0 + l) = 1 \mid D(t_0), T > t_0 \right).
+\end{equation*}
+#+END_EXPORT
+
+- Reasonable if $t_0$ and $t_0+l$ denote some meaningful time of intervention and follow-up time,
+  respectively.
+- Lose information about what happens between $t_0$ and $t_0 + l$.
+
+*** Local independence
+    :PROPERTIES:
+    :BEAMER_act: <+->
+    :BEAMER_env: block
+    :END:
+
+- No need to fix time points.
+- Better to capture "mechanistic workings"?
+
+** Relevance of local independence (summary)
+1. Model of temporal dependence \rightarrow Better way to compare (stopped) processes. Use obtained
+   clusters as sub-diagnoses of HF.
+2. An approach to mediation in a dynamical system \rightarrow Answer questions about causal pathways
+   for HF.
+3. "Dynamic" point of view \rightarrow Allows a more "exploratory" approach.
+
+* Challenges
+** Major challenge
+\center Most likely it will /not/ hold that $G \not \rightarrow Y \mid D$. Then what?
+
+\vfill 
+
+*** Effect estimation
+    :PROPERTIES:
+    :BEAMER_act: <2->
+    :BEAMER_env: block
+    :END:
+
+Could we construct a good measure for the "strength" of the dependence? Should this measure be
+time-dependent? How should it be interpreted?
+
+*** Time periods of dependence and independence?
+    :PROPERTIES:
+    :BEAMER_act: <3->
+    :BEAMER_env: block
+    :END:
+
+Would it be more informative to try and identify age spans during which dependence is present?
+
+** Other (major) challenges
+*** Missing data
+Missing observations, censoring, selection bias, discretization.
+
+*** Interpretation
+Does the concept of local independence lead to models with a clear interpretation? Does it bring us
+closer to causal interpretations -- and if so, in what sense?
+
+*** High-dimensional data
+Genes... 
+
+* References
+** References
+\tiny \bibliography{./bibliography.bib}
+
+* Final slide
+** Questions / discussion 
+* Appendix
+\appendix
+** Local independence -- mathematical definition
+#+BEGIN_EXPORT latex
+$X(t)$ is a multivariate stochastic càdlàg process
+\begin{equation*}
+  X(t) = (X^1(t), X^2(t), \dots, X^k(t)), \quad t \in [0, T], 
+\end{equation*}
+on $[0,T]$. For any $C \subset V := \{1, \dots, k\}$ let $\mathcal{F}^C_t$ denote the completed and
+right continuous version of $\sigma \{ X_s^c \, : \, s \leq t, c \in C\}$.
+
+\vfill
+
+For $\beta \in V, C \subset V$, let $\Lambda^{C, \beta}$ denote the compensator of
+$\E[ X^{\beta}(t) \mid \mathcal{F}_t^C]$, i.e., $\Lambda^{C, \beta}$ is a
+$\mathcal{F}_t^C$-predictable process and
+\begin{equation*}
+  \E[X^{\beta}(t) \mid \mathcal{F}_t^C] - \Lambda^{C, \beta}
+\end{equation*}
+is a martingale.
+
+\vfill
+
+Then for $A, B, C \subset V$, $X^B$ is said to be \textit{locally independent} of $X^A$ given $X^C$
+if there exists an $\mathcal{F}_t^C$-predictable version of $\Lambda^{C \cup A, \beta}$ for all
+$\beta \in B$. This is written as
+\begin{equation*}
+  A \not \rightarrow B \mid C.
+\end{equation*}
+#+END_EXPORT
+
+
+
+* HEADER :noexport:
+#+TITLE: Genes, life-course and heart failure -- intro to PhD project
+#+Author: Anders Munch
+#+DATE: September 30, 2020
+#+LANGUAGE:  en
+#+OPTIONS:   H:2 num:t toc:nil ':t
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LaTeX_HEADER:\usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+# #+LATEX_CLASS_OPTIONS: [handout]
+# #+LaTeX_HEADER: \pgfpagesuselayout{4 on 1}[border shrink=1mm]
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{1}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{2}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{3}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{4}{border code=\pgfusepath{stroke}}
+#+LaTeX_HEADER: \setbeamertemplate{footline}[frame number]
+#+LaTeX_HEADER: \beamertemplatenavigationsymbolsempty
+#+LaTeX_HEADER: \usepackage{appendixnumberbeamer}
+#+LaTeX_HEADER: \bibliographystyle{abbrvnat}
+#+LaTeX_HEADER: \input{/home/amnudn/Documents/latex/standard-commands.tex}
+# #+LaTeX_HEADER: \input{/home/amnudn/Documents/latex/standard-settings.tex}
+#+BIBLIOGRAPHY: ./bibliography plain
+# #+latex_header: \mode<beamer>{\usetheme{Szeged}} % Something like this?
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)

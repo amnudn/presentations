@@ -1,0 +1,209 @@
+* The article
+[[./screenshots/Screenshot_abstract.png]]
+
+To appear in Annals of Statistics. 
+
+* Outline :noexport:
+- Boosting $\rightarrow$ functional derivative $\rightarrow$ some issues
+- Tree-based implementation
+- Simulations
+* Outline of the problem
+** no non-par methods quote                                         :B_quote:
+    :PROPERTIES:
+    :BEAMER_env: quote
+    :END:
+While there are many *boosting methods* for dealing with time-static covariates, the literature is
+far more sparse for the case of time-dependent covariates. In fact, to our knowledge there is *no
+general nonparametric approach for dealing with this setting*. This is because in order to implement
+a fully nonparametric estimator, one has *to contend with the issue of identifying the gradient,
+which turns out to be a non-trivial problem due to the functional nature of the data*. This is
+unlike most standard applications of gradient boosting where the gradient can easily be identified
+and calculated. (p.2)
+
+* Setting and motivation -- why?
+** Their setting                                                    :B_block:
+    :PROPERTIES:
+    :BEAMER_act: <+->
+    :BEAMER_env: block
+    :END:
+
+[[./screenshots/Screenshot_motivation.png]]
+
+** Nuisance / plug-in estimator 
+    :PROPERTIES:
+    :BEAMER_act: <+->
+    :BEAMER_env: block
+    :END:
+
+- mediation analysis in continuous time
+- dynamic treatment regime in continuous time
+- local independence testing
+
+* Boosting in general (regression and classification)
+\pause
+** Fitting residuals
+    :PROPERTIES:
+    :BEAMER_act: <+->
+    :BEAMER_env: block
+    :END:
+
+#+BEGIN_EXPORT latex
+Initialize $f_0 = \bar{y_i}$, then iteratively estimate $f_m$ to minimize
+\begin{equation*}
+  \frac{1}{n}\sum_{i=1}^{n}(r_{im} - f_m(x_i))^2 \quad \text{with} \quad r_{im} := y_i - f_{m-1}(x_i).
+\end{equation*}
+#+END_EXPORT
+
+** Re-weighting samples
+    :PROPERTIES:
+    :BEAMER_act: <+->
+    :BEAMER_env: block
+    :END:
+
+Initialize weights $w_i = 1/n$, $i = 1, ..., n$, then repeat
+1. fit $f_m$ to weighted data set
+2. update weight $w_i$ based on $f_m$'s performance on sample $i$
+
+** $\rightarrow$ Functional gradient descent of some loss function $L$
+    :PROPERTIES:
+    :BEAMER_act: <+->
+    :BEAMER_env: block
+    :END:
+
+#+BEGIN_EXPORT latex
+\vspace{-0.5cm}
+\begin{equation*}  
+  F_m = F_{m-1} - v f_m, \quad \text{with} \quad  f_m = \argmin_f \left\| \frac{\partial L}{\partial F} \bigg\rvert_{F=F_{m-1}} -f \right\|
+\end{equation*}
+#+END_EXPORT
+
+* The loss function in this setting
+[[./screenshots/Screenshot_time-dependent-covar2.png]] \pause
+** The (scaled) negative log-likelihood functional
+\vspace{-0.5cm}
+#+BEGIN_EXPORT latex
+\begin{equation*}
+  \hat{R}_n(F) = \frac{1}{n}\sum_{i}^{n}\int_0^1 Y_i(t)e^{F(t, X_i(t))} \diff t
+  - \frac{1}{n}\sum_{i=1}^{n}\Delta_i F(T_i, X_i(T_i)),
+\end{equation*}
+where $F(t,x) = \log(\lambda(t,x))$ and $\Delta_i$ is event indicator. 
+#+END_EXPORT
+
+* $\hat{R}_n$ does not have a gradient ... ?
+[[./screenshots/Screenshot_gradient.png]]
+
+* Finding a domain for $\hat{R}_n$
+#+BEGIN_EXPORT latex
+Let $\hat{\mu}_n$ be the empirical sub-probability measure on $[0,1] \times \mathscr{X} \subset
+[0,1] \times \R^p$, defined as
+\begin{equation*}
+  \hat{\mu}_n(B) := \frac{1}{n}\sum_{i=1}^{n}\int_0^1 Y_i(t) \cdot I[\{t, X_i(t)\} \in B] \diff t,
+\end{equation*}
+let $\{\phi_j(t,x)\}_{j=1}^d$ be a set of bounded functions
+\begin{equation*}
+  \phi_j \colon [0,1] \times \mathscr{X}  \rightarrow [-1,1],
+\end{equation*}
+that are linearly independent in $\mathcal{L}^2(\diff t \otimes \diff x)$, and set
+\begin{equation*}
+  \mathcal{F} := \mathrm{span}\{\phi_j \; : \; j = 1, \dots, d\}.
+\end{equation*}
+Then the sample-dependent
+domain of $\hat{R}_n$ is
+\begin{equation*}
+  (\mathcal{F}, \langle\blank, \blank\rangle_{\hat{\mu}_n}) \subset \mathcal{L}^2(\hat{\mu}_n).
+\end{equation*}
+#+END_EXPORT
+
+* The domain when using regression trees
+[[./screenshots/Screenshot_basis-trees.png]]
+
+* Integral representation of the likelihood 
+[[./screenshots/Screenshot_proposition1.png]]
+
+* Representation for regression trees
+[[./screenshots/Screenshot_prop1-trees.png]]
+
+* The boosting algorithm
+[[./screenshots/Screenshot_algorithm.png]]
+
+* Skipping some technical stuff
+- Consistency
+- Convergence rates
+- Choice of hyper-parameters
+- Better understanding of boosting in general
+* Some details for a tree-based implementation
+#+BEGIN_EXPORT latex
+At the $m$'th iteration approximate the gradient $\hat{g}_{\hat{F}_m}$ with a tree: Split leaf
+regions $A \subset [0,1] \times \mathscr{X}$ into left and right daughter sub-regions $A_1$ and
+$A_2$, either by splitting on a covariate $k$,
+\begin{equation*}
+  A_1 = \{(t, x) \in A \; : \; x^{(k)} \leq s\}, \quad   A_2 = \{(t, x) \in A \; : \; x^{(k)} > s\},
+\end{equation*}
+or on time
+\begin{equation*}
+  A_1 = \{(t, x) \in A \; : \; t \leq s\}, \quad   A_2 = \{(t, x) \in A \; : \; t > s\}.
+\end{equation*}
+\pause Choosing these to minimize $\mathcal{L}^2(\hat{\mu}_n)$ error is equivalent to minimizing
+\begin{equation*}
+  \min_{\gamma_1} \sum_{\substack{j: B_j \subseteq A_1, \\ w_j > 0}} w_j \cdot (\tilde{y}_j - \gamma_1)^2
+  +   \min_{\gamma_2} \sum_{\substack{j: B_j \subseteq A_2, \\ w_j > 0}} w_j \cdot (\tilde{y}_j - \gamma_2)^2,
+\end{equation*}
+where
+\begin{equation*}
+  \tilde{y}_j := e^{c_{m,j}} - \frac{\hat{\mathrm{Fail}}_j}{n \hat{\mu}_n(B_j)}, \quad \text{and}
+  \quad w_j := \hat{\mu}_n(B_j),
+\end{equation*}
+are the pseudo-response and its weight. 
+#+END_EXPORT
+
+* Simulations
+** Simulations study setting
+    :PROPERTIES:
+    :BEAMER_act: <1>
+    :BEAMER_env: onlyenv
+    :END:
+[[./screenshots/Screenshot_sim1.png]]
+
+Use some exploratory analysis to find a suitable, realistic functional form of the hazard.
+
+** hazard used
+    :PROPERTIES:
+    :BEAMER_act: <2>
+    :BEAMER_env: onlyenv
+    :END:
+[[./screenshots/Screenshot_sim2.png]]    
+
+* Results
+[[./screenshots/Screenshot_results.png]] 
+
+* Summary
+- First (?) general method for non-parametric conditional hazard estimation
+- Finding the proper domain for the log-likelihood and an integral representation for its derivative
+- Should discuss the Markov-like assumption and the time/measurement splitting
+* HEADER :noexport:
+#+TITLE: Journal club: Boosted nonparametric hazards with time-dependent covariates
+#+Author: Anders Munch
+#+Date: February 24, 2021
+
+#+LANGUAGE:  en
+#+OPTIONS:   H:1 num:t toc:nil ':t
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LaTeX_HEADER: \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor, mathrsfs}
+#+LaTeX_HEADER: \bibliographystyle{abbrvnat}
+#+LaTeX_HEADER: \input{/home/amnudn/Documents/latex/standard-commands.tex}
+
+# Beamer settins:
+# #+LaTeX_HEADER: \usefonttheme[onlymath]{serif} 
+#+LaTeX_HEADER: \setbeamertemplate{footline}[frame number]
+#+LaTeX_HEADER: \beamertemplatenavigationsymbolsempty
+#+LaTeX_HEADER: \usepackage{appendixnumberbeamer}
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+
+# For handout mode: (check order...)
+# #+LATEX_CLASS_OPTIONS: [handout]
+# #+LaTeX_HEADER: \pgfpagesuselayout{4 on 1}[border shrink=1mm]
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{1}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{2}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{3}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{4}{border code=\pgfusepath{stroke}}

@@ -1,0 +1,426 @@
+* R setting and generating some plots                              :noexport:
+Remember to exceture (C-c C-c) the following line:
+#+PROPERTY: header-args:R  :results output verbatim  :exports results  :session *R* :cache yes
+
+** Visualizing data
+   #+BEGIN_SRC R
+     library(ggplot2)
+     library(data.table)
+     plot.fun <- function(dat, xlim=2, linesize=3, pointsize=3.5, t=1.2){
+       out.plot <- ggplot(dat, aes(y=subject)) +
+	 theme_classic(base_size =20)  + xlab("Time") + ylab("Subject") +
+	 geom_segment(data=dat, aes(yend=subject, x=0, xend=pmin(last.time, xlim)), size=linesize) + 
+	 theme(axis.text.x=element_blank(),
+	       axis.ticks.x=element_blank(),
+	       axis.text.y=element_blank()) +
+	 xlim(c(0,xlim)) +
+	 geom_vline(xintercept=t, size=1, lty=2)
+       tmp.pd <- dat[event == TRUE]
+       if(nrow(tmp.pd)>0)
+	 out.plot <- out.plot + geom_point(data=tmp.pd, aes(x=last.time), size=pointsize, shape=21, stroke=2, fill="black")  
+       tmp.pd <- dat[event == FALSE]
+       if(nrow(tmp.pd)>0)
+	 out.plot <- out.plot + geom_point(data=tmp.pd, aes(x=last.time), size=pointsize, shape=21, stroke=2, fill="white") 
+       return(out.plot)
+     }
+   #+END_SRC
+
+   #+RESULTS[(2021-11-24 17:50:38) b8fe786603fe0b2a2db63025910a5cce087f68dd]:
+
+   Full data
+
+   #+BEGIN_SRC R :results graphics file :exports results :file "./fig-full-data.pdf" :height 3 :width 8
+     set.seed(2)
+     full.dat <- data.table(subject=1:5,
+			    last.time=runif(5, min=.1, max=1.9),
+			    event=TRUE)
+     plot.fun(full.dat)
+   #+END_SRC
+
+   #+RESULTS[(2021-11-24 17:50:38) 7a55ff7e96a7174230872efad46af6fc11cb7188]:
+   [[file:./fig-full-data.pdf]]
+
+   Observed data
+
+   #+BEGIN_SRC R :results graphics file :exports results :file "./fig-observed-data.pdf" :height 3 :width 8
+     obs.dat <- copy(full.dat)
+     obs.dat[subject==5, ":="(last.time=0.5, event=FALSE)]
+     obs.dat[subject==3, ":="(last.time=1, event=FALSE)]
+     plot.fun(obs.dat)
+    #+END_SRC
+
+    #+RESULTS[(2021-11-24 17:50:38) f6ac9a337785cd748572ffb9cdcfe8df76b36a42]:
+    [[file:./fig-observed-data.pdf]]
+
+   #+BEGIN_SRC R :results graphics file :exports results :file "./fig-inverse-data.pdf" :height 3 :width 8
+     inv.dat <- copy(obs.dat)
+     inv.dat[, event:=!event]
+     plot.fun(inv.dat)
+    #+END_SRC
+
+    #+RESULTS[(2021-11-24 17:50:38) 697d50ecbdaf972e4145093dde2eaec33b8b651a]:
+    [[file:./fig-inverse-data.pdf]]
+    
+** Generate latex code :noexport:
+
+*** Full data                                                     :B_onlyenv:
+    :PROPERTIES:
+    :BEAMER_act: <1>
+    :BEAMER_env: onlyenv
+    :END:
+   - $X \in \R^p$ :: Static covariates measured at baseline ($t=0$)
+   - $T \in \R_+$ :: Time of event
+   - $t \in \R_+$ :: Fixed time horizon
+   - $r(t \mid X) \in [0,1]$ :: Risk prediction at time $t$ given baseline covariates
+     
+*** Observed data                                                 :B_onlyenv:
+    :PROPERTIES:
+    :BEAMER_act: <2>
+    :BEAMER_env: onlyenv
+    :END:
+   - $X \in \R^p$ :: Static covariates measured at baseline ($t=0$)
+   - $T \in \R_+$ :: Time of event
+   - $r(t \mid X) \in [0,1]$ :: Risk prediction at time $t$ given baseline covariates
+             
+* Slides
+
+** Risk prediction model and full data
+
+#+begin_export latex
+\begin{picture}(320,250)
+  \put(0,225){\begin{minipage}[t]{\linewidth} { For a fixed time horizon $t \in \R_+$ we have
+\begin{description}
+\item[{\(X \in \R^p\)}] Static covariates measured at baseline (\(t=0\))
+\item[{\(T \in \R_+\)}] Time of event
+\item[{\(r(t \mid X) \in [0,1]\)}] Risk prediction at time \(t\) given baseline covariates
+\item[{\(Y(t) \in \{0,1\}\)}] Event status at time \(t\), $Y(t):= \1\{T \leq t\}$  
+\end{description}
+      }
+    \end{minipage}}
+  \put(0,20){\includegraphics[width=\textwidth]{./fig-full-data.pdf}}
+\end{picture}
+#+end_export
+
+** Risk prediction model and censored data
+#+begin_export latex
+\begin{picture}(320,250)
+  \put(0,225){\begin{minipage}[t]{\linewidth} { For a fixed time horizon $t \in \R_+$ we have
+\begin{description}
+\item[{\(X \in \R^p\)}] Static covariates measured at baseline (\(t=0\))
+\item[{\(\tilde T \in \R_+\)}] Observation time (\(\tilde T := T \wedge C\))
+\item[{\(\Delta \in \{0,1\}\)}] Event indicator (\(\Delta := \1\{\tilde T = T\}\))
+\item[{\(r(t \mid X) \in [0,1]\)}] Risk prediction at time \(t\) given baseline covariates
+\item[{\(Y(t) \in \{0,1\}\)}] Is unobserved for som subjects
+\end{description}
+      }
+    \end{minipage}}
+  \put(0,20){\includegraphics[width=\textwidth]{./fig-observed-data.pdf}}
+\end{picture}
+#+end_export
+   
+
+** The Brier score
+    Given a (non-random) risk-prediction model $r \colon \R_+ \times \R^p \rightarrow [0,1]$ we want
+    to evaluate the performance of $r$ at a fixed time horizon $t \in \R_+$. For this we use the
+    Brier score
+   #+begin_export latex
+   \begin{equation*}
+     \E\left[ 
+       \left\{
+	 Y(t) - r(t \mid X)
+       \right\}^2 \right],
+     \quad \text{with} \quad Y(t):= \1\{T \leq t\}.     
+   \end{equation*}
+   #+end_export
+
+*** Inverse probability of censoring weights (IPCW)
+    #+begin_export latex
+    Let $(X, T) \sim Q$ and $(X, \tilde T, \Delta) \sim P$. When $T \independent C \mid X$ the
+    Brier score is identifiable from the observed data\footnote<1->{Note that
+      $W(t)\{Y(t)-r(t\mid X)\}^2$ is a function of the observed data, as $Y(t)$ is observed whenever
+      $W(t)$ is non-zero.}:
+    \begin{equation*}
+      \E_Q\left[ 
+	\left\{
+	  Y(t) - r(t \mid X)
+	\right\}^2 \right]
+      = \E_P\left[
+	W(t)
+	\left\{
+	  Y(t) - r(t \mid X)
+	\right\}^2 \right],
+    \end{equation*}
+    with
+    \begin{equation*}
+      W(t) = \frac{\1({\tilde{T} >t})}{G(t \mid X)} + \frac{\1({\tilde{T}\leq
+	  t})\Delta}{G(\tilde{T}\mid X)},
+    \end{equation*}
+    and where $G(s \mid x) = P(C > s \mid X=x)$.
+    #+end_export
+    
+    
+** Visualizing the re-weighting
+   #+begin_export latex
+    \begin{equation*}
+      \E_Q{\left[ 
+	\left\{
+	  Y(t) - r(t \mid X)
+	\right\}^2 \right]}
+      = \E_P{\left[
+	W(t)
+	\left\{
+	  Y(t) - r(t \mid X)
+	\right\}^2 \right]}
+    \end{equation*}    
+   #+end_export
+
+   \vfill
+
+*** Generate data to visualize :noexport:
+#+BEGIN_SRC R :results silent
+  library(ggplot2)
+  library(data.table)
+  
+  p.weights <- function(data, label.height=2.8){
+    pp0 <- ggplot(data, aes(x=patient, y=weight, fill=factor(observed))) + theme_classic() + 
+      geom_col() + facet_wrap(~group, scales="free_x", strip.position = "bottom") +
+      xlab("") +
+      theme(axis.ticks.x=element_blank(), axis.text.x=element_blank(), legend.position="none") +
+      scale_y_continuous(expand=c(0,0), limits=c(-0.05,label.height)) +
+      geom_text(data=data[patient %in% c(3, 8)], aes(label=label, y=label.height-0.2), size=10)
+    if(data[,any(observed==0)])
+      pp0 <- pp0+ scale_fill_manual(labels=c(0,1), values=c("grey90", "grey20"))
+    else
+      pp0 <- pp0+ scale_fill_manual(values=c("grey20"))
+    return(pp0)
+  }
+  
+  dd <- data.table(patient=factor(1:10),
+		   group=factor(rep(c("a","b"), each=5)),
+		   weight=1,
+		   observed=1)
+  dd[, label:=paste(round(sum(weight), digits=1), "patients"), by=group]    
+  
+  a.cens <- 0.2
+  b.cens <- 0.6
+  dd1 <- copy(dd)
+  set.seed(3)
+  dd1[group=="a", observed:=sample(c(0,1), size=.N, prob=c(a.cens, 1-a.cens), replace=TRUE)]
+  dd1[group=="b", observed:=sample(c(0,1), size=.N, prob=c(b.cens, 1-b.cens), replace=TRUE)]
+  dd1[, label:=paste(round(sum(weight*observed), digits=1), "patients"), by=group]
+  dd1
+  
+  dd2 <- copy(dd1)
+  dd2[, weight:=1/(1-ifelse(group=="a", a.cens, b.cens))]
+  dd2[, label:=paste(round(sum(weight*observed), digits=1), "patients"), by=group]
+  dd2[observed==0, weight:=NA]
+#+END_SRC
+
+
+*** full data
+    :PROPERTIES:
+    :BEAMER_act: <1>
+    :BEAMER_env: onlyenv
+    :END:
+    
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 5
+p.weights(dd)
+#+END_SRC     
+
+#+RESULTS[(2021-11-24 17:50:38) 75ef3638db86c5b78960c5598a21ff79de86956a]:
+[[file:/tmp/babel-CTEOPz/figure-04B68b.pdf]]
+     
+
+*** missing data
+    :PROPERTIES:
+    :BEAMER_act: <2>
+    :BEAMER_env: onlyenv
+    :END:
+    
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 5
+p.weights(dd1)
+#+END_SRC     
+
+#+RESULTS[(2021-11-24 17:50:39) 91a1cb3339003b262bbf3dc4c5a2b77a0f72daa8]:
+[[file:/tmp/babel-CTEOPz/figure-qxPs4l.pdf]]
+     
+
+*** reweighted data
+    :PROPERTIES:
+    :BEAMER_act: <3>
+    :BEAMER_env: onlyenv
+    :END:
+    
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 5
+p.weights(dd2)
+#+END_SRC     
+
+#+RESULTS[(2021-11-24 17:50:39) 8fcb14bcee5160945ed3ac11cd8c9f3c2759bc69]:
+[[file:/tmp/babel-CTEOPz/figure-QodefG.pdf]]
+     
+   
+** Non-parametric estimation
+
+   By estimating the censoring distribution $G$ we obtain the IPCW estimator
+   #+begin_export latex
+   \begin{equation*}
+     \widehat{W}_i(t)=\frac{\1({\tilde{T}_i >t})}{\hat{G}(t \mid X_i)} + \frac{\1({\tilde{T}_i\leq
+	 t})\Delta_i}{\hat{G}(\tilde{T}_i\mid X_i)},
+     \quad \hat{\theta}_n^t = \empmeas[\widehat{W}_i(t)
+     \left\{
+       Y_i(t) - r(t \mid X_i)
+     \right\}^2]
+   \end{equation*}
+   #+end_export
+   
+*** Inference and efficiency under non-parametric assumptions
+    - Existing methods use Kaplan-Meier or Cox models to estimate the censoring distribution.
+    - Non-parametric, data-adaptive estimation of the censoring distribution + inference
+      $\rightarrow$ one-step estimators / DML / TMLE.
+   
+*** Data-adaptive selection of the estimator $\hat{G}$
+    Use some kind of cross-validation to select the best $\hat{G}$ from a collection of candidates.
+    \pause *Is it obvious how to do this?*
+
+** Cross validation for survival models -- the Brier score?
+
+
+   #+begin_export latex
+   \center \Large Brier score! \alt<4>{... infinite regress ...}{\color{white}{... infinite regress ...}}
+   #+end_export
+
+\vfill
+
+
+**** overlay block 
+    :PROPERTIES:
+    :BEAMER_act: <2>
+    :BEAMER_env: onlyenv
+    :END:
+    
+    file:./fig-observed-data.pdf
+    
+**** overlay block 
+    :PROPERTIES:
+    :BEAMER_act: <3->
+    :BEAMER_env: onlyenv
+    :END:
+    
+    file:./fig-inverse-data.pdf
+
+
+** Cross validation for survival models -- the likelihood?
+
+   Many common estimators of a survival function will be a discrete measure $\rightarrow$ the
+   likelihood will (a.s.) be 0 on any hold-out data sample.
+
+*** overlay block 
+    :PROPERTIES:
+    :BEAMER_act: <1>
+    :BEAMER_env: onlyenv
+    :END:    
+
+    #+BEGIN_SRC R :results graphics file :exports results :file "./km-plot.pdf" :height 4
+      library(prodlim)
+      library(riskRegression)
+      
+      set.seed(1)
+      dat <- SimSurv(30)
+      fit <- prodlim(Hist(time,status)~1,data=dat)
+      km.dat <- data.table(time=sort(dat$time),
+			   risk=predictRisk(fit, times=sort(dat$time), newdata=data.frame(1)))
+      held.out <- SimSurv(1)
+      
+      km.plot <- ggplot(km.dat, aes(x=time)) +
+	geom_step(size=1, aes(y=risk)) + theme_classic() +
+	geom_point(aes(y=0), size=1)
+      km.plot
+    #+END_SRC
+
+    #+RESULTS[(2021-11-24 17:50:39) 005d70638cf3a6784d205a20b0ff5be74f541c5e]:
+    [[file:./km-plot.pdf]]
+
+*** overlay block 
+    :PROPERTIES:
+    :BEAMER_act: <2->
+    :BEAMER_env: onlyenv
+    :END:
+
+    #+BEGIN_SRC R :results graphics file :exports results :file "./km-plot-new-point.pdf" :height 4
+      km.plot +
+	geom_vline(xintercept=held.out$time, size=.5, lty=2, col="red") +
+	geom_point(data=held.out, aes(y=0), col="red", size=2)
+    #+END_SRC
+
+    #+RESULTS[(2021-11-24 17:50:39) bbde17270fb6b4669eaa44c71c93707721af73ad]:
+    [[file:./km-plot-new-point.pdf]]
+
+** Summary
+   
+*** gray                                        :B_beamercolorbox:
+    :PROPERTIES:
+    :BEAMER_env: beamercolorbox
+    :BEAMER_opt: rounded=true
+    :END:
+
+    \centering How should we do cross validation for general survival models when the
+    test and train data are censored?
+
+
+*** questions                                               :B_ignoreheading:
+    :PROPERTIES:
+    :BEAMER_env: ignoreheading
+    :END:
+
+    \vfill
+
+   - Which other loss functions are sensible to use instead?
+   - How can these (and the risk of an estimator) be approximated with observed data?
+
+    \vfill
+
+    
+*** Questions, comments, suggestions?
+
+    \vfill 
+
+    \flushright Thank you for listening!
+    
+* References
+\tiny \bibliography{/home/amnudn/Documents/latex/default-bib.bib}
+
+* HEADER :noexport:
+#+TITLE: Validating survival models
+#+SUBTITLE: Young Researcher Day
+#+Author: Anders Munch
+#+Date: November 25, 2021
+
+#+LANGUAGE:  en
+#+OPTIONS:   H:2 num:t toc:nil ':t ^:t
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LATEX_CLASS_OPTIONS: [smaller]
+#+LaTeX_HEADER: \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+#+LaTeX_HEADER: \bibliographystyle{abbrvnat}
+#+LaTeX_HEADER: \input{/home/amnudn/Documents/latex/standard-commands.tex}
+#+BIBLIOGRAPHY: /home/amnudn/Documents/latex/default-bib plain
+
+# Beamer settins:
+# #+LaTeX_HEADER: \usefonttheme[onlymath]{serif} 
+#+LaTeX_HEADER: \setbeamertemplate{footline}[frame number]
+#+LaTeX_HEADER: \beamertemplatenavigationsymbolsempty
+#+LaTeX_HEADER: \usepackage{appendixnumberbeamer}
+#+LaTeX_HEADER: \setbeamercolor{gray}{bg=white!90!black}
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+LATEX_HEADER: \setbeamertemplate{itemize items}{$\circ$}
+
+# Check this:
+# #+LaTeX_HEADER: \lstset{basicstyle=\ttfamily\small}
+
+# For handout mode: (check order...)
+# #+LATEX_CLASS_OPTIONS: [handout]
+# #+LaTeX_HEADER: \pgfpagesuselayout{4 on 1}[border shrink=1mm]
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{1}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{2}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{3}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{4}{border code=\pgfusepath{stroke}}
