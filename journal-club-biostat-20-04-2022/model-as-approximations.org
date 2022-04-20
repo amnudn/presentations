@@ -117,7 +117,7 @@ model-agnostic/model-free parameter \citep{rinaldo2019comment,whitney2019comment
 parameter definition and estimation completely.
 
 ** Flawed models as a fact of life?
-Back to the main paper: In the end we are going to use a model.
+Back to the main paper: In practice we are going to use some kind of estimation and approximation.
 [[./quotes/sect10-model-approx.png]]
 
 The effect of estimating the nuisance parameter with an approximate nuisance model on the estimator

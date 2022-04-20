@@ -1,4 +1,4 @@
-% Created 2022-04-20 Wed 09:23
+% Created 2022-04-20 Wed 09:38
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -57,8 +57,8 @@ basewidth={0.5em,0.4em},
 
 \maketitle
 \section{The paper}
-\label{sec:org6e505aa}
-\begin{frame}[label={sec:org3bc3b0c}]{The paper}
+\label{sec:org2f1197a}
+\begin{frame}[label={sec:orgbf567e2}]{The paper}
 \hfill
 
 \begin{center}
@@ -66,7 +66,7 @@ basewidth={0.5em,0.4em},
 \end{center}
 \end{frame}
 
-\begin{frame}[label={sec:org53f964e}]{Discussion paper}
+\begin{frame}[label={sec:org410afd0}]{Discussion paper}
 \begin{itemize}
 \item Memorial Issue of \emph{Statitical Science} for Lawrence D. Brown
 \item Paper in two parts: Special case of linear regression (part I, \cite{buja2019models}) and general
@@ -85,7 +85,7 @@ regression functionals'' and propose diagnostic tools.
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org9c71097}]{Overall idea}
+\begin{frame}[label={sec:orgec21af0}]{Overall idea}
 Understand what is estimated with linear a linear regression (or more general M-estimators) when the
 model is mis-specified. 
 
@@ -100,7 +100,7 @@ Define the parameter \(\beta\) as a functional defined on the data distribution 
 \end{center}
 \end{frame}
 
-\begin{frame}[label={sec:org29d6914}]{One consequence}
+\begin{frame}[label={sec:org8b4dc49}]{One consequence}
 \begin{center}
 \includegraphics[width=.9\linewidth]{./quotes/sect4-implication.png}
 \end{center}
@@ -110,7 +110,7 @@ Define the parameter \(\beta\) as a functional defined on the data distribution 
 \end{center}
 \end{frame}
 
-\begin{frame}[label={sec:orgde5f9ad}]{Is this a problem?}
+\begin{frame}[label={sec:orgceb4262}]{Is this a problem?}
 This seems to only be a problem because we do not understand how to interpret \(\beta(P)\).
 
 \begin{block}{Average treatment effect (ATE)}
@@ -124,7 +124,7 @@ depend on the background distribution \(X\) (right?).
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org5a87b1d}]{Interpretation of ``slopes'' in the presence of non-linearity}
+\begin{frame}[label={sec:orgf68d89c}]{Interpretation of ``slopes'' in the presence of non-linearity}
 \begin{onlyenv}<1>
 \begin{center}
 \includegraphics[width=.9\linewidth]{./quotes/sect10-interpretation.png}
@@ -143,10 +143,10 @@ depend on the background distribution \(X\) (right?).
 \end{frame}
 
 \section{Discussion papers}
-\label{sec:org7881ea2}
-\begin{frame}[label={sec:orgfbad0c1}]{Comments}
+\label{sec:org04ddf71}
+\begin{frame}[label={sec:org4a90df8}]{Comments}
 \end{frame}
-\begin{frame}[label={sec:org257e1af}]{The best approximation depends on how you measure}
+\begin{frame}[label={sec:orgc991396}]{The best approximation depends on how you measure}
 \begin{quote} %% 
 In the context of prediction, the objective is often to minimize a particular criterion or scoring
 rule. \ldots{} [In the] case of misspecification, it is not clear which criterion should be used for
@@ -157,7 +157,7 @@ interest under misspecification}, except under restrictive conditions. \citep{gh
 \end{quote}
 \end{frame}
 
-\begin{frame}[label={sec:org6e4ecdc}]{Predictive performance}
+\begin{frame}[label={sec:orgc4ffb0b}]{Predictive performance}
 \cite{rinaldo2019comment} argue that we should give up the parameter \(\beta\) and instead consider:
 
 \begin{block}{Proper causal effect}
@@ -171,7 +171,7 @@ proportion of variance explained or Shapley values.
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org4251346}]{The best approximation is ill-defined when data is coarsened}
+\begin{frame}[label={sec:org97f733b}]{The best approximation is ill-defined when data is coarsened}
 \begin{center}
 \includegraphics[width=7cm]{./quotes/comment-whitney-figure.png}
 \end{center}
@@ -185,8 +185,8 @@ functional is not itself particularly useful nor interpretable -- we agree with 
 \end{frame}
 
 \section{Additional thoughts}
-\label{sec:orga8aa894}
-\begin{frame}[label={sec:orgde31278}]{Fully non-parametric (model-free) parameter definition}
+\label{sec:org9206982}
+\begin{frame}[label={sec:org63fc183}]{Fully non-parametric (model-free) parameter definition}
 \begin{block}{Model \(\rightarrow\) parameter (more or less interpretable)}
 Extend parameter from linear (or other) model to general (non-parametric) setting. The parameter
 interpretation simplifies to well-known quantity when the model is correct
@@ -200,8 +200,8 @@ parameter definition and estimation completely.
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org787418e}]{Flawed models as a fact of life?}
-Back to the main paper: In the end we are going to use a model.
+\begin{frame}[label={sec:orge2ded2d}]{Flawed models as a fact of life?}
+Back to the main paper: In practice we are going to use some kind of estimation and approximation.
 \begin{center}
 \includegraphics[width=.9\linewidth]{./quotes/sect10-model-approx.png}
 \end{center}
@@ -216,7 +216,7 @@ the nuisance component have on the plug-in estimator \(\hat \Psi = \tilde\Psi(\h
 \end{itemize}
 \end{frame}
 
-\begin{frame}[label={sec:org7c684e6}]{\normalsize Illustration of the effect of approximate nuisance model on target estimator}
+\begin{frame}[label={sec:orgc8e94cd}]{\normalsize Illustration of the effect of approximate nuisance model on target estimator}
 \begin{block}{$\;$}
 \small Estimation of the ATE using the G-formula. For the correctly specified outcome model (blue)
 and a collection of mis-specified models indexed by a penalty parameter (red).
@@ -228,9 +228,9 @@ and a collection of mis-specified models indexed by a penalty parameter (red).
 \end{frame}
 
 \section{References}
-\label{sec:org6e6a4d7}
+\label{sec:org65b8d50}
 
-\begin{frame}[label={sec:orgfb9e53b}]{References}
+\begin{frame}[label={sec:orge483fad}]{References}
 \small \bibliography{/home/amnudn/Documents/latex/default-bib.bib}
 \end{frame}
 \end{document}
