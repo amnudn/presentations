@@ -5,9 +5,10 @@
 [[./quotes/abstract.png]]
 
 ** Discussion paper
-- Memorial Issue for Lawrence D. Brown
+- Memorial Issue of /Statitical Science/ for Lawrence D. Brown
 - Paper in two parts: Special case of linear regression (part I, \cite{buja2019models}) and general
-  case (part II, \cite{buja2019models2})
+  case (part II, \cite{buja2019models2}). Part II defines a notion of "well-specification for
+  regression functionals" and propose diagnostic tools.
 \hfill
 
 *** Comments by
@@ -64,6 +65,7 @@ depend on the background distribution $X$ (right?).
 [[./quotes/sect10-interpretation-text.png]]
 
 * Discussion papers
+** Comments
 ** The best approximation depends on how you measure
 ***                                                                 :B_quote:
 :PROPERTIES:
@@ -111,14 +113,14 @@ interpretation simplifies to well-known quantity when the model is correct
 
 *** Interpretable parameter $\rightarrow$ estimation by using model
 Define parameter of interest directly on the non-parametric family of probability measure --
-model-agnostic parameter \citep{whitney2019comment}. Separate parameter definition and estimation
-completely.
+model-agnostic/model-free parameter \citep{rinaldo2019comment,whitney2019comment}. Separates
+parameter definition and estimation completely.
 
 ** Flawed models as a fact of life?
 Back to the main paper: In the end we are going to use a model.
 [[./quotes/sect10-model-approx.png]]
 
-The effect of estimation the nuisance parameter with an approximate nuisance model on the estimator
+The effect of estimating the nuisance parameter with an approximate nuisance model on the estimator
 of a /target parameter/:
 - Assume the parameter of interest $\Psi$ is identified through the nuisance parameter $\nu$, i.e.,
   $\Psi(P) = \tilde\Psi(\nu(P))$.
@@ -139,8 +141,8 @@ Try to see what happens with fewer observations?
   library(data.table)
   library(ggplot2)
 
-  effect.size <- .2
-  sim.dat <- function(n=1000, p=10){
+  effect.size <- .1
+  sim.dat <- function(n=500, p=10){
     X0 = matrix(rnorm(n*p), nrow=n)
     X.term = .1*X0[, 1] + .2*X0[, 2]^2 + .2*X0[, 3]^3
     Y1 = X.term + effect.size + rnorm(n)
@@ -157,6 +159,7 @@ Try to see what happens with fewer observations?
       train.dat <- sim.dat(p = p)
       ## True model
       true.m <- lm(Y ~ V1 + I(V2^2) + I(V3^3) + A, data = train.dat)
+      wrong.m <- lm(Y ~ V1 + V2 + V3 + A, data = train.dat)
       ## ML model:
       model <- glmnet(train.dat[, -1], train.dat[,Y], alpha=alpha, lambda=lambda, ...)
       ## Nuisance fit
@@ -167,8 +170,10 @@ Try to see what happens with fewer observations?
       copy.dat1 <- copy(train.dat)[, A := 1]
       copy.dat0 <- copy(train.dat)[, A := 0]
       target.true = data.table(lambda = lambda,fit = mean(predict(true.m, newdata = copy.dat1)) - mean(predict(true.m, newdata = copy.dat0)),model = "true", parameter = "target")
+      target.wrong = data.table(lambda = lambda,fit = mean(predict(wrong.m, newdata = copy.dat1)) - mean(predict(wrong.m, newdata = copy.dat0)),model = "wrong", parameter = "target")
       target.ml = data.table(lambda=lambda,fit = apply(predict(model, newx=as.matrix(copy.dat1[, -1]))-predict(model, newx=as.matrix(copy.dat0[, -1])), 2, mean),model="ridge",parameter = "target")
-      return(rbind(target.true, target.ml, est.nui)[, sim := m])    
+      ## Could also have just extracted the A coef instead...
+      return(rbind(target.true,target.wrong, target.ml, est.nui)[, sim := m])    
     }))
     ## out[, bias := fit - effect.size]
     return(out[])
@@ -176,6 +181,12 @@ Try to see what happens with fewer observations?
 
   set.seed(23)
   tt0 <- sim.est(M = 200, exp(seq(3, -10, length.out=100)), p = 30)
+
+  ## ggplot(tt0[parameter == "target" & !(model == "wrong"), .(mean.fit=mean(fit), lwr.fit = quantile(fit, probs = 0.025), upr.fit = quantile(fit, probs = 0.975)), .(model, lambda)], aes(x=log(lambda), y=mean.fit) ) + theme_classic() +
+  ##   geom_ribbon(aes(fill = model, ymin = lwr.fit,ymax = upr.fit), alpha = 0.15) +
+  ##   geom_hline(yintercept = effect.size, col = "gray", lty = 2, size=1.2) + 
+  ##   geom_line(size=1.2, aes(col = model)) +
+  ##   geom_vline(xintercept = tt0[parameter == "nuisance.msefit", .(mean.mse=mean(fit)), lambda][which.min(mean.mse), log(lambda)], col = "gray", size=1.2)
 #+END_SRC
 
 #+RESULTS[(2022-04-19 23:05:30) d4debb300ed6bd5ad4c1b992c755f69b6c49aec0]:
@@ -187,15 +198,18 @@ Try to see what happens with fewer observations?
 :PROPERTIES:
 :BEAMER_env: noheader
 :END:
+\small Estimation of the ATE using the G-formula. For the correctly specified outcome model (blue)
+and a collection of mis-specified models indexed by a penalty parameter (red).
+
 #+BEGIN_SRC R :results graphics file :session *R* :cache yes :exports results :file ./fig-approximate-nuisance.pdf :width 9 :height 5
-  ggplot(tt0[parameter == "target", .(mean.fit=mean(fit), lwr.fit = quantile(fit, probs = 0.025), upr.fit = quantile(fit, probs = 0.975)), .(model, lambda)], aes(x=log(lambda), y=mean.fit) ) + theme_classic() +
-    geom_ribbon(aes(fill = model, ymin = lwr.fit,ymax = upr.fit), alpha = 0.15) +
-    geom_hline(yintercept = effect.size, col = "gray", lty = 2, size=1.2) + 
-    geom_line(size=1.2, aes(col = model)) +
-    geom_vline(xintercept = tt0[parameter == "nuisance.msefit", .(mean.mse=mean(fit)), lambda][which.min(mean.mse), log(lambda)], col = "gray", size=1.2)
+ggplot(tt0[parameter == "target" & !(model == "wrong"), .(mean.fit=mean(fit), lwr.fit = quantile(fit, probs = 0.025), upr.fit = quantile(fit, probs = 0.975)), .(model, lambda)], aes(x=log(lambda), y=mean.fit) ) + theme_classic() +
+  geom_ribbon(aes(fill = model, ymin = lwr.fit,ymax = upr.fit), alpha = 0.15) +
+  geom_hline(yintercept = effect.size, col = "gray", lty = 2, size=1.2) + 
+  geom_line(size=1.2, aes(col = model)) +
+  geom_vline(xintercept = tt0[parameter == "nuisance.msefit", .(mean.mse=mean(fit)), lambda][which.min(mean.mse), log(lambda)], col = "gray", size=1.2)
 #+END_SRC
 
-#+RESULTS[(2022-04-19 23:09:05) 3081bea1cdebfb9f8cea46f5c39f349a1a83436c]:
+#+RESULTS[(2022-04-20 08:25:37) be15b694f84d6cd957e404de71a94f149bf6f153]:
 [[file:./fig-approximate-nuisance.pdf]]
 
 * References
