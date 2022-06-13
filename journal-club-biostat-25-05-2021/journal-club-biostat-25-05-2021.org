@@ -424,12 +424,13 @@ No proof that this achieves the theoretical undersmoothing rate...?
 \pause
 *** Questions and comments?
 * References
+** References
 \bibliography{/home/amnudn/Documents/latex/default-bib.bib}
 
 * HEADER :noexport:
 #+TITLE: Journal club -- undersmoothed HAL
 #+Author: Anders Munch
-#+Date: \today
+#+Date: May 25, 2021
 
 #+LANGUAGE:  en
 #+OPTIONS:   H:2 num:t toc:nil ':t ^:t

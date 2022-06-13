@@ -1,0 +1,384 @@
+#+TITLE: The negative log-likelihood loss and cross-validation with censored data
+#+Author: Anders Munch
+# \newline \small joint work with Thomas Gerds
+#+Date: \today
+* Tasks                                                            :noexport:
+- [ ] References? -- How many and how detailed?
+- [ ] Figures
+  - [ ] Visualizing the proof
+  - [ ] Example
+- [ ] Check up on CAR vs non-informative censoring with respect to factorization of the likelihood.
+- [X] Proper notation introduced
+- [ ] Check up on Oracle bound -- is that with respect to the risk instead of the empirical risk?
+  
+* Setup R                                                          :noexport:
+Remember to exceture (C-c C-c) the following line:
+#+PROPERTY: header-args:R  :results output verbatim  :exports results  :session *R* :cache yes
+
+#+BEGIN_SRC R
+  library(here)
+  library(data.table)
+  library(ggplot2)
+  library(gridExtra)
+  library(latex2exp)
+  setwd(here("isnps2022-conf-cyprus")) ## Set wd to plots the right place
+  nll_const <- function(g = 1, q = 1, k = 2, alpha = .2){
+    ## -((g^{-k}*q^k + 1)^{-1}*log(alpha) -(alpha)*(1/q^k + 1/g^k)^(-1/k)*gamma(1+1/k))
+    -(((q/g)^k + 1)^{-1}*log(alpha) -(alpha)*(1/q^k + 1/g^k)^(-1/k)*gamma(1+1/k))
+  }
+  sigm <- function(g, q = 1, k = 2, a1 = .2, a2 = 2){
+    ## q^{-k}*(1/g^k + 1/q^k)^{-1}*log(a1/a2) -(a1-a2)*(1/q^k + 1/g^k)^(-1/k)*gamma(1+1/k)
+    nll_const(g = g, q = q, k = k, alpha = .2) - nll_const(g = g, q = q, k = k, alpha = 2)    
+  }
+  mle_const_pop <- function(g = 1, q = 1, k = 2){
+    ((q/g)^k + 1)*(1/q^k + 1/g^k)^(-1/k)*gamma(1+1/k)
+  }
+  plot_dist <- function(tt = seq(0,1.5,length.out = 100), g = 1, q = 1, k = 2, alpha = .2, plot = TRUE, only_outcome = FALSE, size = 1.5){
+    pd0 = do.call(rbind,
+		  lapply(c(list(list(model = "cens",shape = k,scale = g),
+				list(model = "outcome", shape = k, scale = q)),
+			   lapply(alpha, function(aa) list(model = paste0("exp(", aa, ")"),shape = 1,scale = 1/aa))), ## exponential as special case
+			 function(ll) data.table(t = tt, model = ll$model, dens = dweibull(tt, shape = ll$shape, scale = ll$scale))))
+    if(!plot)
+      return(pd0[])
+    else{
+      out_plot <- ggplot(mapping = aes(x = t, y = dens)) +
+	geom_line(data = pd0[grepl("exp", model)], aes(col = model), size = size) +
+	theme_bw() +
+	theme(legend.position = "bottom", axis.ticks.y = element_blank(), axis.text.y = element_blank()) +
+	scale_colour_hue(guide = "none") +
+	labs(title = "Densitites of the models", y = "density", x = "T")
+      if(only_outcome)
+	out_plot <- out_plot + geom_line(data = pd0[model == "outcome"], aes(linetype = model),  size = size*.7)
+      else
+	out_plot <- out_plot +
+	  geom_line(data = pd0[!grepl("exp", model)], aes(linetype = model),  size = size*.7) +
+	  scale_linetype_manual(values=c("dashed", "solid"))
+      out_plot
+    }
+  }
+  aa0 <- seq(1.3,2, length.out = 4) ## c(1, 1.2, 1.5, 2)
+  gg0 <- c(0.45, .65)
+  line_size <- 1
+  ## plot_dist(alpha = aa0, g = gg0[1], q = .5, k = 2)
+  ## do.call(grid.arrange, lapply(gg0, function(x) plot_dist(alpha = aa0, g = x, q = .5, k = 2)))
+  vals <- setDT(lapply(list(aa0), function(vv){
+    expand.grid(cens = sort(unique(c(gg0, seq(0.3, .9, length.out = 50)))),
+		true = .5,
+		common_shape = 2,
+		alpha = vv)}
+    )[[1]])
+  vals[, nnl := nll_const(cens,true,common_shape,alpha)]
+  ## vals[,cat_alpha:=factor(alpha,levels=c("1.3","1.53333333333333","1.76666666666667","2"),labels=c("1.3","1.5","1.7","2"))]
+  base_plot <- ggplot(vals, aes(x = cens, y = nnl, col = factor(round(alpha, digits = 1)))) +
+    geom_line(alpha = .5, size = line_size) +
+    theme_bw() + theme(legend.position = "bottom") +
+    labs(title = "Kullback-Leibler divergence", y = TeX("$D_{KL}$"), x = TeX("\\gamma")) +
+    theme(axis.ticks.y = element_blank(), axis.text.y = element_blank()) +
+    guides(color = guide_legend(title = TeX("\\alpha")))
+  ## scale_colour_manual(values=c("#000000", "#E69F00", "#56B4E9")) +
+#+END_SRC
+
+#+RESULTS[(2022-06-13 12:12:57) c4c535af1b42b4c32d30134e12b28eaccb21c61a]:
+
+* Problem setting: Model and hyperparamter selection for survival model
+** Selecting a model from a collection of candidate models
+\small Let $\mathcal{P}$ denote a collection of probability measures on the sample space
+$\mathcal{O}$. Let $\mathcal{V}$ denote a parameter space and $L\colon\mathcal{V} \times \mathcal{O}
+\rightarrow \R_+$ a loss function. Consider
+# Many statistical problem can be framed as estimating
+#+begin_export latex
+\begin{equation*}
+  \nu(P) := \argmin_{\tilde{\nu}\in\mathcal{V}} P[L(\tilde{\nu}, \blank)],
+  \quad \text{where} \quad
+  P[f] := \int_{\mathcal{O}}f(o) P(\diff o). 
+\end{equation*}
+We approximate $P$ with the empirical measure $\empmeas$, as
+$\empmeas[L(\tilde{\nu}, \blank)] \approx P[L(\tilde{\nu}, \blank)]$.
+% $\nu(\empmeas)\approx\nu(P)$.
+#+end_export
+
+*** Maximum likelihood estimator (MLE)                       :B_exampleblock:
+:PROPERTIES:
+:BEAMER_env: exampleblock
+:END:
+# If $\mathcal{V}$ is a collection of densities (with respect to $\mu$), and $L(\nu, O) :=
+# -\log(\nu(O))$, then $\nu(\empmeas)$ is the maximum likehood estimator for the model
+# $\mathcal{V}$.
+For $\mathcal{V}$ a collection of densities and $L(\nu,O) := -\log(\nu(O))$, $\nu(\empmeas)$ is
+the MLE.
+
+*** Hyper-parameter selection                                :B_exampleblock:
+:PROPERTIES:
+:BEAMER_env: exampleblock
+:END:
+For estimation in high-dimensional settings we often introduce a regularization parameter $\nu$
+(e.g., LASSO, kernel smoothing). Each choice of $\nu$ gives us an estimator, say $\hat f_{\nu}$, and
+we select the optimal choice of $\nu$ using cross-validation,
+#+begin_export latex
+\begin{equation*}
+  \argmin_{\nu\in\mathcal{V}} \empmeas[L(\hat{f}_{\nu}, \blank)],
+  \quad \text{where} \quad
+  \empmeas \independent \hat{f}_{\nu}.
+\end{equation*}
+#+end_export
+Also useful for combining models \citep{breiman1996stacked,van2007super}.
+
+** Survival data
+\small
+
+- $O = (\tilde T, \Delta, X) \sim P \in \mathcal{P}$ :: Oberved data with $\mathcal{O} = \R_+
+  \times \{0,1\} \times \R^p$.
+- $(T, X) \sim Q \in \mathcal{Q}$ :: The distribution $Q$ (or a feature of it) is of interest.
+
+# Let now $O = (\tilde T, \Delta, X) \in \R_+ \times \{0,1\} \times \R^p$, where $\tilde T$
+# denotes a censored event-time, $\Delta$ denotes if an event was observed or not, and $X$ denotes a
+# set of baseline covariates. We are typically interested in making inference for $Q \in \mathcal{Q}$,
+# where $(T, X) \sim Q$, and $T \in \R_+$ denotes the uncensored event-time.
+
+\vfill
+
+#+begin_export latex
+Assuming coarsening at random \citep{gill1997coarsening} we can write
+\begin{equation*}
+  \mathcal{P} = \{P_{Q, G} : Q \in \mathcal{Q}, G \in \mathcal{G}\},
+\end{equation*}
+where $\mathcal{G}$ denotes a collection of conditional distributions for the censoring mechanism.
+Assuming also non-informative censoring the likelihood factorises as
+$\ell(P_{Q, G}, O) = \ell_F(Q, O) \cdot \ell_{\mathcal{C}}(G, O)$, with
+\begin{equation*}
+  \ell_F(Q, O) := q(\tilde T \mid X)^{\Delta}\bar{Q}(\tilde T \mid X)^{1-\Delta} m(X),
+\end{equation*}
+where $q$ and $\bar{Q}$ are the conditional density and survivor function, respectively, and $m$ the
+marginal distribution of $X$.
+#+end_export
+
+\vfill
+
+Natural to use $-\log\ell_F$ as loss function, or only the first part
+#+begin_export latex
+\begin{equation*}
+  -
+  \left\{
+    \Delta \log
+    q(\tilde T \mid X)
+    - (1- \Delta) \log\bar{Q}(\tilde T \mid X)
+  \right\}.
+\end{equation*}
+% \begin{equation*}
+%   -\log
+%   \left\{
+%     q(\tilde T \mid X)^{\Delta}\bar{Q}(\tilde T \mid X)^{1-\Delta}
+%   \right\}.
+% \end{equation*}
+#+end_export
+# Another common choice is Cox' partial (profile) likelihood.
+
+# *** Footnotes
+# [fn:1] or the stronger assumption that $T \independent C \mid X$, where $C$ denotes time of
+# censoring.
+
+* The least false model in the presence of censoring
+** Kullback-Leibler divergence for factorizing likelihoods
+\small Maximum likelihood estimation is closely connected to minimizing the Kullback-Leibler
+divergence,
+#+begin_export latex
+\begin{equation*}
+  \KL(P_1 \, || \, P_2) := P_1
+  {\left[
+      % p_1/p_2
+    \log \frac{p_1}{p_2}
+  \right]},
+  \quad \text{where} \quad
+  P_1 = p_1 \cdot \mu,   P_2 = p_2 \cdot \mu.
+\end{equation*}
+#+end_export
+By Jensen's inequality $\KL \geq 0$ and equals 0 when $P_1=P_2$. Under regulartity condtions, the
+limit of the MLE under the model $\mathcal{P}_* \subset \mathcal{P}$, when $O \sim P_0$, is the
+minimizer of
+#+begin_export latex
+\begin{equation*}
+  P \longmapsto \KL(P_0 \, || \, P),
+  \quad \text{with} \quad P \in \mathcal{P}_*.
+\end{equation*}
+#+end_export
+If $P_0 \not \in \mathcal{P}_*$ the minimizer is referred to as the /least false model/.
+
+\vfill
+
+If the likelihood for the model $P_{\nu, \gamma}$ factorises with respect to the parameters $\nu$
+and $\gamma$ and we do MLE for the /partial/ likelihood for $\nu$, when $O \sim P_{\nu_0,\gamma_0}$,
+the limit is the minimizer of
+#+begin_export latex
+\begin{equation*}
+  \nu \longmapsto \KL(P_{\nu_0,\gamma_0} \, || \, P_{\nu,\gamma_0}),
+  \quad \text{with} \quad \nu \in \mathcal{V}.
+\end{equation*}
+#+end_export
+For any value $\gamma \in \Gamma$ we have that $\KL(P_{\nu_0,\gamma} \, || \, P_{\nu_0,\gamma}) =
+0$, so $\nu_0$ is optimal for any $\gamma$. However, if $\nu_0 \not \in \mathcal{V}$ the minimizer
+might depend on the value of $\gamma$.
+
+** Least false model depends on the censoring distribution
+\small A special case of this is the survival setting. Consider the simple case with no covariates
+so and loss function is $-\log\ell_F$.
+# #+begin_export latex
+# \begin{equation*}
+#   -  \log\ell_F(Q, O) = 
+#   \left\{{\Delta} \log q(\tilde T) - (1- {\Delta}) \log\bar{Q}(\tilde T)
+#   \right\}.
+# \end{equation*}
+# #+end_export
+
+\vfill
+
+Ranking models according to their average loss with respect to this loss function is equivalent to
+ranking them according to $\KL(P_{Q_0, G} \, || \, P_{Q, G})$ when $O \sim P_{Q_0, G}$.
+
+\vfill
+
+
+*** gray                                                   :B_beamercolorbox:
+:PROPERTIES:
+:BEAMER_env: beamercolorbox
+:BEAMER_opt: rounded=true
+:END:
+#+begin_export latex
+Let $Q_0, Q \in \mathcal{Q}$ with $Q_0 \not = Q$ and $G \in \mathcal{G}$ be given. Then (under
+regularity conditions) we can find $\tilde Q \in \mathcal{Q}$ and $\tilde G \in \mathcal{G}$ such
+that
+\begin{equation*}
+  \KL(P_{Q_0, G} \, || \, P_{Q, G}) < \KL(P_{Q_0, G} \, || \, P_{\tilde Q, G}),
+\end{equation*}
+and
+\begin{equation*}
+  \KL(P_{Q_0, \tilde G} \, || \, P_{Q, \tilde G}) > \KL(P_{Q_0, \tilde G} \, || \, P_{\tilde Q,
+    \tilde G}).
+\end{equation*}
+#+end_export
+
+
+*** Proof                                                           :B_proof:
+:PROPERTIES:
+:BEAMER_env: proof
+:END:
+Construct $\tilde Q$ such that it performs better than $Q_1$ on $[0, t]$ but worse on $(t, \infty)$.
+Construct $\tilde G$ such that observations on $(t, \infty)$ are less likely than under $G$.
+
+** A simple example
+#+begin_export latex
+\small Consider four candidate models indexed by $\alpha$,
+\begin{equation*}
+  Q_{\alpha} = \text{Exp}(\alpha),
+  \quad \text{with} \quad 
+  \alpha \in \{1.3, \,1.5,\, 1.8,\, 2\},
+\end{equation*}
+and let
+% \begin{equation*}
+%   Q_0 = \text{Weibull}(\text{shape} = 2, \text{scale} = 0.5),
+%   \quad \text{and} \quad
+%   G_{\gamma} = \text{Weibull}(\text{shape} = 2, \text{scale} = \gamma).
+% \end{equation*}
+\begin{equation*}
+  Q_0 = \text{Weibull}(2,  0.5),
+  \quad \text{and} \quad
+  G_{\gamma} = \text{Weibull}(2,\gamma).
+\end{equation*}
+#+end_export
+
+\vfill
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <1>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file "fig-mix-const-v1.pdf" :width 8 :height 4.2
+grid.arrange(base_plot, plot_dist(alpha = aa0, g = gg0[1], q = .5, k = 2, only_outcome = TRUE, size=line_size), ncol = 2)
+#+END_SRC
+
+#+RESULTS[(2022-06-13 12:12:57) b142a8781da7f559326477e370fd090d3e3e71d1]:
+[[file:fig-mix-const-v1.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <2>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file "fig-mix-const-v3.pdf" :width 8 :height 4.2
+  grid.arrange(base_plot +
+	       geom_vline(xintercept = gg0[2], linetype = 2) +
+	       geom_point(data = vals[ cens == gg0[2]], size = 1.5),
+	       plot_dist(alpha = aa0, g = gg0[2], q = .5, k = 2, size=line_size), ncol = 2)
+#+END_SRC
+
+#+RESULTS[(2022-06-13 12:12:58) fcad6a2e0bea105ec48ebbf01a6132ae5c838c6a]:
+[[file:fig-mix-const-v3.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <3>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file "fig-mix-const-v2.pdf" :width 8 :height 4.2
+  grid.arrange(base_plot +
+	       geom_vline(xintercept = gg0[1], linetype = 2) +
+	       geom_point(data = vals[ cens == gg0[1]], size = 1.5),
+	       plot_dist(alpha = aa0, g = gg0[1], q = .5, k = 2, size=line_size), ncol = 2)
+#+END_SRC
+
+#+RESULTS[(2022-06-13 12:12:58) 17838a96df453eb2334690399a1aee9102df0313]:
+[[file:fig-mix-const-v2.pdf]]
+
+* Hold-out samples and survival model estimators
+
+** Survival curve estimators evaluated on hold-out samples
+
+Another problem: Consider
+
+[sort of: ignores this and proceeding anyway...]
+** Modeling the censoring
+** An (infinite?) loop
+
+* References
+:PROPERTIES:
+:UNNUMBERED: t
+:END:
+** References
+\footnotesize \bibliography{./latex-settings/default-bib.bib}
+
+* HEADER :noexport:
+#+LANGUAGE:  en
+#+OPTIONS:   H:2 num:t toc:t ':t ^:t
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LATEX_CLASS_OPTIONS: [smaller]
+#+LaTeX_HEADER: \institute{PhD Student, Section of Biostatistics \\ University of Copenhagen}
+#+LaTeX_HEADER: \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+#+LaTeX_HEADER: \bibliographystyle{abbrvnat}
+#+LaTeX_HEADER: \input{./latex-settings/standard-commands.tex}
+#+BIBLIOGRAPHY: ./latex-settings/default-bib plain
+
+# Beamer settins:
+# #+LaTeX_HEADER: \usefonttheme[onlymath]{serif} 
+#+LaTeX_HEADER: \setbeamertemplate{footline}[frame number]
+#+LaTeX_HEADER: \beamertemplatenavigationsymbolsempty
+#+LaTeX_HEADER: \usepackage{appendixnumberbeamer}
+#+LaTeX_HEADER: \setbeamercolor{gray}{bg=white!90!black}
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+LATEX_HEADER: \setbeamertemplate{itemize items}{$\circ$}
+
+# Check this:
+# #+LaTeX_HEADER: \lstset{basicstyle=\ttfamily\small}
+
+# For handout mode: (check order...)
+# #+LATEX_CLASS_OPTIONS: [handout]
+# #+LaTeX_HEADER: \pgfpagesuselayout{4 on 1}[border shrink=1mm]
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{1}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{2}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{3}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{4}{border code=\pgfusepath{stroke}}
+

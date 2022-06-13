@@ -1,4 +1,4 @@
-% Created 2021-05-26 Wed 09:16
+% Created 2022-05-05 Thu 08:43
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -40,27 +40,25 @@ basewidth={0.5em,0.4em},
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{graphicx}
-\usepackage{grffile}
 \usepackage{longtable}
 \usepackage{wrapfig}
 \usepackage{rotating}
 \usepackage[normalem]{ulem}
 \usepackage{amsmath}
-\usepackage{textcomp}
 \usepackage{amssymb}
 \usepackage{capt-of}
 \usepackage{hyperref}
 \usetheme{default}
 \author{Anders Munch}
-\date{\today}
+\date{May 25, 2021}
 \title{Journal club -- undersmoothed HAL}
 \begin{document}
 
 \maketitle
 \section{Setting: Estimation of the ATE and undersmoothing}
-\label{sec:org6254a2d}
+\label{sec:org94aa56c}
 
-\begin{frame}[label={sec:orgf2d15cf}]{The article}
+\begin{frame}[label={sec:org26a78c4}]{The article}
 \begin{onlyenv}<1>
 \begin{center}
 \includegraphics[width=0.75\textwidth]{./screenshots/abstract.png}
@@ -75,7 +73,7 @@ basewidth={0.5em,0.4em},
 \end{frame}
 
 
-\begin{frame}[label={sec:org67d37da}]{Setting and notation -- the average treatment effect}
+\begin{frame}[label={sec:org1299746}]{Setting and notation -- the average treatment effect}
 \begin{itemize}[<+->]
 \item We observe \(n\) iid. samples from \(O = (W, A, Y) \sim P_0 \in \mathcal M\), where \(\mathcal M\)
 is the nonparametric model.
@@ -96,7 +94,7 @@ where \(\Psi\colon \mathcal M \rightarrow \R\).
 \end{itemize}
 \end{frame}
 
-\begin{frame}[label={sec:org24311a0}]{Score functions and canonical gradient}
+\begin{frame}[label={sec:org02de93a}]{Score functions and canonical gradient}
 Score function using inverse probability weights:
 \begin{equation*}
   U_G(O; \Psi) := \frac{AY}{G(1 \mid W)} - \Psi(P).
@@ -114,7 +112,7 @@ where \(Q(1, W) := \E_{P}(Y \mid A=1, W)\) is the conditional mean outcome \cite
 \end{frame}
 
 
-\begin{frame}[label={sec:orgb3a9318}]{Estimating the ATE -- solve a score function}
+\begin{frame}[label={sec:org3f8df9d}]{Estimating the ATE -- solve a score function}
 \pause
 \begin{block}{Solve \(P_n[U_{G_n}] = 0\): The inverse probability weighted estimator}
 \begin{equation*}
@@ -141,8 +139,8 @@ and \(Q_n\) \pause
 \end{frame}
 
 \section{HAL}
-\label{sec:org647380e}
-\begin{frame}[label={sec:org211062e}]{The Highly Adaptive Lasso (HAL) -- nuisance estimator}
+\label{sec:org529270c}
+\begin{frame}[label={sec:org55ce46e}]{The Highly Adaptive Lasso (HAL) -- nuisance estimator}
 \begin{onlyenv}<2>
 \(\mathbb{D}[0, \tau]\) is the Banach space of real-valued càdlàg functions on a cube \([0,\tau]
    \in \R^d\). For a function \(f \in \mathbb{D}[0, \tau]\) and a subset \(s \subset \{1, \dots, d\}\)
@@ -168,7 +166,7 @@ where the sum is over all subset of the coordinates \(\{1, \dots, d\}\).
 \end{onlyenv}
 \end{frame}
 
-\begin{frame}[label={sec:org990e36d}]{The smoothing hyperparameter}
+\begin{frame}[label={sec:org87d521d}]{The smoothing hyperparameter}
 \begin{onlyenv}<1>
 \color{white}     \center small \(\lambda \quad \quad \quad \quad \quad\) large
 \begin{center}
@@ -225,7 +223,7 @@ where the sum is over all subset of the coordinates \(\{1, \dots, d\}\).
 \end{onlyenv}
 \end{frame}
 
-\begin{frame}[label={sec:orged9d0c1}]{Properties of the HAL estimator}
+\begin{frame}[label={sec:org26f92eb}]{Properties of the HAL estimator}
 \begin{itemize}[<+->]
 \item Only assumption is that the target function is càdlàg with finite sectional variation norm.
 \item Converges at rate faster than \(n^{-1/4}\) regardless of the dimension \(d\) of the covariate
@@ -248,7 +246,7 @@ estimation)
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:orgadeffa5}]{Undersmoothing}
+\begin{frame}[label={sec:org9505974}]{Undersmoothing}
 \begin{onlyenv}<1>
 \center Optimizing the nuisance estimator
 \begin{center}
@@ -265,8 +263,8 @@ estimation)
 \end{frame}
 
 \section{Undersmoothed HAL}
-\label{sec:orgf291186}
-\begin{frame}[label={sec:org2d04721}]{Undersmoothing in theory}
+\label{sec:orge3572c7}
+\begin{frame}[label={sec:orgde4e993}]{Undersmoothing in theory}
 \pause
 \begin{theorem}[Lemma 1 and Theorem 1 of the article]
 Let \(G_{n,\lambda_n}\) be a HAL estimator of \(G_0\) with $\lambda_n$ chosen to satisfy
@@ -292,12 +290,12 @@ Use empirical process theory and convergence rates of HAL to write
   \Psi(P_n, G_{n, \lambda_n}) - \Psi(P_0, G_0) = P_n[D^{\star}]
   - P_n[D_{\text{CAR}}(Q_0, G_0, G_{n,\lambda_n})] + \smallO_P(n^{- \frac 1 2})
 \end{equation*}
-\pause Lemma 1 states that \eqref{eq:1} implies \(P_n[D_{\text{CAR}}(Q_0, G_0, G_{n,\lambda_n})] =
+\pause Lemma 1 states that eqref:eq:1 implies \(P_n[D_{\text{CAR}}(Q_0, G_0, G_{n,\lambda_n})] =
 \smallO_P(n^{- \frac 1 2})\)
 \end{proof}
 \end{frame}
 
-\begin{frame}[label={sec:org340365a}]{Undersmoothing in practice}
+\begin{frame}[label={sec:org8d94d84}]{Undersmoothing in practice}
 \pause
 
 \begin{onlyenv}<2>
@@ -318,8 +316,8 @@ No proof that this achieves the theoretical undersmoothing rate\ldots{}?
 \end{frame}
 
 \section{Numerical studies (and application)}
-\label{sec:org0c7d9e6}
-\begin{frame}[label={sec:org84cb2a9}]{Numerical studies:}
+\label{sec:orgdb4b453}
+\begin{frame}[label={sec:org03954c7}]{Numerical studies:}
 \begin{center}
 \includegraphics[width=1\textwidth]{./screenshots/numerical-results.png}
 \end{center}
@@ -330,7 +328,7 @@ No proof that this achieves the theoretical undersmoothing rate\ldots{}?
 \end{description}
 \end{frame}
 
-\begin{frame}[label={sec:org3a8cc58}]{Scenario 1: Correctly specified parametric model}
+\begin{frame}[label={sec:org21a583c}]{Scenario 1: Correctly specified parametric model}
 \begin{center}
 \includegraphics[width=1\textwidth]{./screenshots/scenario1.png}
 \end{center}
@@ -340,15 +338,15 @@ No variance estimator?
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org113addb}]{Scenario 2: Mis-specified parametric model}
+\begin{frame}[label={sec:orgfedce5e}]{Scenario 2: Mis-specified parametric model}
 \begin{center}
 \includegraphics[width=1\textwidth]{./screenshots/scenario2.png}
 \end{center}
 \end{frame}
 
 \section{Thoughts and perspective}
-\label{sec:orgd4fb3d3}
-\begin{frame}[label={sec:orgc68e53d}]{Perspective, thoughts, summary, and discussion}
+\label{sec:org7c0b3b0}
+\begin{frame}[label={sec:org28d4281}]{Perspective, thoughts, summary, and discussion}
 \begin{block}{Perspective}
 \begin{itemize}
 \item Nice to not need to find the EIF. Probably not so important for the ATE but potentially for more
@@ -370,6 +368,8 @@ convergence in high-dimensions, so undersmoothing could be needed even when usin
 \end{block}
 \end{frame}
 \section{References}
-\label{sec:orga92c697}
+\label{sec:org9dfcbbb}
+\begin{frame}[label={sec:org27b646a}]{References}
 \bibliography{/home/amnudn/Documents/latex/default-bib.bib}
+\end{frame}
 \end{document}
