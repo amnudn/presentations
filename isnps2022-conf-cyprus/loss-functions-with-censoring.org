@@ -3,13 +3,16 @@
 # \newline \small joint work with Thomas Gerds
 #+Date: \today
 * Tasks                                                            :noexport:
-- [ ] References? -- How many and how detailed?
-- [ ] Figures
+- [X] References? -- How many and how detailed?
+- [-] Figures
   - [ ] Visualizing the proof
-  - [ ] Example
-- [ ] Check up on CAR vs non-informative censoring with respect to factorization of the likelihood.
+  - [X] Example
+  - [X] KL 
+- [X] Check up on CAR vs non-informative censoring with respect to factorization of the likelihood.
 - [X] Proper notation introduced
 - [ ] Check up on Oracle bound -- is that with respect to the risk instead of the empirical risk?
+- [ ] CUT: How does these work? Is it just the same as doing IPCW (/ a variation over this)?
+- [ ] Check OK reference for pseudo-values?
   
 * Setup R                                                          :noexport:
 Remember to exceture (C-c C-c) the following line:
@@ -35,32 +38,29 @@ Remember to exceture (C-c C-c) the following line:
   }
   plot_dist <- function(tt = seq(0,1.5,length.out = 100), g = 1, q = 1, k = 2, alpha = .2, plot = TRUE, only_outcome = FALSE, size = 1.5){
     pd0 = do.call(rbind,
-		  lapply(c(list(list(model = "cens",shape = k,scale = g),
-				list(model = "outcome", shape = k, scale = q)),
-			   lapply(alpha, function(aa) list(model = paste0("exp(", aa, ")"),shape = 1,scale = 1/aa))), ## exponential as special case
-			 function(ll) data.table(t = tt, model = ll$model, dens = dweibull(tt, shape = ll$shape, scale = ll$scale))))
+		  lapply(c(list(list(model = "cens",shape = k,scale = g, alp0 = as.numeric(NA)),
+				list(model = "outcome", shape = k, scale = q, alp0 = as.numeric(NA))),
+			   lapply(alpha, function(aa) list(model = paste0("exp(", aa, ")"),shape = 1,scale = 1/aa, alp0 = aa))), ## exponential as special case
+			 function(ll) data.table(t = tt, model = ll$model, dens = dweibull(tt, shape = ll$shape, scale = ll$scale), alp0 = ll$alp0)))
     if(!plot)
       return(pd0[])
     else{
       out_plot <- ggplot(mapping = aes(x = t, y = dens)) +
-	geom_line(data = pd0[grepl("exp", model)], aes(col = model), size = size) +
+	geom_line(data = pd0[grepl("exp", model)], aes(col = factor(round(alp0, digits = 1))), size = size) +
 	theme_bw() +
 	theme(legend.position = "bottom", axis.ticks.y = element_blank(), axis.text.y = element_blank()) +
-	scale_colour_hue(guide = "none") +
-	labs(title = "Densitites of the models", y = "density", x = "T")
+	labs(title = "Densitites of the models", y = "density", x = "T") +
+	guides(color = guide_legend(title = TeX("\\alpha"))) 
       if(only_outcome)
 	out_plot <- out_plot + geom_line(data = pd0[model == "outcome"], aes(linetype = model),  size = size*.7)
       else
-	out_plot <- out_plot +
-	  geom_line(data = pd0[!grepl("exp", model)], aes(linetype = model),  size = size*.7) +
-	  scale_linetype_manual(values=c("dashed", "solid"))
+	out_plot <- out_plot + geom_line(data = pd0[!grepl("exp", model)], aes(linetype = model),  size = size*.7) 
       out_plot
     }
   }
   aa0 <- seq(1.3,2, length.out = 4) ## c(1, 1.2, 1.5, 2)
   gg0 <- c(0.45, .65)
   line_size <- 1
-  ## plot_dist(alpha = aa0, g = gg0[1], q = .5, k = 2)
   ## do.call(grid.arrange, lapply(gg0, function(x) plot_dist(alpha = aa0, g = x, q = .5, k = 2)))
   vals <- setDT(lapply(list(aa0), function(vv){
     expand.grid(cens = sort(unique(c(gg0, seq(0.3, .9, length.out = 50)))),
@@ -70,59 +70,100 @@ Remember to exceture (C-c C-c) the following line:
     )[[1]])
   vals[, nnl := nll_const(cens,true,common_shape,alpha)]
   ## vals[,cat_alpha:=factor(alpha,levels=c("1.3","1.53333333333333","1.76666666666667","2"),labels=c("1.3","1.5","1.7","2"))]
-  base_plot <- ggplot(vals, aes(x = cens, y = nnl, col = factor(round(alpha, digits = 1)))) +
-    geom_line(alpha = .5, size = line_size) +
+  base_plot <- ggplot(vals, aes(x = cens, y = nnl)) +
+    geom_line(alpha = .5, size = line_size, aes(col = factor(round(alpha, digits = 1)))) +
     theme_bw() + theme(legend.position = "bottom") +
     labs(title = "Kullback-Leibler divergence", y = TeX("$D_{KL}$"), x = TeX("\\gamma")) +
     theme(axis.ticks.y = element_blank(), axis.text.y = element_blank()) +
     guides(color = guide_legend(title = TeX("\\alpha")))
-  ## scale_colour_manual(values=c("#000000", "#E69F00", "#56B4E9")) +
+  x_cord <- .945
+  y_adj <- .005
+  base_plot <- base_plot + 
+    geom_segment(mapping=aes(x=x_cord, y=vals[, min(nnl)]+y_adj, xend=x_cord, yend=vals[, max(nnl)]-y_adj),
+		 arrow=arrow(ends='both',length = unit(0.03, "npc")),
+		 size=.8) +
+    xlim(c(.3, .96))+
+    geom_text(data = data.table(text = c("better", "worse"), x = x_cord, y = c(vals[, min(nnl)], vals[, max(nnl)])),
+	      aes(x = x, y = y, label = text), size = 4)
+  ## base_plot
 #+END_SRC
 
-#+RESULTS[(2022-06-13 12:12:57) c4c535af1b42b4c32d30134e12b28eaccb21c61a]:
+#+RESULTS[(2022-06-13 19:13:31) c71eae8c9a2290915591ec23ac93efb6f9f41a30]:
 
-* Problem setting: Model and hyperparamter selection for survival model
+Censored and "inverse" data
+
+#+BEGIN_SRC R
+  plot_cens_dat <- function(dat, xlim=2, linesize=3, pointsize=3.5, t=1.2){
+    out.plot <- ggplot(dat, aes(y=subject)) +
+      theme_classic(base_size =20)  + xlab("Time") + ylab("Subject") +
+      geom_segment(data=dat, aes(yend=subject, x=0, xend=pmin(last.time, xlim)), size=linesize) + 
+      theme(axis.text.x=element_blank(),
+	    axis.ticks.x=element_blank(),
+	    axis.text.y=element_blank()) +
+      xlim(c(0,xlim)) +
+      geom_vline(xintercept=t, size=1, lty=2)
+    tmp.pd <- dat[event == TRUE]
+    if(nrow(tmp.pd)>0)
+      out.plot <- out.plot + geom_point(data=tmp.pd, aes(x=last.time), size=pointsize, shape=21, stroke=2, fill="black")  
+    tmp.pd <- dat[event == FALSE]
+    if(nrow(tmp.pd)>0)
+      out.plot <- out.plot + geom_point(data=tmp.pd, aes(x=last.time), size=pointsize, shape=21, stroke=2, fill="white") 
+    return(out.plot)
+  }
+  set.seed(2)
+  full.dat <- data.table(subject=1:5,
+			 last.time=runif(5, min=.1, max=1.9),
+			 event=TRUE)
+  obs.dat <- copy(full.dat)
+  obs.dat[subject==5, ":="(last.time=0.5, event=FALSE)]
+  obs.dat[subject==3, ":="(last.time=1, event=FALSE)]
+  inv.dat <- copy(obs.dat)
+  inv.dat[, event:=!event]
+#+END_SRC
+
+#+RESULTS[(2022-06-14 16:21:30) f6d60fb8f32c7d008640f389fefa435ba4b59925]:
+
+* Model and hyper-parameter selection for survival models
 ** Selecting a model from a collection of candidate models
-\small Let $\mathcal{P}$ denote a collection of probability measures on the sample space
-$\mathcal{O}$. Let $\mathcal{V}$ denote a parameter space and $L\colon\mathcal{V} \times \mathcal{O}
-\rightarrow \R_+$ a loss function. Consider
-# Many statistical problem can be framed as estimating
 #+begin_export latex
+\small Consider estimation of the parameter
 \begin{equation*}
-  \nu(P) := \argmin_{\tilde{\nu}\in\mathcal{V}} P[L(\tilde{\nu}, \blank)],
+  \theta(P) := \argmin_{f \in\mathcal{F}} P[L(f, \blank)],
   \quad \text{where} \quad
-  P[f] := \int_{\mathcal{O}}f(o) P(\diff o). 
+  P[g] := \int_{\mathcal{O}}g(o) P(\diff o),
 \end{equation*}
-We approximate $P$ with the empirical measure $\empmeas$, as
-$\empmeas[L(\tilde{\nu}, \blank)] \approx P[L(\tilde{\nu}, \blank)]$.
-% $\nu(\empmeas)\approx\nu(P)$.
+for some loss function $L \colon \mathcal{F} \times \mathcal{O} \rightarrow \R_+$.
+% We approximate $P$ with the empirical measure $\empmeas$, as
+% $\empmeas[L(\tilde{\nu}, \blank)] \approx P[L(\tilde{\nu}, \blank)]$.
+% % $\nu(\empmeas)\approx\nu(P)$.
 #+end_export
 
-*** Maximum likelihood estimator (MLE)                       :B_exampleblock:
+*** \normalsize Maximum likelihood estimator (MLE)                :B_exampleblock:
 :PROPERTIES:
 :BEAMER_env: exampleblock
 :END:
-# If $\mathcal{V}$ is a collection of densities (with respect to $\mu$), and $L(\nu, O) :=
-# -\log(\nu(O))$, then $\nu(\empmeas)$ is the maximum likehood estimator for the model
-# $\mathcal{V}$.
-For $\mathcal{V}$ a collection of densities and $L(\nu,O) := -\log(\nu(O))$, $\nu(\empmeas)$ is
-the MLE.
+If $\mathcal{F}$ is a collection of densities on $\mathcal{O}$ and $L(f, O) := -\log(f(O))$, then
+$\theta(\empmeas)$ is the MLE for the model $\mathcal{F}$, where $\empmeas$ denotes the empirical
+measure.
 
-*** Hyper-parameter selection                                :B_exampleblock:
+*** \normalsize Hyper-parameter selection                    :B_exampleblock:
 :PROPERTIES:
 :BEAMER_env: exampleblock
 :END:
-For estimation in high-dimensional settings we often introduce a regularization parameter $\nu$
-(e.g., LASSO, kernel smoothing). Each choice of $\nu$ gives us an estimator, say $\hat f_{\nu}$, and
-we select the optimal choice of $\nu$ using cross-validation,
 #+begin_export latex
+For estimation in high-dimensional settings we often introduce a regularization parameter $\lambda$
+(e.g., LASSO, kernel smoothing). To select a value for $\lambda$ we would typically split the data
+$\mathcal{D}_n = \{O_1, \dots, O_n\}$ randomly in two, $\mathcal{D}_n^1$ and $\mathcal{D}_n^2$, and
+calculate
 \begin{equation*}
-  \argmin_{\nu\in\mathcal{V}} \empmeas[L(\hat{f}_{\nu}, \blank)],
-  \quad \text{where} \quad
-  \empmeas \independent \hat{f}_{\nu}.
+\argmin_{\lambda\in\Lambda} \empmeas^{2}[L(\hat{f}^{1}_{\lambda}, \blank)],
 \end{equation*}
+where $\empmeas^2$ denotes the empirical measure based on the sample $\mathcal{D}_n^2$, and
+$\hat{f}^1_{\lambda}$ denotes an estimator calculated on $\mathcal{D}_n^1$ with regularization
+parameter $\lambda$.
 #+end_export
-Also useful for combining models \citep{breiman1996stacked,van2007super}.
+
+# Also useful for combining models \citep{breiman1996stacked,van2007super}.
 
 ** Survival data
 \small
@@ -143,9 +184,12 @@ Assuming coarsening at random \citep{gill1997coarsening} we can write
 \begin{equation*}
   \mathcal{P} = \{P_{Q, G} : Q \in \mathcal{Q}, G \in \mathcal{G}\},
 \end{equation*}
-where $\mathcal{G}$ denotes a collection of conditional distributions for the censoring mechanism.
-Assuming also non-informative censoring the likelihood factorises as
-$\ell(P_{Q, G}, O) = \ell_F(Q, O) \cdot \ell_{\mathcal{C}}(G, O)$, with
+where $\mathcal{G}$ denotes a collection of conditional distributions for the censoring mechanism,
+and the likelihood factorizes as
+\begin{equation*}
+  \ell(P_{Q, G}, O) = \ell_F(Q, O) \cdot \ell_{\mathcal{C}}(G, O),
+\end{equation*}
+with
 \begin{equation*}
   \ell_F(Q, O) := q(\tilde T \mid X)^{\Delta}\bar{Q}(\tilde T \mid X)^{1-\Delta} m(X),
 \end{equation*}
@@ -155,31 +199,25 @@ marginal distribution of $X$.
 
 \vfill
 
-Natural to use $-\log\ell_F$ as loss function, or only the first part
-#+begin_export latex
-\begin{equation*}
-  -
-  \left\{
-    \Delta \log
-    q(\tilde T \mid X)
-    - (1- \Delta) \log\bar{Q}(\tilde T \mid X)
-  \right\}.
-\end{equation*}
-% \begin{equation*}
-%   -\log
-%   \left\{
-%     q(\tilde T \mid X)^{\Delta}\bar{Q}(\tilde T \mid X)^{1-\Delta}
-%   \right\}.
-% \end{equation*}
-#+end_export
-# Another common choice is Cox' partial (profile) likelihood.
+Natural to use the negative partial log-likelihood $-\log\ell_F$ as loss function, or even only the
+first part concerning the conditional distribution of $T$ given $X$.
+# #+begin_export latex
+# \begin{equation*}
+#   -
+#   \left\{
+#     \Delta \log
+#     q(\tilde T \mid X)
+#     - (1- \Delta) \log\bar{Q}(\tilde T \mid X)
+#   \right\}.
+# \end{equation*}
+# #+end_export
 
 # *** Footnotes
 # [fn:1] or the stronger assumption that $T \independent C \mid X$, where $C$ denotes time of
 # censoring.
 
 * The least false model in the presence of censoring
-** Kullback-Leibler divergence for factorizing likelihoods
+** Kullback-Leibler divergence and partial likelihoods :noexport:
 \small Maximum likelihood estimation is closely connected to minimizing the Kullback-Leibler
 divergence,
 #+begin_export latex
@@ -219,21 +257,123 @@ For any value $\gamma \in \Gamma$ we have that $\KL(P_{\nu_0,\gamma} \, || \, P_
 0$, so $\nu_0$ is optimal for any $\gamma$. However, if $\nu_0 \not \in \mathcal{V}$ the minimizer
 might depend on the value of $\gamma$.
 
-** Least false model depends on the censoring distribution
-\small A special case of this is the survival setting. Consider the simple case with no covariates
-so and loss function is $-\log\ell_F$.
-# #+begin_export latex
-# \begin{equation*}
-#   -  \log\ell_F(Q, O) = 
-#   \left\{{\Delta} \log q(\tilde T) - (1- {\Delta}) \log\bar{Q}(\tilde T)
-#   \right\}.
-# \end{equation*}
-# #+end_export
+** Kullback-Leibler divergence and partial likelihoods
+#+begin_export latex
+\small Maximum likelihood estimation is closely connected to minimizing the Kullback-Leibler
+divergence,
+\begin{equation*}
+  \KL(P_1 \, || \, P_2) := P_1
+  {\left[
+      % p_1/p_2
+    \log \frac{p_1}{p_2}
+  \right]},
+  \quad \text{where} \quad
+  P_1 = p_1 \cdot \mu,   P_2 = p_2 \cdot \mu.
+\end{equation*}
+#+end_export
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <1>
+:BEAMER_env: onlyenv
+:END:
+
+#+begin_export latex
+\color{white}For a partial likelihood we are minimizing
+\begin{equation*}
+  Q \longmapsto \KL(P_{Q_0,G} \, || \, P_{Q,G}),
+  \quad \text{with} \quad Q \in \mathcal{Q}_*.
+\end{equation*}
+\color{black}
+#+end_export
 
 \vfill
 
-Ranking models according to their average loss with respect to this loss function is equivalent to
-ranking them according to $\KL(P_{Q_0, G} \, || \, P_{Q, G})$ when $O \sim P_{Q_0, G}$.
+#+begin_export latex
+\begin{tikzpicture}
+  \draw[line width = .2mm] plot [smooth, tension=.8] coordinates { (0,0) (3,2) (6, 1.2) (9,1)};
+  \fill (3,2) circle (0.05);
+  \fill (2.6,4) circle (0.05);
+  \node[] (PP) at (4,.5) {$\mathcal{P}_*$};
+  \node[above] (P) at (2.6,4) {$P_0$};
+  \node[below] (G) at (3,2) {$P_*$};
+  \draw[dashed] (3,2) -- (2.6,4);
+\end{tikzpicture}
+#+end_export
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <2>
+:BEAMER_env: onlyenv
+:END:
+
+#+begin_export latex
+For a partial likelihood we are minimizing
+\begin{equation*}
+  Q \longmapsto \KL(P_{Q_0,G} \, || \, P_{Q,G}),
+  \quad \text{with} \quad Q \in \mathcal{Q}_*.
+\end{equation*}
+\color{black}
+#+end_export
+
+\vfill
+
+#+begin_export latex
+\begin{tikzpicture}
+  \draw[line width = .2mm] plot [smooth, tension=.8] coordinates { (0,0) (3,2) (6, 1.2) (9,1)};
+  \fill (3,2) circle (0.05);
+  \fill (2.6,4) circle (0.05);
+  \node[] (PP) at (4,.5) {$\mathcal{Q}_*$};
+  \node[above] (P) at (2.6,4) {$P_{Q_0, G}$};
+  \node[below] (G) at (3,2) {$Q_*$};
+  \draw[dashed] (2.6,4) -- (3,2);
+\end{tikzpicture}
+#+end_export
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <3>
+:BEAMER_env: onlyenv
+:END:
+
+#+begin_export latex
+For a partial likelihood we are minimizing
+\begin{equation*}
+  Q \longmapsto \KL(P_{Q_0,G} \, || \, P_{Q,G}),
+  \quad \text{with} \quad Q \in \mathcal{Q}_*.
+\end{equation*}
+\color{black}
+#+end_export
+
+\vfill
+
+#+begin_export latex
+\begin{tikzpicture}
+  \draw[line width = .2mm] plot [smooth, tension=.8] coordinates { (0,0) (3,2) (6, 1.2) (9,1)};
+  \node[] (PP) at (4,.5) {$\mathcal{Q}_*$};
+  \node[above] (P) at (2.6,4) {$P_{Q_0, G}$};
+  \node[above] (P2) at (6.2,3.5) {$P_{Q_0, \tilde{G}}$};
+  \node[below] (G) at (3,2) {$Q_*$};
+  \node[below] (D) at (6, 1.2) {$\tilde{Q}_*$};
+  \draw[dashed] (P2) -- (D);
+  \draw[dashed] (2.6,4) -- (3,2);
+  \fill (3,2) circle (0.05);
+  \fill (2.6,4) circle (0.05);
+  \fill (6, 1.2) circle (0.05);
+  \fill (6.2,3.5) circle (0.05);
+\end{tikzpicture}
+#+end_export
+
+** Least false model depends on the censoring distribution
+\small For any value $G \in \mathcal{G}$ we have that $\KL(P_{Q_0,G} \, || \, P_{Q_0,G}) = 0$, so
+the correct model $Q_0$ is ranked better than any other model independently of $G \in \mathcal{G}$.
+However, if $Q_0 \not \in \mathcal{Q}_*$ the minimizer might depend on the value of $G$.[fn:1]
+
+\vfill
+
+For the simple survival case with no baseline covariates, we have the following result stating that
+for a mis-specified model $Q$ we can alway find an alternative model $\tilde Q$ that is ranked
+better under one censoring regime but worse under another.
 
 \vfill
 
@@ -244,8 +384,8 @@ ranking them according to $\KL(P_{Q_0, G} \, || \, P_{Q, G})$ when $O \sim P_{Q_
 :BEAMER_opt: rounded=true
 :END:
 #+begin_export latex
-Let $Q_0, Q \in \mathcal{Q}$ with $Q_0 \not = Q$ and $G \in \mathcal{G}$ be given. Then (under
-regularity conditions) we can find $\tilde Q \in \mathcal{Q}$ and $\tilde G \in \mathcal{G}$ such
+Let $Q_0$ and $G$ be given together with some $Q \not = Q_0$. Then (under
+regularity conditions) we can find $\tilde Q$ and $\tilde G$ such
 that
 \begin{equation*}
   \KL(P_{Q_0, G} \, || \, P_{Q, G}) < \KL(P_{Q_0, G} \, || \, P_{\tilde Q, G}),
@@ -257,15 +397,25 @@ and
 \end{equation*}
 #+end_export
 
+*** Footnotes
+[fn:1] This is mentioned in \cite{whitney2019comment} and \cite{van2003unicv}, and a similar
+phenomenon is well studied for the Cox model
+\citep{struthers1986misspecified,hjort1992inference,fine2002comparing}.
 
-*** Proof                                                           :B_proof:
-:PROPERTIES:
-:BEAMER_env: proof
-:END:
-Construct $\tilde Q$ such that it performs better than $Q_1$ on $[0, t]$ but worse on $(t, \infty)$.
-Construct $\tilde G$ such that observations on $(t, \infty)$ are less likely than under $G$.
+** Sketch of proof
+\small
+- Divide \((0, \tau)\) into \((0, \tau_0)\) and \([\tau_0, \tau)\), where \((0, \tau)\) is the
+  support of \(T\).
+- Construct \(\tilde Q\) such that it performs better than \(Q\) on \((0,\tau_0)\) but worse on
+  \((\tau_0, \tau)\) under the censoring regime \(G\).
+- Construct \(\tilde G\) such that observations on \((\tau_0, \tau)\) are less likely than under
+  \(G\).
 
-** A simple example
+\pause \vfill Whether the alternative model $\tilde Q$ can be constructed such that $\tilde Q \in
+\mathcal{Q}_*$ for some model class $\mathcal{Q}_*$ will depend on the model class and on $Q_0$ and
+$\mathcal{G}$.
+
+** A simple example with mis-specified survival models -- old :noexport:
 #+begin_export latex
 \small Consider four candidate models indexed by $\alpha$,
 \begin{equation*}
@@ -274,11 +424,6 @@ Construct $\tilde G$ such that observations on $(t, \infty)$ are less likely tha
   \alpha \in \{1.3, \,1.5,\, 1.8,\, 2\},
 \end{equation*}
 and let
-% \begin{equation*}
-%   Q_0 = \text{Weibull}(\text{shape} = 2, \text{scale} = 0.5),
-%   \quad \text{and} \quad
-%   G_{\gamma} = \text{Weibull}(\text{shape} = 2, \text{scale} = \gamma).
-% \end{equation*}
 \begin{equation*}
   Q_0 = \text{Weibull}(2,  0.5),
   \quad \text{and} \quad
@@ -295,10 +440,10 @@ and let
 :END:
 
 #+BEGIN_SRC R :results graphics file :exports results :file "fig-mix-const-v1.pdf" :width 8 :height 4.2
-grid.arrange(base_plot, plot_dist(alpha = aa0, g = gg0[1], q = .5, k = 2, only_outcome = TRUE, size=line_size), ncol = 2)
+  grid.arrange(base_plot, plot_dist(alpha = aa0, g = gg0[1], q = .5, k = 2, only_outcome = TRUE, size=line_size), ncol = 2)
 #+END_SRC
 
-#+RESULTS[(2022-06-13 12:12:57) b142a8781da7f559326477e370fd090d3e3e71d1]:
+#+RESULTS[(2022-06-13 19:13:31) b142a8781da7f559326477e370fd090d3e3e71d1]:
 [[file:fig-mix-const-v1.pdf]]
 
 *** overlay block 
@@ -314,7 +459,7 @@ grid.arrange(base_plot, plot_dist(alpha = aa0, g = gg0[1], q = .5, k = 2, only_o
 	       plot_dist(alpha = aa0, g = gg0[2], q = .5, k = 2, size=line_size), ncol = 2)
 #+END_SRC
 
-#+RESULTS[(2022-06-13 12:12:58) fcad6a2e0bea105ec48ebbf01a6132ae5c838c6a]:
+#+RESULTS[(2022-06-13 19:13:32) fcad6a2e0bea105ec48ebbf01a6132ae5c838c6a]:
 [[file:fig-mix-const-v3.pdf]]
 
 *** overlay block 
@@ -330,25 +475,306 @@ grid.arrange(base_plot, plot_dist(alpha = aa0, g = gg0[1], q = .5, k = 2, only_o
 	       plot_dist(alpha = aa0, g = gg0[1], q = .5, k = 2, size=line_size), ncol = 2)
 #+END_SRC
 
-#+RESULTS[(2022-06-13 12:12:58) 17838a96df453eb2334690399a1aee9102df0313]:
+#+RESULTS[(2022-06-13 19:13:32) 17838a96df453eb2334690399a1aee9102df0313]:
 [[file:fig-mix-const-v2.pdf]]
 
+** A simple example with mis-specified survival models
+#+begin_export latex
+\small Assume the data generating distribution given by
+\begin{equation*}
+  Q_0 = \text{Weibull}(2,  0.5),
+  \quad \text{and} \quad
+  G_{\gamma} = \text{Weibull}(2,\gamma),
+\end{equation*}
+and consider the four candidate models indexed by $\alpha$,
+\begin{equation*}
+  Q_{\alpha} = \text{Exp}(\alpha),
+  \quad \text{with} \quad 
+  \alpha \in \{1.3, \,1.5,\, 1.8,\, 2\}.
+\end{equation*}
+
+#+end_export
+
+\vfill
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <1>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file "fig-mix-const-v1.pdf" :width 8 :height 4.2
+  grid.arrange(plot_dist(alpha = aa0[1], g = gg0[1], q = .5, k = 2, only_outcome = TRUE, size=line_size) +
+	       ylim(c(0,2)) +
+	       scale_linetype_manual(values=c("solid"), name = TeX("$\\Q_0$"), labels = ""),
+	       ggplot() + theme_void(), ncol = 2)
+#+END_SRC
+
+#+RESULTS[(2022-06-13 19:13:32) 7670032286190a018493979c4d5a6cd69cbdd7da]:
+[[file:fig-mix-const-v1.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <2>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file "fig-mix-const-v2.pdf" :width 8 :height 4.2
+grid.arrange(plot_dist(alpha = aa0, g = gg0[1], q = .5, k = 2, only_outcome = TRUE, size=line_size) +
+             ylim(c(0,2)) +
+             scale_linetype_manual(values=c("solid"), name = TeX("$\\Q_0$"), labels = ""),
+             ggplot() + theme_void(), ncol = 2)
+#+END_SRC
+
+#+RESULTS[(2022-06-13 19:25:41) a3208f3a6402ce457f1d59aef6087073f5e131ea]:
+[[file:fig-mix-const-v2.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <3>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file "fig-mix-const-v3.pdf" :width 8 :height 4.2
+  grid.arrange(ggplot() + theme_void(),
+	       base_plot, ncol = 2)
+#+END_SRC
+
+#+RESULTS[(2022-06-13 19:13:32) 202b9357934a014c9efa4146c027779f8b56c9a0]:
+[[file:fig-mix-const-v3.pdf]]
+
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <4>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file "fig-mix-const-v4.pdf" :width 8 :height 4.2
+  grid.arrange(plot_dist(alpha = NULL, q = gg0[1], k = 2, only_outcome = 1) +
+	       scale_linetype_manual(values=c("dashed"), name=TeX("$G$"), labels = ""),            
+	       base_plot +
+	       geom_vline(xintercept = gg0[1], linetype = 2) +
+	       geom_point(data = vals[ cens == gg0[1]], size = 1.5),
+	       ncol = 2)
+#+END_SRC
+
+#+RESULTS[(2022-06-13 19:26:35) bde0d0f744cd2d2fa4615d5a205436d47315e871]:
+[[file:fig-mix-const-v4.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <5>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file "fig-mix-const-v5.pdf" :width 8 :height 4.2
+grid.arrange(plot_dist(alpha = NULL, q = gg0[2], k = 2, only_outcome = 1) +
+             scale_linetype_manual(values=c("dashed"), name=TeX("$G$"), labels = ""),            
+             base_plot +
+             geom_vline(xintercept = gg0[2], linetype = 2) +
+             geom_point(data = vals[ cens == gg0[2]], size = 1.5),
+             ncol = 2)
+#+END_SRC
+
+#+RESULTS[(2022-06-13 19:26:44) 50982952191dfdea9d6966a8ad368907c02399f8]:
+[[file:fig-mix-const-v5.pdf]]
+
 * Hold-out samples and survival model estimators
-
 ** Survival curve estimators evaluated on hold-out samples
+\small Consider the problem of selecting a hyper-parameter or model using cross-validation.
+We split the data $\mathcal{D}_n = \{O_1, \dots, O_n\}$ in two, $\mathcal{D}_n^1$ and $\mathcal{D}_n^2$.
+- On split $\mathcal{D}_n^1$ :: Fit models $\{\hat f_{\lambda} \, : \, \lambda \in \Lambda\}$ or
+  $\{\hat f_1, \hat f_2, \dots \hat f_k\}$.
+- On split $\mathcal{D}_n^2$ :: Evalute the performance using a loss function $L$.
 
-Another problem: Consider
+# \hfill For many models we cannot use the likelihood to compare the performance of estimators fitted on
+# $\mathcal{D}_n^1$ on a hold-out sample $O_{new} \in \mathcal{D}_n^2$.
 
-[sort of: ignores this and proceeding anyway...]
-** Modeling the censoring
-** An (infinite?) loop
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <1-2>
+:BEAMER_env: onlyenv
+:END:
 
+\pause
+
+#+BEGIN_SRC R :results graphics file :exports results :file "fig-hold-out-sample.pdf" :height 4
+  library(survival)
+  library(prodlim)
+  library(riskRegression)
+  library(randomForestSRC)
+  simd <- function(n = 500, p = 5, q = 2){
+    covars0 = cbind(data.table(matrix(rnorm(n*p), nrow = n)),
+		    data.table(matrix(1*(runif(n*q)<.4), nrow = n)))
+    names(covars0) = c(paste0("X", 1:p), paste0("D", 1:q))
+    out = cbind(covars0,
+		data.table(t = rweibull(n, shape = 2, scale = 1),
+			   c = rweibull(n, shape = 2, scale = 1.7)))
+    out[, ":="(t_obs = pmin(t,c), event = 1*(t < c))]
+    return(out[])
+  }
+
+  set.seed(41413)
+  pp0 <- 7
+  qq0 <- 3
+  nn0 <- 100
+  train_dat <- simd(n = nn0, p = pp0, q = qq0)
+  form0 <- as.formula(paste("Surv(t_obs, event) ~ ", paste(c(paste0("X", 1:pp0), paste0("D", 1:qq0)), collapse = "+")))
+  models <- list(KM = prodlim(Hist(t_obs, event)~1, data = train_dat),               
+		 cox = coxph(form0, data = train_dat,x = TRUE),
+		 cox_strati = coxph(update(form0, ~ . - D1 + strata(D1)), data = train_dat, x = TRUE),
+		 rf = rfsrc(form0, data = train_dat, ntree = 500))
+  test_dat <- simd(n = 1, p = pp0, q = qq0)
+  pred_times <- sort(c(seq(0.1, 2, length.out = 50),train_dat[event == 1, t_obs]))
+  pred_times <- pred_times[0.2 < pred_times & pred_times < 1]
+  model_preds <- do.call(rbind, lapply(seq_along(models), function(m_ind){
+    data.table(Model = names(models)[m_ind],
+	       time = pred_times,
+	       risk = as.numeric(predictRisk(models[[m_ind]], newdata = test_dat, times = pred_times))) 
+  }))
+  model_preds[,Model:=factor(Model,levels=c("cox","cox_strati","KM","rf"),
+			     labels=c("Cox","Stratified Cox","Kaplan-Meier","Random Forest"))]
+  plot_surv_estimator <- ggplot(model_preds, aes(x = time, y = risk, col = Model)) +
+    geom_step(size=.8) + theme_classic() +
+    labs(y = TeX("$P(T \\leq t \\, | \\,  X = X_{new})$"), x = TeX("$t$")) +
+    theme(legend.position = "top") +
+    geom_point(aes(y = 0), col = "gray", size=.4) +
+    scale_x_continuous(breaks = .7, labels = TeX("$\\tilde{T}_{new}$"))
+  plot_surv_estimator + theme(axis.text.x=element_text(colour="white"))
+#+END_SRC
+
+#+RESULTS[(2022-06-14 16:11:20) 60241e130d959b91c6dffa6f3c423a59dd48ef4f]:
+[[file:fig-hold-out-sample.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <3>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file "fig-hold-out-sample2.pdf" :height 4
+  plot_surv_estimator + geom_point(aes(x = .7, y = 0), col = "black", size=1, shape=19) +
+    geom_vline(xintercept = .7, linetype=2, col = "black")  +
+    scale_x_continuous(breaks = .7, labels = TeX("$\\tilde{T}_{new}$"))
+#+END_SRC
+
+#+RESULTS[(2022-06-14 16:14:11) 311a5f92ba0ce26f8886c3dc8918752e0c1a4c94]:
+[[file:fig-hold-out-sample2.pdf]]
+
+** Taking the censoring distribution into account
+\small To alliviate these problems problems we can reweight the observed outcome or the loss
+function to account/adjust for the censoring:
+
+- Inverse probability of censoring weighted loss functions \citep{van2003unicv}. For instance,
+  weighted negative log-likelihood or (integrated) Brier score.
+- Pseudo-values \citep{andersen2003generalised,mogensen2013random}.
+- Censoring unbiased transformations \citep{fan1996local,steingrimsson2019censoring}.
+
+\vfill
+
+These approaches are particularly attractive when we are willing to assume that the censoring does
+not depend on the baseline covariates.
+
+** Modeling the censoring distribution
+\small If we are not sure that the censoring is independent we need to model the dependence on the
+covariates. \vfill
+
+
+*** \centering An (infinite?) loop
+:PROPERTIES:
+:BEAMER_act: <2->
+:END:
+**** overlay block 
+:PROPERTIES:
+:BEAMER_act: <1-2>
+:BEAMER_env: onlyenv
+:END:
+
+\pause
+
+#+BEGIN_SRC R :results graphics file :exports results :file "./fig-obs-data.pdf" :height 3 :width 8
+plot_cens_dat(obs.dat, t = NULL)
+#+END_SRC
+
+#+RESULTS[(2022-06-14 16:22:50) b7b7c904a7d81786385191c7798d1043f49707de]:
+[[file:./fig-obs-data.pdf]]
+
+**** overlay block 
+:PROPERTIES:
+:BEAMER_act: <3->
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file "./fig-inverse-data.pdf" :height 3 :width 8
+plot_cens_dat(inv.dat, t = NULL)
+#+END_SRC
+
+#+RESULTS[(2022-06-14 16:22:54) 0301c806baf594f7d2eca7914e4aad70e1b5e9b6]:
+[[file:./fig-inverse-data.pdf]]
+
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <1->
+:BEAMER_env: onlyenv
+:END:
+
+\pause \pause /Inverse-weighted survival games/ \citep{han2021inverse}: Iterate the estimation until
+convergence (hopefully).
+
+* Conclusion
+:PROPERTIES:
+:UNNUMBERED: t
+:END:
+
+** Conclusion
+*** gray                                                   :B_beamercolorbox:
+:PROPERTIES:
+:BEAMER_env: beamercolorbox
+:BEAMER_opt: rounded=true
+:END:
+\centering How should we do cross-validation for general survival models?
+
+*** Challenges                                              :B_ignoreheading:
+:PROPERTIES:
+:BEAMER_env: ignoreheading
+:END:
+
+\vfill \small
+
+#+begin_export latex
+\begin{itemize}
+\item Using the negative partial log-likelihood is problematic
+  \begin{itemize}
+  \item[$\rightarrow$] The least false model is not well-defined (without reference to the censoring
+    regime)
+  \item[$\rightarrow$] For many standard survival estimators, we cannot use it on hold-out samples
+  \end{itemize}
+\item Using loss functions designed to measure the loss for the model of interest is
+  challenging in the presence of complicated censoring
+  \begin{itemize}
+  \item[$\rightarrow$]  We need a model for the censoring ...
+    \begin{itemize}
+    \item[$\rightarrow$] We need a model for the outcome ...
+    \end{itemize}
+  \end{itemize}  
+\end{itemize}
+\vfill \pause
+#+end_export
+
+*** Questions, comments, suggestions?
+
+    \vfill
+
+    \flushright Thank you!
+    
 * References
 :PROPERTIES:
 :UNNUMBERED: t
 :END:
 ** References
-\footnotesize \bibliography{./latex-settings/default-bib.bib}
+\scriptsize \bibliography{./latex-settings/default-bib.bib}
 
 * HEADER :noexport:
 #+LANGUAGE:  en

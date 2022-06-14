@@ -1,4 +1,4 @@
-% Created 2022-06-13 Mon 13:13
+% Created 2022-06-14 Tue 17:51
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -61,41 +61,41 @@ basewidth={0.5em,0.4em},
 \tableofcontents
 \end{frame}
 
-\section{Problem setting: Model and hyperparamter selection for survival model}
-\label{sec:orgfbb9f88}
-\begin{frame}[label={sec:orgf50e91a}]{Selecting a model from a collection of candidate models}
-\small Let \(\mathcal{P}\) denote a collection of probability measures on the sample space
-\(\mathcal{O}\). Let \(\mathcal{V}\) denote a parameter space and \(L\colon\mathcal{V} \times \mathcal{O}
-\rightarrow \R_+\) a loss function. Consider
-
+\section{Model and hyper-parameter selection for survival models}
+\label{sec:org2f4e39d}
+\begin{frame}[label={sec:org49def99}]{Selecting a model from a collection of candidate models}
+\small Consider estimation of the parameter
 \begin{equation*}
-  \nu(P) := \argmin_{\tilde{\nu}\in\mathcal{V}} P[L(\tilde{\nu}, \blank)],
+  \theta(P) := \argmin_{f \in\mathcal{F}} P[L(f, \blank)],
   \quad \text{where} \quad
-  P[f] := \int_{\mathcal{O}}f(o) P(\diff o). 
+  P[g] := \int_{\mathcal{O}}g(o) P(\diff o),
 \end{equation*}
-We approximate $P$ with the empirical measure $\empmeas$, as
-$\empmeas[L(\tilde{\nu}, \blank)] \approx P[L(\tilde{\nu}, \blank)]$.
-% $\nu(\empmeas)\approx\nu(P)$.
+for some loss function $L \colon \mathcal{F} \times \mathcal{O} \rightarrow \R_+$.
+% We approximate $P$ with the empirical measure $\empmeas$, as
+% $\empmeas[L(\tilde{\nu}, \blank)] \approx P[L(\tilde{\nu}, \blank)]$.
+% % $\nu(\empmeas)\approx\nu(P)$.
 
-\begin{exampleblock}{Maximum likelihood estimator (MLE)}
-For \(\mathcal{V}\) a collection of densities and \(L(\nu,O) := -\log(\nu(O))\), \(\nu(\empmeas)\) is
-the MLE.
+\begin{exampleblock}{\normalsize Maximum likelihood estimator (MLE)}
+If \(\mathcal{F}\) is a collection of densities on \(\mathcal{O}\) and \(L(f, O) := -\log(f(O))\), then
+\(\theta(\empmeas)\) is the MLE for the model \(\mathcal{F}\), where \(\empmeas\) denotes the empirical
+measure.
 \end{exampleblock}
 
-\begin{exampleblock}{Hyper-parameter selection}
-For estimation in high-dimensional settings we often introduce a regularization parameter \(\nu\)
-(e.g., LASSO, kernel smoothing). Each choice of \(\nu\) gives us an estimator, say \(\hat f_{\nu}\), and
-we select the optimal choice of \(\nu\) using cross-validation,
+\begin{exampleblock}{\normalsize Hyper-parameter selection}
+For estimation in high-dimensional settings we often introduce a regularization parameter $\lambda$
+(e.g., LASSO, kernel smoothing). To select a value for $\lambda$ we would typically split the data
+$\mathcal{D}_n = \{O_1, \dots, O_n\}$ randomly in two, $\mathcal{D}_n^1$ and $\mathcal{D}_n^2$, and
+calculate
 \begin{equation*}
-  \argmin_{\nu\in\mathcal{V}} \empmeas[L(\hat{f}_{\nu}, \blank)],
-  \quad \text{where} \quad
-  \empmeas \independent \hat{f}_{\nu}.
+\argmin_{\lambda\in\Lambda} \empmeas^{2}[L(\hat{f}^{1}_{\lambda}, \blank)],
 \end{equation*}
-Also useful for combining models \citep{breiman1996stacked,van2007super}.
+where $\empmeas^2$ denotes the empirical measure based on the sample $\mathcal{D}_n^2$, and
+$\hat{f}^1_{\lambda}$ denotes an estimator calculated on $\mathcal{D}_n^1$ with regularization
+parameter $\lambda$.
 \end{exampleblock}
 \end{frame}
 
-\begin{frame}[label={sec:org31fa036}]{Survival data}
+\begin{frame}[label={sec:orgdc10243}]{Survival data}
 \small
 
 \begin{description}
@@ -110,9 +110,12 @@ Assuming coarsening at random \citep{gill1997coarsening} we can write
 \begin{equation*}
   \mathcal{P} = \{P_{Q, G} : Q \in \mathcal{Q}, G \in \mathcal{G}\},
 \end{equation*}
-where $\mathcal{G}$ denotes a collection of conditional distributions for the censoring mechanism.
-Assuming also non-informative censoring the likelihood factorises as
-$\ell(P_{Q, G}, O) = \ell_F(Q, O) \cdot \ell_{\mathcal{C}}(G, O)$, with
+where $\mathcal{G}$ denotes a collection of conditional distributions for the censoring mechanism,
+and the likelihood factorizes as
+\begin{equation*}
+  \ell(P_{Q, G}, O) = \ell_F(Q, O) \cdot \ell_{\mathcal{C}}(G, O),
+\end{equation*}
+with
 \begin{equation*}
   \ell_F(Q, O) := q(\tilde T \mid X)^{\Delta}\bar{Q}(\tilde T \mid X)^{1-\Delta} m(X),
 \end{equation*}
@@ -121,26 +124,13 @@ marginal distribution of $X$.
 
 \vfill
 
-Natural to use \(-\log\ell_F\) as loss function, or only the first part
-\begin{equation*}
-  -
-  \left\{
-    \Delta \log
-    q(\tilde T \mid X)
-    - (1- \Delta) \log\bar{Q}(\tilde T \mid X)
-  \right\}.
-\end{equation*}
-% \begin{equation*}
-%   -\log
-%   \left\{
-%     q(\tilde T \mid X)^{\Delta}\bar{Q}(\tilde T \mid X)^{1-\Delta}
-%   \right\}.
-% \end{equation*}
+Natural to use the negative partial log-likelihood \(-\log\ell_F\) as loss function, or even only the
+first part concerning the conditional distribution of \(T\) given \(X\).
 \end{frame}
 
 \section{The least false model in the presence of censoring}
-\label{sec:org66b8f05}
-\begin{frame}[label={sec:orgb04cf6f}]{Kullback-Leibler divergence for factorizing likelihoods}
+\label{sec:orga13c063}
+\begin{frame}[label={sec:org553cac0}]{Kullback-Leibler divergence and partial likelihoods}
 \small Maximum likelihood estimation is closely connected to minimizing the Kullback-Leibler
 divergence,
 \begin{equation*}
@@ -152,44 +142,95 @@ divergence,
   \quad \text{where} \quad
   P_1 = p_1 \cdot \mu,   P_2 = p_2 \cdot \mu.
 \end{equation*}
-By Jensen's inequality \(\KL \geq 0\) and equals 0 when \(P_1=P_2\). Under regulartity condtions, the
-limit of the MLE under the model \(\mathcal{P}_* \subset \mathcal{P}\), when \(O \sim P_0\), is the
-minimizer of
+
+\begin{onlyenv}<1>
+\color{white}For a partial likelihood we are minimizing
 \begin{equation*}
-  P \longmapsto \KL(P_0 \, || \, P),
-  \quad \text{with} \quad P \in \mathcal{P}_*.
+  Q \longmapsto \KL(P_{Q_0,G} \, || \, P_{Q,G}),
+  \quad \text{with} \quad Q \in \mathcal{Q}_*.
 \end{equation*}
-If \(P_0 \not \in \mathcal{P}_*\) the minimizer is referred to as the \emph{least false model}.
+\color{black}
 
 \vfill
 
-If the likelihood for the model \(P_{\nu, \gamma}\) factorises with respect to the parameters \(\nu\)
-and \(\gamma\) and we do MLE for the \emph{partial} likelihood for \(\nu\), when \(O \sim P_{\nu_0,\gamma_0}\),
-the limit is the minimizer of
+\begin{tikzpicture}
+  \draw[line width = .2mm] plot [smooth, tension=.8] coordinates { (0,0) (3,2) (6, 1.2) (9,1)};
+  \fill (3,2) circle (0.05);
+  \fill (2.6,4) circle (0.05);
+  \node[] (PP) at (4,.5) {$\mathcal{P}_*$};
+  \node[above] (P) at (2.6,4) {$P_0$};
+  \node[below] (G) at (3,2) {$P_*$};
+  \draw[dashed] (3,2) -- (2.6,4);
+\end{tikzpicture}
+\end{onlyenv}
+
+\begin{onlyenv}<2>
+For a partial likelihood we are minimizing
 \begin{equation*}
-  \nu \longmapsto \KL(P_{\nu_0,\gamma_0} \, || \, P_{\nu,\gamma_0}),
-  \quad \text{with} \quad \nu \in \mathcal{V}.
+  Q \longmapsto \KL(P_{Q_0,G} \, || \, P_{Q,G}),
+  \quad \text{with} \quad Q \in \mathcal{Q}_*.
 \end{equation*}
-For any value \(\gamma \in \Gamma\) we have that \(\KL(P_{\nu_0,\gamma} \, || \, P_{\nu_0,\gamma}) =
-0\), so \(\nu_0\) is optimal for any \(\gamma\). However, if \(\nu_0 \not \in \mathcal{V}\) the minimizer
-might depend on the value of \(\gamma\).
+\color{black}
+
+\vfill
+
+\begin{tikzpicture}
+  \draw[line width = .2mm] plot [smooth, tension=.8] coordinates { (0,0) (3,2) (6, 1.2) (9,1)};
+  \fill (3,2) circle (0.05);
+  \fill (2.6,4) circle (0.05);
+  \node[] (PP) at (4,.5) {$\mathcal{Q}_*$};
+  \node[above] (P) at (2.6,4) {$P_{Q_0, G}$};
+  \node[below] (G) at (3,2) {$Q_*$};
+  \draw[dashed] (2.6,4) -- (3,2);
+\end{tikzpicture}
+\end{onlyenv}
+
+\begin{onlyenv}<3>
+For a partial likelihood we are minimizing
+\begin{equation*}
+  Q \longmapsto \KL(P_{Q_0,G} \, || \, P_{Q,G}),
+  \quad \text{with} \quad Q \in \mathcal{Q}_*.
+\end{equation*}
+\color{black}
+
+\vfill
+
+\begin{tikzpicture}
+  \draw[line width = .2mm] plot [smooth, tension=.8] coordinates { (0,0) (3,2) (6, 1.2) (9,1)};
+  \node[] (PP) at (4,.5) {$\mathcal{Q}_*$};
+  \node[above] (P) at (2.6,4) {$P_{Q_0, G}$};
+  \node[above] (P2) at (6.2,3.5) {$P_{Q_0, \tilde{G}}$};
+  \node[below] (G) at (3,2) {$Q_*$};
+  \node[below] (D) at (6, 1.2) {$\tilde{Q}_*$};
+  \draw[dashed] (P2) -- (D);
+  \draw[dashed] (2.6,4) -- (3,2);
+  \fill (3,2) circle (0.05);
+  \fill (2.6,4) circle (0.05);
+  \fill (6, 1.2) circle (0.05);
+  \fill (6.2,3.5) circle (0.05);
+\end{tikzpicture}
+\end{onlyenv}
 \end{frame}
 
-\begin{frame}[label={sec:org30ce482}]{Least false model depends on the censoring distribution}
-\small A special case of this is the survival setting. Consider the simple case with no covariates
-so and loss function is \(-\log\ell_F\).
+\begin{frame}[label={sec:org2d983cd}]{Least false model depends on the censoring distribution}
+\small For any value \(G \in \mathcal{G}\) we have that \(\KL(P_{Q_0,G} \, || \, P_{Q_0,G}) = 0\), so
+the correct model \(Q_0\) is ranked better than any other model independently of \(G \in \mathcal{G}\).
+However, if \(Q_0 \not \in \mathcal{Q}_*\) the minimizer might depend on the value of \(G\).\footnote{This is mentioned in \cite{whitney2019comment} and \cite{van2003unicv}, and a similar
+phenomenon is well studied for the Cox model
+\citep{struthers1986misspecified,hjort1992inference,fine2002comparing}.}
 
 \vfill
 
-Ranking models according to their average loss with respect to this loss function is equivalent to
-ranking them according to \(\KL(P_{Q_0, G} \, || \, P_{Q, G})\) when \(O \sim P_{Q_0, G}\).
+For the simple survival case with no baseline covariates, we have the following result stating that
+for a mis-specified model \(Q\) we can alway find an alternative model \(\tilde Q\) that is ranked
+better under one censoring regime but worse under another.
 
 \vfill
 
 
 \begin{beamercolorbox}[rounded=true]{gray}
-Let $Q_0, Q \in \mathcal{Q}$ with $Q_0 \not = Q$ and $G \in \mathcal{G}$ be given. Then (under
-regularity conditions) we can find $\tilde Q \in \mathcal{Q}$ and $\tilde G \in \mathcal{G}$ such
+Let $Q_0$ and $G$ be given together with some $Q \not = Q_0$. Then (under
+regularity conditions) we can find $\tilde Q$ and $\tilde G$ such
 that
 \begin{equation*}
   \KL(P_{Q_0, G} \, || \, P_{Q, G}) < \KL(P_{Q_0, G} \, || \, P_{\tilde Q, G}),
@@ -200,31 +241,36 @@ and
     \tilde G}).
 \end{equation*}
 \end{beamercolorbox}
-
-
-\begin{proof}[Proof]
-Construct \(\tilde Q\) such that it performs better than \(Q_1\) on \([0, t]\) but worse on \((t, \infty)\).
-Construct \(\tilde G\) such that observations on \((t, \infty)\) are less likely than under \(G\).
-\end{proof}
 \end{frame}
 
-\begin{frame}[label={sec:org635026f}]{A simple example}
-\small Consider four candidate models indexed by $\alpha$,
-\begin{equation*}
-  Q_{\alpha} = \text{Exp}(\alpha),
-  \quad \text{with} \quad 
-  \alpha \in \{1.3, \,1.5,\, 1.8,\, 2\},
-\end{equation*}
-and let
-% \begin{equation*}
-%   Q_0 = \text{Weibull}(\text{shape} = 2, \text{scale} = 0.5),
-%   \quad \text{and} \quad
-%   G_{\gamma} = \text{Weibull}(\text{shape} = 2, \text{scale} = \gamma).
-% \end{equation*}
+\begin{frame}[label={sec:org8d8ad0a}]{Sketch of proof}
+\small
+\begin{itemize}
+\item Divide \((0, \tau)\) into \((0, \tau_0)\) and \([\tau_0, \tau)\), where \((0, \tau)\) is the
+support of \(T\).
+\item Construct \(\tilde Q\) such that it performs better than \(Q\) on \((0,\tau_0)\) but worse on
+\((\tau_0, \tau)\) under the censoring regime \(G\).
+\item Construct \(\tilde G\) such that observations on \((\tau_0, \tau)\) are less likely than under
+\(G\).
+\end{itemize}
+
+\pause \vfill Whether the alternative model \(\tilde Q\) can be constructed such that \(\tilde Q \in
+\mathcal{Q}_*\) for some model class \(\mathcal{Q}_*\) will depend on the model class and on \(Q_0\) and
+\(\mathcal{G}\).
+\end{frame}
+
+\begin{frame}[label={sec:orgef7fe10}]{A simple example with mis-specified survival models}
+\small Assume the data generating distribution given by
 \begin{equation*}
   Q_0 = \text{Weibull}(2,  0.5),
   \quad \text{and} \quad
-  G_{\gamma} = \text{Weibull}(2,\gamma).
+  G_{\gamma} = \text{Weibull}(2,\gamma),
+\end{equation*}
+and consider the four candidate models indexed by $\alpha$,
+\begin{equation*}
+  Q_{\alpha} = \text{Exp}(\alpha),
+  \quad \text{with} \quad 
+  \alpha \in \{1.3, \,1.5,\, 1.8,\, 2\}.
 \end{equation*}
 
 \vfill
@@ -237,37 +283,138 @@ and let
 
 \begin{onlyenv}<2>
 \begin{center}
-\includegraphics[width=.9\linewidth]{fig-mix-const-v3.pdf}
+\includegraphics[width=.9\linewidth]{fig-mix-const-v2.pdf}
 \end{center}
 \end{onlyenv}
 
 \begin{onlyenv}<3>
 \begin{center}
-\includegraphics[width=.9\linewidth]{fig-mix-const-v2.pdf}
+\includegraphics[width=.9\linewidth]{fig-mix-const-v3.pdf}
+\end{center}
+\end{onlyenv}
+
+
+\begin{onlyenv}<4>
+\begin{center}
+\includegraphics[width=.9\linewidth]{fig-mix-const-v4.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<5>
+\begin{center}
+\includegraphics[width=.9\linewidth]{fig-mix-const-v5.pdf}
 \end{center}
 \end{onlyenv}
 \end{frame}
 
 \section{Hold-out samples and survival model estimators}
-\label{sec:orgabd8c50}
+\label{sec:org5ef7e8f}
+\begin{frame}[label={sec:org88df23e}]{Survival curve estimators evaluated on hold-out samples}
+\small Consider the problem of selecting a hyper-parameter or model using cross-validation.
+We split the data \(\mathcal{D}_n = \{O_1, \dots, O_n\}\) in two, \(\mathcal{D}_n^1\) and \(\mathcal{D}_n^2\).
+\begin{description}
+\item[{On split \(\mathcal{D}_n^1\)}] Fit models \(\{\hat f_{\lambda} \, : \, \lambda \in \Lambda\}\) or
+\(\{\hat f_1, \hat f_2, \dots \hat f_k\}\).
+\item[{On split \(\mathcal{D}_n^2\)}] Evalute the performance using a loss function \(L\).
+\end{description}
 
-\begin{frame}[label={sec:orgf346bc9}]{}
-\begin{block}{\center Breaker}
+\begin{onlyenv}<1-2>
+\pause
+
+\begin{center}
+\includegraphics[width=.9\linewidth]{fig-hold-out-sample.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<3>
+\begin{center}
+\includegraphics[width=.9\linewidth]{fig-hold-out-sample2.pdf}
+\end{center}
+\end{onlyenv}
+\end{frame}
+
+\begin{frame}[label={sec:orgce5d74c}]{Taking the censoring distribution into account}
+\small To alliviate these problems problems we can reweight the observed outcome or the loss
+function to account/adjust for the censoring:
+
+\begin{itemize}
+\item Inverse probability of censoring weighted loss functions \citep{van2003unicv}. For instance,
+weighted negative log-likelihood or (integrated) Brier score.
+\item Pseudo-values \citep{andersen2003generalised,mogensen2013random}.
+\item Censoring unbiased transformations \citep{fan1996local,steingrimsson2019censoring}.
+\end{itemize}
+
+\vfill
+
+These approaches are particularly attractive when we are willing to assume that the censoring does
+not depend on the baseline covariates.
+\end{frame}
+
+\begin{frame}[label={sec:orgd7eb800}]{Modeling the censoring distribution}
+\small If we are not sure that the censoring is independent we need to model the dependence on the
+covariates. \vfill
+
+
+\begin{block}<2->{\centering An (infinite?) loop}
+\begin{onlyenv}<1-2>
+\pause
+
+\begin{center}
+\includegraphics[width=.9\linewidth]{./fig-obs-data.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<3->
+\begin{center}
+\includegraphics[width=.9\linewidth]{./fig-inverse-data.pdf}
+\end{center}
+\end{onlyenv}
+\end{block}
+
+
+\begin{onlyenv}<1->
+\pause \pause \emph{Inverse-weighted survival games} \citep{han2021inverse}: Iterate the estimation until
+convergence (hopefully).
+\end{onlyenv}
+\end{frame}
+
+\section*{Conclusion}
+\label{sec:org7fb6e72}
+\begin{frame}[label={sec:orgd8980c8}]{Conclusion}
+\begin{beamercolorbox}[rounded=true]{gray}
+\centering How should we do cross-validation for general survival models?
+\end{beamercolorbox}
+
+\vfill \small
+
+\begin{itemize}
+\item Using the negative partial log-likelihood is problematic
+  \begin{itemize}
+  \item[$\rightarrow$] The least false model is not well-defined (without reference to the censoring
+    regime)
+  \item[$\rightarrow$] For many standard survival estimators, we cannot use it on hold-out samples
+  \end{itemize}
+\item Using loss functions designed to measure the loss for the model of interest is
+  challenging in the presence of complicated censoring
+  \begin{itemize}
+  \item[$\rightarrow$]  We need a model for the censoring ...
+    \begin{itemize}
+    \item[$\rightarrow$] We need a model for the outcome ...
+    \end{itemize}
+  \end{itemize}  
+\end{itemize}
+\vfill \pause
+
+\begin{block}{Questions, comments, suggestions?}
+\vfill
+
+\flushright Thank you!
 \end{block}
 \end{frame}
 
-
-\begin{frame}[label={sec:org623d904}]{Survival curve estimators evaluated on hold-out samples}
-[sort of: ignores this and proceeding anyway\ldots{}]
-\end{frame}
-\begin{frame}[label={sec:orgfb49f9a}]{Modeling the censoring}
-\end{frame}
-\begin{frame}[label={sec:org0054009}]{An (infinite?) loop}
-\end{frame}
-
 \section*{References}
-\label{sec:org8ef4ed5}
-\begin{frame}[label={sec:orga0f07ec}]{References}
-\footnotesize \bibliography{./latex-settings/default-bib.bib}
+\label{sec:orgcebeb63}
+\begin{frame}[label={sec:org296fd94}]{References}
+\scriptsize \bibliography{./latex-settings/default-bib.bib}
 \end{frame}
 \end{document}
