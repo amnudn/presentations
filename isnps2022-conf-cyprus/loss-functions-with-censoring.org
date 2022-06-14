@@ -141,7 +141,9 @@ for some loss function $L \colon \mathcal{F} \times \mathcal{O} \rightarrow \R_+
 *** \normalsize Maximum likelihood estimator (MLE)                :B_exampleblock:
 :PROPERTIES:
 :BEAMER_env: exampleblock
+:BEAMER_act: <2->
 :END:
+
 If $\mathcal{F}$ is a collection of densities on $\mathcal{O}$ and $L(f, O) := -\log(f(O))$, then
 $\theta(\empmeas)$ is the MLE for the model $\mathcal{F}$, where $\empmeas$ denotes the empirical
 measure.
@@ -149,6 +151,7 @@ measure.
 *** \normalsize Hyper-parameter selection                    :B_exampleblock:
 :PROPERTIES:
 :BEAMER_env: exampleblock
+:BEAMER_act: <3->
 :END:
 #+begin_export latex
 For estimation in high-dimensional settings we often introduce a regularization parameter $\lambda$
@@ -165,17 +168,12 @@ parameter $\lambda$.
 
 # Also useful for combining models \citep{breiman1996stacked,van2007super}.
 
-** Survival data
+** A loss function for survival data
 \small
 
 - $O = (\tilde T, \Delta, X) \sim P \in \mathcal{P}$ :: Oberved data with $\mathcal{O} = \R_+
   \times \{0,1\} \times \R^p$.
 - $(T, X) \sim Q \in \mathcal{Q}$ :: The distribution $Q$ (or a feature of it) is of interest.
-
-# Let now $O = (\tilde T, \Delta, X) \in \R_+ \times \{0,1\} \times \R^p$, where $\tilde T$
-# denotes a censored event-time, $\Delta$ denotes if an event was observed or not, and $X$ denotes a
-# set of baseline covariates. We are typically interested in making inference for $Q \in \mathcal{Q}$,
-# where $(T, X) \sim Q$, and $T \in \R_+$ denotes the uncensored event-time.
 
 \vfill
 
@@ -259,20 +257,20 @@ might depend on the value of $\gamma$.
 
 ** Kullback-Leibler divergence and partial likelihoods
 #+begin_export latex
-\small Maximum likelihood estimation is closely connected to minimizing the Kullback-Leibler
-divergence,
+\small Maximum likelihood estimation is connected to minimizing the Kullback-Leibler
+divergence and gives an interpretation of the MLE under mis-specified models.
 \begin{equation*}
-  \KL(P_1 \, || \, P_2) := P_1
+  \KL(P_0 \, || \, P) := P_0
   {\left[
       % p_1/p_2
-    \log \frac{p_1}{p_2}
+    \log \frac{p_0}{p}
   \right]},
   \quad \text{where} \quad
-  P_1 = p_1 \cdot \mu,   P_2 = p_2 \cdot \mu.
+  P_0 = p_0 \cdot \mu,   P = p \cdot \mu.
 \end{equation*}
 #+end_export
 
-*** overlay block 
+*** mis-specified full
 :PROPERTIES:
 :BEAMER_act: <1>
 :BEAMER_env: onlyenv
@@ -301,7 +299,7 @@ divergence,
 \end{tikzpicture}
 #+end_export
 
-*** overlay block 
+*** mis-specified partial 1
 :PROPERTIES:
 :BEAMER_act: <2>
 :BEAMER_env: onlyenv
@@ -330,7 +328,7 @@ For a partial likelihood we are minimizing
 \end{tikzpicture}
 #+end_export
 
-*** overlay block 
+*** mis-specifiec partial 2 
 :PROPERTIES:
 :BEAMER_act: <3>
 :BEAMER_env: onlyenv
@@ -369,7 +367,7 @@ For a partial likelihood we are minimizing
 the correct model $Q_0$ is ranked better than any other model independently of $G \in \mathcal{G}$.
 However, if $Q_0 \not \in \mathcal{Q}_*$ the minimizer might depend on the value of $G$.[fn:1]
 
-\vfill
+\vfill \pause
 
 For the simple survival case with no baseline covariates, we have the following result stating that
 for a mis-specified model $Q$ we can alway find an alternative model $\tilde Q$ that is ranked

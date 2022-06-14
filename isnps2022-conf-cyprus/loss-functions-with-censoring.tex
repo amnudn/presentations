@@ -1,4 +1,4 @@
-% Created 2022-06-14 Tue 17:51
+% Created 2022-06-14 Tue 19:42
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -62,8 +62,8 @@ basewidth={0.5em,0.4em},
 \end{frame}
 
 \section{Model and hyper-parameter selection for survival models}
-\label{sec:org2f4e39d}
-\begin{frame}[label={sec:org49def99}]{Selecting a model from a collection of candidate models}
+\label{sec:org750d397}
+\begin{frame}[label={sec:org91a6fc6}]{Selecting a model from a collection of candidate models}
 \small Consider estimation of the parameter
 \begin{equation*}
   \theta(P) := \argmin_{f \in\mathcal{F}} P[L(f, \blank)],
@@ -75,13 +75,13 @@ for some loss function $L \colon \mathcal{F} \times \mathcal{O} \rightarrow \R_+
 % $\empmeas[L(\tilde{\nu}, \blank)] \approx P[L(\tilde{\nu}, \blank)]$.
 % % $\nu(\empmeas)\approx\nu(P)$.
 
-\begin{exampleblock}{\normalsize Maximum likelihood estimator (MLE)}
+\begin{exampleblock}<2->{\normalsize Maximum likelihood estimator (MLE)}
 If \(\mathcal{F}\) is a collection of densities on \(\mathcal{O}\) and \(L(f, O) := -\log(f(O))\), then
 \(\theta(\empmeas)\) is the MLE for the model \(\mathcal{F}\), where \(\empmeas\) denotes the empirical
 measure.
 \end{exampleblock}
 
-\begin{exampleblock}{\normalsize Hyper-parameter selection}
+\begin{exampleblock}<3->{\normalsize Hyper-parameter selection}
 For estimation in high-dimensional settings we often introduce a regularization parameter $\lambda$
 (e.g., LASSO, kernel smoothing). To select a value for $\lambda$ we would typically split the data
 $\mathcal{D}_n = \{O_1, \dots, O_n\}$ randomly in two, $\mathcal{D}_n^1$ and $\mathcal{D}_n^2$, and
@@ -95,7 +95,7 @@ parameter $\lambda$.
 \end{exampleblock}
 \end{frame}
 
-\begin{frame}[label={sec:orgdc10243}]{Survival data}
+\begin{frame}[label={sec:org2934a8a}]{A loss function for survival data}
 \small
 
 \begin{description}
@@ -129,18 +129,18 @@ first part concerning the conditional distribution of \(T\) given \(X\).
 \end{frame}
 
 \section{The least false model in the presence of censoring}
-\label{sec:orga13c063}
-\begin{frame}[label={sec:org553cac0}]{Kullback-Leibler divergence and partial likelihoods}
-\small Maximum likelihood estimation is closely connected to minimizing the Kullback-Leibler
-divergence,
+\label{sec:org1ccc6a0}
+\begin{frame}[label={sec:orgc7dccd3}]{Kullback-Leibler divergence and partial likelihoods}
+\small Maximum likelihood estimation is connected to minimizing the Kullback-Leibler
+divergence and gives an interpretation of the MLE under mis-specified models.
 \begin{equation*}
-  \KL(P_1 \, || \, P_2) := P_1
+  \KL(P_0 \, || \, P) := P_0
   {\left[
       % p_1/p_2
-    \log \frac{p_1}{p_2}
+    \log \frac{p_0}{p}
   \right]},
   \quad \text{where} \quad
-  P_1 = p_1 \cdot \mu,   P_2 = p_2 \cdot \mu.
+  P_0 = p_0 \cdot \mu,   P = p \cdot \mu.
 \end{equation*}
 
 \begin{onlyenv}<1>
@@ -212,14 +212,14 @@ For a partial likelihood we are minimizing
 \end{onlyenv}
 \end{frame}
 
-\begin{frame}[label={sec:org2d983cd}]{Least false model depends on the censoring distribution}
+\begin{frame}[label={sec:orgd60bf73}]{Least false model depends on the censoring distribution}
 \small For any value \(G \in \mathcal{G}\) we have that \(\KL(P_{Q_0,G} \, || \, P_{Q_0,G}) = 0\), so
 the correct model \(Q_0\) is ranked better than any other model independently of \(G \in \mathcal{G}\).
 However, if \(Q_0 \not \in \mathcal{Q}_*\) the minimizer might depend on the value of \(G\).\footnote{This is mentioned in \cite{whitney2019comment} and \cite{van2003unicv}, and a similar
 phenomenon is well studied for the Cox model
 \citep{struthers1986misspecified,hjort1992inference,fine2002comparing}.}
 
-\vfill
+\vfill \pause
 
 For the simple survival case with no baseline covariates, we have the following result stating that
 for a mis-specified model \(Q\) we can alway find an alternative model \(\tilde Q\) that is ranked
@@ -243,7 +243,7 @@ and
 \end{beamercolorbox}
 \end{frame}
 
-\begin{frame}[label={sec:org8d8ad0a}]{Sketch of proof}
+\begin{frame}[label={sec:orgf2c8dd2}]{Sketch of proof}
 \small
 \begin{itemize}
 \item Divide \((0, \tau)\) into \((0, \tau_0)\) and \([\tau_0, \tau)\), where \((0, \tau)\) is the
@@ -259,7 +259,7 @@ support of \(T\).
 \(\mathcal{G}\).
 \end{frame}
 
-\begin{frame}[label={sec:orgef7fe10}]{A simple example with mis-specified survival models}
+\begin{frame}[label={sec:org529add1}]{A simple example with mis-specified survival models}
 \small Assume the data generating distribution given by
 \begin{equation*}
   Q_0 = \text{Weibull}(2,  0.5),
@@ -308,8 +308,8 @@ and consider the four candidate models indexed by $\alpha$,
 \end{frame}
 
 \section{Hold-out samples and survival model estimators}
-\label{sec:org5ef7e8f}
-\begin{frame}[label={sec:org88df23e}]{Survival curve estimators evaluated on hold-out samples}
+\label{sec:org500be4f}
+\begin{frame}[label={sec:org6bf0f5d}]{Survival curve estimators evaluated on hold-out samples}
 \small Consider the problem of selecting a hyper-parameter or model using cross-validation.
 We split the data \(\mathcal{D}_n = \{O_1, \dots, O_n\}\) in two, \(\mathcal{D}_n^1\) and \(\mathcal{D}_n^2\).
 \begin{description}
@@ -333,7 +333,7 @@ We split the data \(\mathcal{D}_n = \{O_1, \dots, O_n\}\) in two, \(\mathcal{D}_
 \end{onlyenv}
 \end{frame}
 
-\begin{frame}[label={sec:orgce5d74c}]{Taking the censoring distribution into account}
+\begin{frame}[label={sec:org4651003}]{Taking the censoring distribution into account}
 \small To alliviate these problems problems we can reweight the observed outcome or the loss
 function to account/adjust for the censoring:
 
@@ -350,7 +350,7 @@ These approaches are particularly attractive when we are willing to assume that 
 not depend on the baseline covariates.
 \end{frame}
 
-\begin{frame}[label={sec:orgd7eb800}]{Modeling the censoring distribution}
+\begin{frame}[label={sec:orgb4592fc}]{Modeling the censoring distribution}
 \small If we are not sure that the censoring is independent we need to model the dependence on the
 covariates. \vfill
 
@@ -379,8 +379,8 @@ convergence (hopefully).
 \end{frame}
 
 \section*{Conclusion}
-\label{sec:org7fb6e72}
-\begin{frame}[label={sec:orgd8980c8}]{Conclusion}
+\label{sec:org33ff113}
+\begin{frame}[label={sec:org01bfe2c}]{Conclusion}
 \begin{beamercolorbox}[rounded=true]{gray}
 \centering How should we do cross-validation for general survival models?
 \end{beamercolorbox}
@@ -413,8 +413,8 @@ convergence (hopefully).
 \end{frame}
 
 \section*{References}
-\label{sec:orgcebeb63}
-\begin{frame}[label={sec:org296fd94}]{References}
+\label{sec:orgf065fbb}
+\begin{frame}[label={sec:org0fb4580}]{References}
 \scriptsize \bibliography{./latex-settings/default-bib.bib}
 \end{frame}
 \end{document}
