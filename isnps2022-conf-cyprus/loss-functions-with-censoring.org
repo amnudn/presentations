@@ -1,11 +1,10 @@
 #+TITLE: The negative log-likelihood loss and cross-validation with censored data
 #+Author: Anders Munch
 # \newline \small joint work with Thomas Gerds
-#+Date: \today
+#+Date: June 15, 2022
 * Tasks                                                            :noexport:
 - [X] References? -- How many and how detailed?
-- [-] Figures
-  - [ ] Visualizing the proof
+- [X] Figures
   - [X] Example
   - [X] KL 
 - [X] Check up on CAR vs non-informative censoring with respect to factorization of the likelihood.
@@ -71,7 +70,7 @@ Remember to exceture (C-c C-c) the following line:
   vals[, nnl := nll_const(cens,true,common_shape,alpha)]
   ## vals[,cat_alpha:=factor(alpha,levels=c("1.3","1.53333333333333","1.76666666666667","2"),labels=c("1.3","1.5","1.7","2"))]
   base_plot <- ggplot(vals, aes(x = cens, y = nnl)) +
-    geom_line(alpha = .5, size = line_size, aes(col = factor(round(alpha, digits = 1)))) +
+    geom_line(alpha = 1, size = line_size, aes(col = factor(round(alpha, digits = 1)))) +
     theme_bw() + theme(legend.position = "bottom") +
     labs(title = "Kullback-Leibler divergence", y = TeX("$D_{KL}$"), x = TeX("\\gamma")) +
     theme(axis.ticks.y = element_blank(), axis.text.y = element_blank()) +
@@ -88,7 +87,10 @@ Remember to exceture (C-c C-c) the following line:
   ## base_plot
 #+END_SRC
 
-#+RESULTS[(2022-06-13 19:13:31) c71eae8c9a2290915591ec23ac93efb6f9f41a30]:
+#+RESULTS[(2022-06-15 09:31:01) 972cbeadde5f6d38aec449ace235df6bdae117cb]:
+: here() starts at /home/amnudn/Documents/phd/presentations
+: data.table 1.14.2 using 4 threads (see ?getDTthreads).  Latest news: r-datatable.com
+: RStudio Community is a great place to get help: https://community.rstudio.com/c/tidyverse
 
 Censored and "inverse" data
 
@@ -780,7 +782,8 @@ convergence (hopefully).
 #+startup: beamer
 #+LaTeX_CLASS: beamer
 #+LATEX_CLASS_OPTIONS: [smaller]
-#+LaTeX_HEADER: \institute{PhD Student, Section of Biostatistics \\ University of Copenhagen}
+# #+LaTeX_HEADER: \institute{PhD Student, Section of Biostatistics \\ University of Copenhagen}
+#+LaTeX_HEADER: \institute{Coffee Talk \\ Section of Biostatistics}
 #+LaTeX_HEADER: \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
 #+LaTeX_HEADER: \bibliographystyle{abbrvnat}
 #+LaTeX_HEADER: \input{./latex-settings/standard-commands.tex}
