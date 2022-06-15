@@ -1,7 +1,6 @@
 #+TITLE: The negative log-likelihood loss and cross-validation with censored data
-#+Author: Anders Munch
-# \newline \small joint work with Thomas Gerds
-#+Date: June 15, 2022
+#+Author: Anders Munch \newline \small joint work with Thomas Gerds
+#+Date: June 20, 2022 -- ISNPS
 * Tasks                                                            :noexport:
 - [X] References? -- How many and how detailed?
 - [X] Figures
@@ -158,13 +157,13 @@ measure.
 #+begin_export latex
 For estimation in high-dimensional settings we often introduce a regularization parameter $\lambda$
 (e.g., LASSO, kernel smoothing). To select a value for $\lambda$ we would typically split the data
-$\mathcal{D}_n = \{O_1, \dots, O_n\}$ randomly in two, $\mathcal{D}_n^1$ and $\mathcal{D}_n^2$, and
+$\mathcal{D}_n = \{O_1, \dots, O_n\}$ randomly in two, $\mathcal{D}_n^{\mathrm{train}}$ and $\mathcal{D}_n^{\mathrm{test}}$, and
 calculate
 \begin{equation*}
-\argmin_{\lambda\in\Lambda} \empmeas^{2}[L(\hat{f}^{1}_{\lambda}, \blank)],
+\argmin_{\lambda\in\Lambda} \empmeas^{\mathrm{test}}[L(\hat{f}^{\mathrm{train}}_{\lambda}, \blank)],
 \end{equation*}
-where $\empmeas^2$ denotes the empirical measure based on the sample $\mathcal{D}_n^2$, and
-$\hat{f}^1_{\lambda}$ denotes an estimator calculated on $\mathcal{D}_n^1$ with regularization
+where $\empmeas^{\mathrm{test}}$ is the empirical measure based on the sample $\mathcal{D}_n^{\mathrm{test}}$, and
+$\hat{f}^{\mathrm{train}}_{\lambda}$ denotes an estimator calculated on $\mathcal{D}_n^{\mathrm{train}}$ with regularization
 parameter $\lambda$.
 #+end_export
 
@@ -260,7 +259,7 @@ might depend on the value of $\gamma$.
 ** Kullback-Leibler divergence and partial likelihoods
 #+begin_export latex
 \small Maximum likelihood estimation is connected to minimizing the Kullback-Leibler
-divergence and gives an interpretation of the MLE under mis-specified models.
+divergence and gives an interpretation of the MLE under misspecified models.
 \begin{equation*}
   \KL(P_0 \, || \, P) := P_0
   {\left[
@@ -272,19 +271,17 @@ divergence and gives an interpretation of the MLE under mis-specified models.
 \end{equation*}
 #+end_export
 
-*** mis-specified full
+*** misspecified full
 :PROPERTIES:
 :BEAMER_act: <1>
 :BEAMER_env: onlyenv
 :END:
 
 #+begin_export latex
-\color{white}For a partial likelihood we are minimizing
+\phantom{For a partial likelihood we are minimizing}
 \begin{equation*}
-  Q \longmapsto \KL(P_{Q_0,G} \, || \, P_{Q,G}),
-  \quad \text{with} \quad Q \in \mathcal{Q}_*.
+ \phantom{  Q \longmapsto \KL(P_{Q_0,G} \, || \, P_{Q,G}), \quad \text{with} \quad Q \in \mathcal{Q}_*.}
 \end{equation*}
-\color{black}
 #+end_export
 
 \vfill
@@ -294,14 +291,14 @@ divergence and gives an interpretation of the MLE under mis-specified models.
   \draw[line width = .2mm] plot [smooth, tension=.8] coordinates { (0,0) (3,2) (6, 1.2) (9,1)};
   \fill (3,2) circle (0.05);
   \fill (2.6,4) circle (0.05);
+  \node[above] (P) at (2.6,4) {\makebox[0pt][l]{$P_0$}\phantom{$P_{Q_0, G}$}};
   \node[] (PP) at (4,.5) {$\mathcal{P}_*$};
-  \node[above] (P) at (2.6,4) {$P_0$};
   \node[below] (G) at (3,2) {$P_*$};
   \draw[dashed] (3,2) -- (2.6,4);
 \end{tikzpicture}
 #+end_export
 
-*** mis-specified partial 1
+*** misspecified partial 1
 :PROPERTIES:
 :BEAMER_act: <2>
 :BEAMER_env: onlyenv
@@ -313,7 +310,6 @@ For a partial likelihood we are minimizing
   Q \longmapsto \KL(P_{Q_0,G} \, || \, P_{Q,G}),
   \quad \text{with} \quad Q \in \mathcal{Q}_*.
 \end{equation*}
-\color{black}
 #+end_export
 
 \vfill
@@ -330,7 +326,7 @@ For a partial likelihood we are minimizing
 \end{tikzpicture}
 #+end_export
 
-*** mis-specifiec partial 2 
+*** misspecifiec partial 2 
 :PROPERTIES:
 :BEAMER_act: <3>
 :BEAMER_env: onlyenv
@@ -342,7 +338,6 @@ For a partial likelihood we are minimizing
   Q \longmapsto \KL(P_{Q_0,G} \, || \, P_{Q,G}),
   \quad \text{with} \quad Q \in \mathcal{Q}_*.
 \end{equation*}
-\color{black}
 #+end_export
 
 \vfill
@@ -372,7 +367,7 @@ However, if $Q_0 \not \in \mathcal{Q}_*$ the minimizer might depend on the value
 \vfill \pause
 
 For the simple survival case with no baseline covariates, we have the following result stating that
-for a mis-specified model $Q$ we can alway find an alternative model $\tilde Q$ that is ranked
+for a misspecified model $Q$ we can alway find an alternative model $\tilde Q$ that is ranked
 better under one censoring regime but worse under another.
 
 \vfill
@@ -415,7 +410,7 @@ phenomenon is well studied for the Cox model
 \mathcal{Q}_*$ for some model class $\mathcal{Q}_*$ will depend on the model class and on $Q_0$ and
 $\mathcal{G}$.
 
-** A simple example with mis-specified survival models -- old :noexport:
+** A simple example with misspecified survival models -- old :noexport:
 #+begin_export latex
 \small Consider four candidate models indexed by $\alpha$,
 \begin{equation*}
@@ -478,7 +473,7 @@ and let
 #+RESULTS[(2022-06-13 19:13:32) 17838a96df453eb2334690399a1aee9102df0313]:
 [[file:fig-mix-const-v2.pdf]]
 
-** A simple example with mis-specified survival models
+** A simple example with misspecified survival models
 #+begin_export latex
 \small Assume the data generating distribution given by
 \begin{equation*}
@@ -583,13 +578,13 @@ grid.arrange(plot_dist(alpha = NULL, q = gg0[2], k = 2, only_outcome = 1) +
 * Hold-out samples and survival model estimators
 ** Survival curve estimators evaluated on hold-out samples
 \small Consider the problem of selecting a hyper-parameter or model using cross-validation.
-We split the data $\mathcal{D}_n = \{O_1, \dots, O_n\}$ in two, $\mathcal{D}_n^1$ and $\mathcal{D}_n^2$.
-- On split $\mathcal{D}_n^1$ :: Fit models $\{\hat f_{\lambda} \, : \, \lambda \in \Lambda\}$ or
+We split the data $\mathcal{D}_n$ in two, $\mathcal{D}_n^{\mathrm{train}}$ and $\mathcal{D}_n^{\mathrm{test}}$.
+- On split $\mathcal{D}_n^{\mathrm{train}}$ :: Fit models $\{\hat f_{\lambda} \, : \, \lambda \in \Lambda\}$ or
   $\{\hat f_1, \hat f_2, \dots \hat f_k\}$.
-- On split $\mathcal{D}_n^2$ :: Evalute the performance using a loss function $L$.
+- On split $\mathcal{D}_n^{\mathrm{test}}$ :: Evalute the performance using a loss function $L$.
 
 # \hfill For many models we cannot use the likelihood to compare the performance of estimators fitted on
-# $\mathcal{D}_n^1$ on a hold-out sample $O_{new} \in \mathcal{D}_n^2$.
+# $\mathcal{D}_n^1$ on a hold-out sample $O_{new} \in \mathcal{D}_n_{\mathrm{test}}$.
 
 *** overlay block 
 :PROPERTIES:
@@ -666,8 +661,9 @@ We split the data $\mathcal{D}_n = \{O_1, \dots, O_n\}$ in two, $\mathcal{D}_n^1
 \small To alliviate these problems problems we can reweight the observed outcome or the loss
 function to account/adjust for the censoring:
 
-- Inverse probability of censoring weighted loss functions \citep{van2003unicv}. For instance,
-  weighted negative log-likelihood or (integrated) Brier score.
+- Inverse probability of censoring weighted loss functions
+  \citep{graf1999assessment,gerds2006consistent,van2003unicv}. For instance, weighted negative
+  log-likelihood or (integrated) Brier score.
 - Pseudo-values \citep{andersen2003generalised,mogensen2013random}.
 - Censoring unbiased transformations \citep{fan1996local,steingrimsson2019censoring}.
 
@@ -782,8 +778,8 @@ convergence (hopefully).
 #+startup: beamer
 #+LaTeX_CLASS: beamer
 #+LATEX_CLASS_OPTIONS: [smaller]
-# #+LaTeX_HEADER: \institute{PhD Student, Section of Biostatistics \\ University of Copenhagen}
-#+LaTeX_HEADER: \institute{Coffee Talk \\ Section of Biostatistics}
+#+LaTeX_HEADER: \institute{PhD Student, Section of Biostatistics \\ University of Copenhagen}
+# #+LaTeX_HEADER: \institute{Coffee Talk \\ Section of Biostatistics}
 #+LaTeX_HEADER: \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
 #+LaTeX_HEADER: \bibliographystyle{abbrvnat}
 #+LaTeX_HEADER: \input{./latex-settings/standard-commands.tex}

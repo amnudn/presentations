@@ -1,4 +1,4 @@
-% Created 2022-06-15 Wed 09:33
+% Created 2022-06-15 Wed 12:07
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -27,7 +27,7 @@ xleftmargin=.23in,
 frame=single,
 basewidth={0.5em,0.4em},
 }
-\institute{Coffee Talk \\ Section of Biostatistics}
+\institute{PhD Student, Section of Biostatistics \\ University of Copenhagen}
 \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
 \bibliographystyle{abbrvnat}
 \input{./latex-settings/standard-commands.tex}
@@ -51,8 +51,8 @@ basewidth={0.5em,0.4em},
 \usepackage{capt-of}
 \usepackage{hyperref}
 \usetheme{default}
-\author{Anders Munch}
-\date{June 15, 2022}
+\author{Anders Munch \newline \small joint work with Thomas Gerds}
+\date{June 20, 2022 -- ISNPS}
 \title{The negative log-likelihood loss and cross-validation with censored data}
 \begin{document}
 
@@ -62,8 +62,8 @@ basewidth={0.5em,0.4em},
 \end{frame}
 
 \section{Model and hyper-parameter selection for survival models}
-\label{sec:orgb4e3523}
-\begin{frame}[label={sec:org85819c0}]{Selecting a model from a collection of candidate models}
+\label{sec:orgdfbd79f}
+\begin{frame}[label={sec:org6d95ffa}]{Selecting a model from a collection of candidate models}
 \small Consider estimation of the parameter
 \begin{equation*}
   \theta(P) := \argmin_{f \in\mathcal{F}} P[L(f, \blank)],
@@ -84,18 +84,18 @@ measure.
 \begin{exampleblock}<3->{\normalsize Hyper-parameter selection}
 For estimation in high-dimensional settings we often introduce a regularization parameter $\lambda$
 (e.g., LASSO, kernel smoothing). To select a value for $\lambda$ we would typically split the data
-$\mathcal{D}_n = \{O_1, \dots, O_n\}$ randomly in two, $\mathcal{D}_n^1$ and $\mathcal{D}_n^2$, and
+$\mathcal{D}_n = \{O_1, \dots, O_n\}$ randomly in two, $\mathcal{D}_n^{\mathrm{train}}$ and $\mathcal{D}_n^{\mathrm{test}}$, and
 calculate
 \begin{equation*}
-\argmin_{\lambda\in\Lambda} \empmeas^{2}[L(\hat{f}^{1}_{\lambda}, \blank)],
+\argmin_{\lambda\in\Lambda} \empmeas^{\mathrm{test}}[L(\hat{f}^{\mathrm{train}}_{\lambda}, \blank)],
 \end{equation*}
-where $\empmeas^2$ denotes the empirical measure based on the sample $\mathcal{D}_n^2$, and
-$\hat{f}^1_{\lambda}$ denotes an estimator calculated on $\mathcal{D}_n^1$ with regularization
+where $\empmeas^{\mathrm{test}}$ is the empirical measure based on the sample $\mathcal{D}_n^{\mathrm{test}}$, and
+$\hat{f}^{\mathrm{train}}_{\lambda}$ denotes an estimator calculated on $\mathcal{D}_n^{\mathrm{train}}$ with regularization
 parameter $\lambda$.
 \end{exampleblock}
 \end{frame}
 
-\begin{frame}[label={sec:orgc9d4cad}]{A loss function for survival data}
+\begin{frame}[label={sec:org1a593a1}]{A loss function for survival data}
 \small
 
 \begin{description}
@@ -129,10 +129,10 @@ first part concerning the conditional distribution of \(T\) given \(X\).
 \end{frame}
 
 \section{The least false model in the presence of censoring}
-\label{sec:org330a4c6}
-\begin{frame}[label={sec:org7b678da}]{Kullback-Leibler divergence and partial likelihoods}
+\label{sec:org8cb9ae7}
+\begin{frame}[label={sec:org12993d6}]{Kullback-Leibler divergence and partial likelihoods}
 \small Maximum likelihood estimation is connected to minimizing the Kullback-Leibler
-divergence and gives an interpretation of the MLE under mis-specified models.
+divergence and gives an interpretation of the MLE under misspecified models.
 \begin{equation*}
   \KL(P_0 \, || \, P) := P_0
   {\left[
@@ -144,12 +144,10 @@ divergence and gives an interpretation of the MLE under mis-specified models.
 \end{equation*}
 
 \begin{onlyenv}<1>
-\color{white}For a partial likelihood we are minimizing
+\phantom{For a partial likelihood we are minimizing}
 \begin{equation*}
-  Q \longmapsto \KL(P_{Q_0,G} \, || \, P_{Q,G}),
-  \quad \text{with} \quad Q \in \mathcal{Q}_*.
+ \phantom{  Q \longmapsto \KL(P_{Q_0,G} \, || \, P_{Q,G}), \quad \text{with} \quad Q \in \mathcal{Q}_*.}
 \end{equation*}
-\color{black}
 
 \vfill
 
@@ -157,8 +155,8 @@ divergence and gives an interpretation of the MLE under mis-specified models.
   \draw[line width = .2mm] plot [smooth, tension=.8] coordinates { (0,0) (3,2) (6, 1.2) (9,1)};
   \fill (3,2) circle (0.05);
   \fill (2.6,4) circle (0.05);
+  \node[above] (P) at (2.6,4) {\makebox[0pt][l]{$P_0$}\phantom{$P_{Q_0, G}$}};
   \node[] (PP) at (4,.5) {$\mathcal{P}_*$};
-  \node[above] (P) at (2.6,4) {$P_0$};
   \node[below] (G) at (3,2) {$P_*$};
   \draw[dashed] (3,2) -- (2.6,4);
 \end{tikzpicture}
@@ -170,7 +168,6 @@ For a partial likelihood we are minimizing
   Q \longmapsto \KL(P_{Q_0,G} \, || \, P_{Q,G}),
   \quad \text{with} \quad Q \in \mathcal{Q}_*.
 \end{equation*}
-\color{black}
 
 \vfill
 
@@ -191,7 +188,6 @@ For a partial likelihood we are minimizing
   Q \longmapsto \KL(P_{Q_0,G} \, || \, P_{Q,G}),
   \quad \text{with} \quad Q \in \mathcal{Q}_*.
 \end{equation*}
-\color{black}
 
 \vfill
 
@@ -212,7 +208,7 @@ For a partial likelihood we are minimizing
 \end{onlyenv}
 \end{frame}
 
-\begin{frame}[label={sec:orgcf91117}]{Least false model depends on the censoring distribution}
+\begin{frame}[label={sec:org89f4276}]{Least false model depends on the censoring distribution}
 \small For any value \(G \in \mathcal{G}\) we have that \(\KL(P_{Q_0,G} \, || \, P_{Q_0,G}) = 0\), so
 the correct model \(Q_0\) is ranked better than any other model independently of \(G \in \mathcal{G}\).
 However, if \(Q_0 \not \in \mathcal{Q}_*\) the minimizer might depend on the value of \(G\).\footnote{This is mentioned in \cite{whitney2019comment} and \cite{van2003unicv}, and a similar
@@ -222,7 +218,7 @@ phenomenon is well studied for the Cox model
 \vfill \pause
 
 For the simple survival case with no baseline covariates, we have the following result stating that
-for a mis-specified model \(Q\) we can alway find an alternative model \(\tilde Q\) that is ranked
+for a misspecified model \(Q\) we can alway find an alternative model \(\tilde Q\) that is ranked
 better under one censoring regime but worse under another.
 
 \vfill
@@ -243,7 +239,7 @@ and
 \end{beamercolorbox}
 \end{frame}
 
-\begin{frame}[label={sec:org7a3dbfa}]{Sketch of proof}
+\begin{frame}[label={sec:org1943802}]{Sketch of proof}
 \small
 \begin{itemize}
 \item Divide \((0, \tau)\) into \((0, \tau_0)\) and \([\tau_0, \tau)\), where \((0, \tau)\) is the
@@ -259,7 +255,7 @@ support of \(T\).
 \(\mathcal{G}\).
 \end{frame}
 
-\begin{frame}[label={sec:orgfdf3ae8}]{A simple example with mis-specified survival models}
+\begin{frame}[label={sec:org24e54be}]{A simple example with misspecified survival models}
 \small Assume the data generating distribution given by
 \begin{equation*}
   Q_0 = \text{Weibull}(2,  0.5),
@@ -308,14 +304,14 @@ and consider the four candidate models indexed by $\alpha$,
 \end{frame}
 
 \section{Hold-out samples and survival model estimators}
-\label{sec:org8290774}
-\begin{frame}[label={sec:orgc1dee31}]{Survival curve estimators evaluated on hold-out samples}
+\label{sec:org5d12878}
+\begin{frame}[label={sec:org4632f5e}]{Survival curve estimators evaluated on hold-out samples}
 \small Consider the problem of selecting a hyper-parameter or model using cross-validation.
-We split the data \(\mathcal{D}_n = \{O_1, \dots, O_n\}\) in two, \(\mathcal{D}_n^1\) and \(\mathcal{D}_n^2\).
+We split the data \(\mathcal{D}_n\) in two, \(\mathcal{D}_n^{\mathrm{train}}\) and \(\mathcal{D}_n^{\mathrm{test}}\).
 \begin{description}
-\item[{On split \(\mathcal{D}_n^1\)}] Fit models \(\{\hat f_{\lambda} \, : \, \lambda \in \Lambda\}\) or
+\item[{On split \(\mathcal{D}_n^{\mathrm{train}}\)}] Fit models \(\{\hat f_{\lambda} \, : \, \lambda \in \Lambda\}\) or
 \(\{\hat f_1, \hat f_2, \dots \hat f_k\}\).
-\item[{On split \(\mathcal{D}_n^2\)}] Evalute the performance using a loss function \(L\).
+\item[{On split \(\mathcal{D}_n^{\mathrm{test}}\)}] Evalute the performance using a loss function \(L\).
 \end{description}
 
 \begin{onlyenv}<1-2>
@@ -333,13 +329,14 @@ We split the data \(\mathcal{D}_n = \{O_1, \dots, O_n\}\) in two, \(\mathcal{D}_
 \end{onlyenv}
 \end{frame}
 
-\begin{frame}[label={sec:orga836479}]{Taking the censoring distribution into account}
+\begin{frame}[label={sec:org3c391f8}]{Taking the censoring distribution into account}
 \small To alliviate these problems problems we can reweight the observed outcome or the loss
 function to account/adjust for the censoring:
 
 \begin{itemize}
-\item Inverse probability of censoring weighted loss functions \citep{van2003unicv}. For instance,
-weighted negative log-likelihood or (integrated) Brier score.
+\item Inverse probability of censoring weighted loss functions
+\citep{graf1999assessment,gerds2006consistent,van2003unicv}. For instance, weighted negative
+log-likelihood or (integrated) Brier score.
 \item Pseudo-values \citep{andersen2003generalised,mogensen2013random}.
 \item Censoring unbiased transformations \citep{fan1996local,steingrimsson2019censoring}.
 \end{itemize}
@@ -350,7 +347,7 @@ These approaches are particularly attractive when we are willing to assume that 
 not depend on the baseline covariates.
 \end{frame}
 
-\begin{frame}[label={sec:orgfa675af}]{Modeling the censoring distribution}
+\begin{frame}[label={sec:org2a5f796}]{Modeling the censoring distribution}
 \small If we are not sure that the censoring is independent we need to model the dependence on the
 covariates. \vfill
 
@@ -379,8 +376,8 @@ convergence (hopefully).
 \end{frame}
 
 \section*{Conclusion}
-\label{sec:orgb457192}
-\begin{frame}[label={sec:org02e07d6}]{Conclusion}
+\label{sec:org02d512a}
+\begin{frame}[label={sec:orgd2501f6}]{Conclusion}
 \begin{beamercolorbox}[rounded=true]{gray}
 \centering How should we do cross-validation for general survival models?
 \end{beamercolorbox}
@@ -413,8 +410,8 @@ convergence (hopefully).
 \end{frame}
 
 \section*{References}
-\label{sec:org531c275}
-\begin{frame}[label={sec:orga28e0d0}]{References}
+\label{sec:org8ab8fa4}
+\begin{frame}[label={sec:org362c9e9}]{References}
 \scriptsize \bibliography{./latex-settings/default-bib.bib}
 \end{frame}
 \end{document}
