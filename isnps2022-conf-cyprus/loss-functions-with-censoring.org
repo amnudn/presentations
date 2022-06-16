@@ -716,8 +716,8 @@ plot_cens_dat(inv.dat, t = NULL)
 :BEAMER_env: onlyenv
 :END:
 
-\pause \pause /Inverse-weighted survival games/ \citep{han2021inverse}: Iterate the estimation until
-convergence (hopefully).
+\pause \pause Iterate the estimation and hope for convergence
+\citep{han2021inverse,westling2021inference}.
 
 * Conclusion
 :PROPERTIES:
@@ -770,7 +770,7 @@ convergence (hopefully).
 :UNNUMBERED: t
 :END:
 ** References
-\scriptsize \bibliography{./latex-settings/default-bib.bib}
+\tiny \bibliography{./latex-settings/default-bib.bib}
 
 * HEADER :noexport:
 #+LANGUAGE:  en
