@@ -663,7 +663,7 @@ function to account/adjust for the censoring:
 
 - Inverse probability of censoring weighted loss functions
   \citep{graf1999assessment,gerds2006consistent,van2003unicv}. For instance, weighted negative
-  log-likelihood or (integrated) Brier score.
+  log-likelihood or (integrated) Brier score. 
 - Pseudo-values \citep{andersen2003generalised,mogensen2013random}.
 - Censoring unbiased transformations \citep{fan1996local,steingrimsson2019censoring}.
 

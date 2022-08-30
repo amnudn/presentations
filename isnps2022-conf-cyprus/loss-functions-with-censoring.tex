@@ -1,4 +1,4 @@
-% Created 2022-06-16 Thu 13:21
+% Created 2022-08-29 Mon 09:54
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -62,8 +62,8 @@ basewidth={0.5em,0.4em},
 \end{frame}
 
 \section{Model and hyper-parameter selection for survival models}
-\label{sec:orgc1ccdab}
-\begin{frame}[label={sec:org2832618}]{Selecting a model from a collection of candidate models}
+\label{sec:org25a1b62}
+\begin{frame}[label={sec:org9957c20}]{Selecting a model from a collection of candidate models}
 \small Consider estimation of the parameter
 \begin{equation*}
   \theta(P) := \argmin_{f \in\mathcal{F}} P[L(f, \blank)],
@@ -95,7 +95,7 @@ parameter $\lambda$.
 \end{exampleblock}
 \end{frame}
 
-\begin{frame}[label={sec:orge2f1c0d}]{A loss function for survival data}
+\begin{frame}[label={sec:org08692bd}]{A loss function for survival data}
 \small
 
 \begin{description}
@@ -129,8 +129,8 @@ first part concerning the conditional distribution of \(T\) given \(X\).
 \end{frame}
 
 \section{The least false model in the presence of censoring}
-\label{sec:orgd969b3b}
-\begin{frame}[label={sec:org78f30c6}]{Kullback-Leibler divergence and partial likelihoods}
+\label{sec:orge78d970}
+\begin{frame}[label={sec:org2a57d04}]{Kullback-Leibler divergence and partial likelihoods}
 \small Maximum likelihood estimation is connected to minimizing the Kullback-Leibler
 divergence and gives an interpretation of the MLE under misspecified models.
 \begin{equation*}
@@ -208,7 +208,7 @@ For a partial likelihood we are minimizing
 \end{onlyenv}
 \end{frame}
 
-\begin{frame}[label={sec:org2b925bd}]{Least false model depends on the censoring distribution}
+\begin{frame}[label={sec:orgfbb4188}]{Least false model depends on the censoring distribution}
 \small For any value \(G \in \mathcal{G}\) we have that \(\KL(P_{Q_0,G} \, || \, P_{Q_0,G}) = 0\), so
 the correct model \(Q_0\) is ranked better than any other model independently of \(G \in \mathcal{G}\).
 However, if \(Q_0 \not \in \mathcal{Q}_*\) the minimizer might depend on the value of \(G\).\footnote{This is mentioned in \cite{whitney2019comment} and \cite{van2003unicv}, and a similar
@@ -239,7 +239,7 @@ and
 \end{beamercolorbox}
 \end{frame}
 
-\begin{frame}[label={sec:orge0dc034}]{Sketch of proof}
+\begin{frame}[label={sec:orgac52e6d}]{Sketch of proof}
 \small
 \begin{itemize}
 \item Divide \((0, \tau)\) into \((0, \tau_0)\) and \([\tau_0, \tau)\), where \((0, \tau)\) is the
@@ -255,7 +255,7 @@ support of \(T\).
 \(\mathcal{G}\).
 \end{frame}
 
-\begin{frame}[label={sec:org2cc3300}]{A simple example with misspecified survival models}
+\begin{frame}[label={sec:org0d529a0}]{A simple example with misspecified survival models}
 \small Assume the data generating distribution given by
 \begin{equation*}
   Q_0 = \text{Weibull}(2,  0.5),
@@ -304,8 +304,8 @@ and consider the four candidate models indexed by $\alpha$,
 \end{frame}
 
 \section{Hold-out samples and survival model estimators}
-\label{sec:org4d6915d}
-\begin{frame}[label={sec:orgf262b13}]{Survival curve estimators evaluated on hold-out samples}
+\label{sec:org48fc495}
+\begin{frame}[label={sec:orgcfccb33}]{Survival curve estimators evaluated on hold-out samples}
 \small Consider the problem of selecting a hyper-parameter or model using cross-validation.
 We split the data \(\mathcal{D}_n\) in two, \(\mathcal{D}_n^{\mathrm{train}}\) and \(\mathcal{D}_n^{\mathrm{test}}\).
 \begin{description}
@@ -329,7 +329,7 @@ We split the data \(\mathcal{D}_n\) in two, \(\mathcal{D}_n^{\mathrm{train}}\) a
 \end{onlyenv}
 \end{frame}
 
-\begin{frame}[label={sec:orgc7c8242}]{Taking the censoring distribution into account}
+\begin{frame}[label={sec:org19da355}]{Taking the censoring distribution into account}
 \small To alliviate these problems problems we can reweight the observed outcome or the loss
 function to account/adjust for the censoring:
 
@@ -347,7 +347,7 @@ These approaches are particularly attractive when we are willing to assume that 
 not depend on the baseline covariates.
 \end{frame}
 
-\begin{frame}[label={sec:org21faac7}]{Modeling the censoring distribution}
+\begin{frame}[label={sec:org5f2a1b0}]{Modeling the censoring distribution}
 \small If we are not sure that the censoring is independent we need to model the dependence on the
 covariates. \vfill
 
@@ -376,8 +376,8 @@ covariates. \vfill
 \end{frame}
 
 \section*{Conclusion}
-\label{sec:org8da3b9c}
-\begin{frame}[label={sec:orgcf2b242}]{Conclusion}
+\label{sec:org58fb517}
+\begin{frame}[label={sec:orga953468}]{Conclusion}
 \begin{beamercolorbox}[rounded=true]{gray}
 \centering How should we do cross-validation for general survival models?
 \end{beamercolorbox}
@@ -410,8 +410,8 @@ covariates. \vfill
 \end{frame}
 
 \section*{References}
-\label{sec:org49a10cf}
-\begin{frame}[label={sec:org6dd70c1}]{References}
+\label{sec:org1d37529}
+\begin{frame}[label={sec:org9a8bafc}]{References}
 \tiny \bibliography{./latex-settings/default-bib.bib}
 \end{frame}
 \end{document}

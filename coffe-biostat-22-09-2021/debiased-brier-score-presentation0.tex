@@ -1,6 +1,6 @@
-% Created 2021-09-22 Wed 09:56
+% Created 2022-07-06 Wed 13:21
 % Intended LaTeX compiler: pdflatex
-\documentclass[smaller]{beamer}\usepackage{listings}
+\documentclass[handout]{beamer}\usepackage{listings}
 \usepackage{color}
 \usepackage{amsmath}
 \usepackage{array}
@@ -41,13 +41,11 @@ basewidth={0.5em,0.4em},
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{graphicx}
-\usepackage{grffile}
 \usepackage{longtable}
 \usepackage{wrapfig}
 \usepackage{rotating}
 \usepackage[normalem]{ulem}
 \usepackage{amsmath}
-\usepackage{textcomp}
 \usepackage{amssymb}
 \usepackage{capt-of}
 \usepackage{hyperref}
@@ -59,8 +57,8 @@ basewidth={0.5em,0.4em},
 
 \maketitle
 \section{Validating risk prediction models}
-\label{sec:org2f8e765}
-\begin{frame}[label={sec:org9520722}]{Disclaimer -- unfinished work}
+\label{sec:orgac65f51}
+\begin{frame}[label={sec:orgc76fc5a}]{Disclaimer -- unfinished work}
 Mostly theory and not so much implementation and ``results''.
 
 \vfill \pause
@@ -68,7 +66,7 @@ Mostly theory and not so much implementation and ``results''.
 You have the opportunity to influence the project!
 \end{frame}
 
-\begin{frame}[label={sec:org2a585bb}]{Validating risk prediction models}
+\begin{frame}[label={sec:orgc6ae93a}]{Validating risk prediction models}
 \begin{block}{Full data}
 \begin{description}
 \item[{\(X \in \R^p\)}] Static covariates measured at baseline (\(t=0\)).
@@ -93,7 +91,7 @@ the next two years? Is it relevant when other risk factors are measured?
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:orgd0b6528}]{The Brier score}
+\begin{frame}[label={sec:org168a868}]{The Brier score}
 \begin{description}
 \item[{\(Y(t) \in \{0,1\}\)}] Event indicator at time \(t\), i.e., \(Y(t):= \1\{T \leq t\}\)
 \end{description}
@@ -137,7 +135,7 @@ Uniform[0,1] & 33\%\\
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:orga9952fd}]{Obtaining the Brier score from censored data}
+\begin{frame}[label={sec:org3a8d8e9}]{Obtaining the Brier score from censored data}
 In many cases we do not get to observe the event time \(T\). \pause
 
 \begin{block}{Observed data}
@@ -174,7 +172,7 @@ with
 \end{frame}
 
 
-\begin{frame}[label={sec:org607128d}]{Visualizing the reweighting}
+\begin{frame}[label={sec:orgdde99f0}]{Visualizing the reweighting}
 \begin{onlyenv}<1>
 \begin{center}
 \includegraphics[width=.9\linewidth]{/tmp/babel-uSK2rt/figure-63LY1z.pdf}
@@ -196,7 +194,7 @@ with
 \end{onlyenv}
 \end{frame}
 
-\begin{frame}[label={sec:org3b1f0e6}]{Estimating the Brier score from censored data}
+\begin{frame}[label={sec:org1f68676}]{Estimating the Brier score from censored data}
 \small
 By estimating the censoring distribution \(G\) we obtain the IPCW estimator
 \begin{equation*}
@@ -228,7 +226,7 @@ estimation of G?
 \end{beamercolorbox}
 \end{frame}
 
-\begin{frame}[label={sec:org3930b95}]{Brier score estimation with ``flexible'' censoring modeling}
+\begin{frame}[label={sec:orge6f3bc6}]{Brier score estimation with ``flexible'' censoring modeling}
 By ``flexible'' we mean estimators of the censoring distribution not converging at parametric
 (\(n^{-1/2}\)) rate. The problem with the plug-in estimation using such nuisance parameter
 estimators is \alert{bias}.
@@ -253,8 +251,8 @@ on the G-formula, but theoretically this should not be important.
 \end{frame}
 
 \section{IPCW estimator using TMLE}
-\label{sec:orga7f4794}
-\begin{frame}[label={sec:org74c8474}]{Different ways to the target}
+\label{sec:org9c5e859}
+\begin{frame}[label={sec:orgb63cab9}]{Different ways to the target}
 The target parameter (average Brier score) can be identified from the observed data using either
 the censoring or the survival distribution as nuisance parameter:
 \begin{equation*}
@@ -286,7 +284,7 @@ and
 \end{equation*}
 \end{frame}
 
-\begin{frame}[label={sec:org0a19aa8}]{Representations of the efficient influence function}
+\begin{frame}[label={sec:org7dbfd63}]{Representations of the efficient influence function}
 The functions $\phi^t_{\mathrm{IPCW}}$ and $\phi^t_{\mathrm{alt}}$ are influence functions in
 models where, respectively, $G$ or $S$ are known. \pause Semiparametric efficiency theory then
 tells us that the efficient influence function $\phi^t$ (under the non-parametric model) can be
@@ -315,7 +313,7 @@ Both representation can be useful; and starting from one, it might not be comple
 straightforward to derive the alternative one.
 \end{frame}
 
-\begin{frame}[label={sec:org83ed5df}]{The efficient influence function}
+\begin{frame}[label={sec:org7cde526}]{The efficient influence function}
 The two representations give
 \begin{align*}
   \phi^t(O; S, G) =   & \phi^t_{\mathrm{IPCW}}(O; G)
@@ -334,7 +332,7 @@ and
 \end{align*}
 \end{frame}
 
-\begin{frame}[label={sec:org1647261}]{Decomposition}
+\begin{frame}[label={sec:org0101e5d}]{Decomposition}
 \small
 We want to pick the nuisance estimator $\hat G_n$ such that the estimator
 \begin{equation*}
@@ -385,7 +383,7 @@ with
 \end{equation*}
 \end{frame}
 
-\begin{frame}[label={sec:org183284f}]{Donsker condition and remainder term}
+\begin{frame}[label={sec:org6f54abc}]{Donsker condition and remainder term}
 \small
 
 Donsker class conditions (or sample splitting) gives
@@ -427,7 +425,7 @@ $ (C) = \empmeas \left[ f^t(O; \hat{G}_n, \hat{S}_n) \right] \approx 0$.\footnot
   $f^t=-\Pi(\phi^t_{\mathrm{IPWC}} \mid \mathcal{T}_G)$.}   
 \end{frame}
 
-\begin{frame}[label={sec:org7a9f23e}]{The TMLE strategy for controlling the remaining component}
+\begin{frame}[label={sec:org4b6f355}]{The TMLE strategy for controlling the remaining component}
 We construct the estimator $\hat{G}$ of $G$ as $\hat{G} = e^{-\hat{\Lambda}_C}$ where
 $\hat{\Lambda}_C$ is the cumulative hazard of censoring. \pause We assume available (initial
 estimators) $\hat{\Lambda}_C^0$ and $\hat{\Lambda}$, where $\hat{\Lambda}$ is the cumulative
@@ -454,7 +452,7 @@ These should be constructed such that
 \end{enumerate}
 \end{frame}
 
-\begin{frame}[label={sec:org0798422}]{The obtained estimator works}
+\begin{frame}[label={sec:org9bddcde}]{The obtained estimator works}
 If the procedure converges after some $K$, we set
 $\hat{\Lambda}_C = \hat{\Lambda}_C(\blank \; ; \epsilon^*_K)$; then
 \begin{align*}
@@ -474,7 +472,7 @@ $\hat{\Lambda}_C = \hat{\Lambda}_C(\blank \; ; \epsilon^*_K)$; then
 as $\epsilon^*_K \approx 0$ because the procedure is converging. 
 \end{frame}
 
-\begin{frame}[label={sec:orgffdaf49}]{Fluctuation model}
+\begin{frame}[label={sec:org51b8d19}]{Fluctuation model}
 We can choose a multiplicative update step to get the fluctuation model
 \begin{equation*}
   \mathcal{F}^{k+1}:=
@@ -501,7 +499,7 @@ where
 \end{align*}
 \end{frame}
 
-\begin{frame}[label={sec:org70da1f4}]{Final algorithm}
+\begin{frame}[label={sec:org4f71973}]{Final algorithm}
 \small
 \begin{algorithm}[H]
   \caption{TMLE-based IPCW estimator of the average Brier score.}
@@ -545,9 +543,9 @@ where
 \end{frame}
 
 \section{Thoughts and discussion}
-\label{sec:orgfd4ed99}
+\label{sec:org350abfb}
 
-\begin{frame}[label={sec:org166f364}]{Next steps and discussion}
+\begin{frame}[label={sec:orgaf72e03}]{Next steps and discussion}
 \begin{itemize}
 \item Implement the estimator\ldots{}
 \item Construct both type of TMLE plug-in estimators -- is the are finite sample difference, and are
@@ -559,14 +557,14 @@ fluctuation model?
 \end{itemize}
 \end{frame}
 
-\begin{frame}[label={sec:org403ed21}]{Thank you!}
+\begin{frame}[label={sec:org996ba5a}]{Thank you!}
 \centering Thought and comments?
 \end{frame}
 
 \section{References}
-\label{sec:org3c4f5f4}
+\label{sec:orgf372ba1}
 
-\begin{frame}[label={sec:orgc674143}]{References}
+\begin{frame}[label={sec:org94a8560}]{References}
 \small \bibliography{/home/amnudn/Documents/latex/default-bib.bib}
 \end{frame}
 \end{document}

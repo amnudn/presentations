@@ -1,0 +1,326 @@
+* Task :noexport:
+- [X] References (CV and superlearning +)
+- [ ] References to Tchetgen and Robins
+* Introduction
+** [Intro?]
+* Setup
+** Data structure and target of inference
+\small
+# We assume a simple survival setting:
+*** Survival setting
+- $O = (\tilde T, \Delta, X) \sim P \in \mathcal{P}$ :: Oberved data with $\mathcal{O} = \R_+
+  \times \{0,1\} \times \R^p$.
+- $Z = (T, X) \sim Q \in \mathcal{Q}$ :: The distribution $Q$ (or a feature of it) is of interest.
+
+# \vfill
+  
+*** Parameters of interest
+- Low-dimensional feature of \(Q\), e.g., the marginal survival probability \(Q(T > t)\) for a fixed
+  time horizon \(t \in \R_+\).
+- The conditional survival probability at a fixed time horizon, \(x \mapsto S(t \mid x)\) for \(x
+  \in \R^p\), with \(S(t \mid x) = Q(T > t \mid X=x) \).
+
+\hfill
+
+The distribution \(Q\) is identifiable from the observed data distribution \(P\) under coarsening at
+random. Without further assumptions we would typically need to estimate the conditional survival
+function \(S\) for both problems.
+
+** Cross-validation and Super Learning for \(S\) 
+Most machine learning methods depends on one or more hyperparameters which is typically chosen using
+\textbf{cross-validation}.
+
+\vfill
+
+More generally, to build robust estimators we can use \textbf{stacked regression} or
+\textbf{Super~Learning} \citep{breiman1996stacked,van2007super} to select from or combine a
+collection candidate estimators.
+
+\vfill
+
+A central component for both cross-validation and Super Learning is the partitioning of data into
+training and test folds. A suitable loss function is then used to evaluate the performance of an
+estimator in hold-out samples.
+
+** Evaluate performance in hold-out samples
+Let \(\mathcal{E}\) be a collection of estimators of \(S \in \mathcal{S}\). Each \(\est \in
+\mathcal{E}\) is a mapping $\mathcal{D} \mapsto \est(\mathcal{D}) = \hat S \in \mathcal{S}$, where
+\(\mathcal{D} = (O_1, \dots, O_n)\) is a data set and $\hat S$ is an estimate of the survival
+function \(S\). Let \(L \colon \mathcal{S} \times \mathcal{O} \rightarrow \R_+\) be a loss function.
+
+\vfill
+
+Let $\mathcal{D}_1, \dots, \mathcal{D}_K$ be a (random) partition of the data set \(D\) and let
+\(\mathcal{D}_{-k} := \mathcal{D} \setminus \mathcal{D}_{k}\), for \(k=1, \dots, K\). To evaluate
+the performance of an estimator $\est \in \mathcal{E}$ we calculate for all \(k =1, \dots, K\),
+#+begin_export latex
+\begin{equation*}
+L(\est(\mathcal{D}_{-k}), O_i),
+\quad \text{for all} \quad O_i \in \mathcal{D}_k.
+\end{equation*}
+#+end_export
+Averaging these values across all observations \(O_i\) and folds \(\mathcal{D}_n\) gives us an
+estimate of the average loss (risk) of the estimator. We repeat this for all $\est \in \mathcal{E}$
+and pick the estimator with lowest risk. Alternatively, we can use these value as inputs for a meta
+learner and combine all the estimators into a Super Learner.
+
+
+* Loss functions for survival data
+
+** The partial likelihood and hold-out samples
+A popular choice of loss function for training survival models is the negative partial
+log-likelihood. Under coarsening at random and non-informative censoring the likelihood for the
+observed data factorizes as
+#+begin_export latex
+\begin{equation*}
+  \ell(P, O) = \ell_t(S, O) \cdot \ell_c(G, O) \cdot \ell_0(\mu, O),
+\end{equation*}
+where \(G \in \mathcal{G} \) denotes the censoring mechanism and $\mu$ the marginal distribution of
+the baseline covariates. The negative partial log-likelihood for the component \(S\) is
+\begin{equation*}
+  - \log \ell_t(S, O)
+  = -
+  \left\{
+    (1-\Delta) \log S(\tilde T \mid X)
+    + \Delta \log f_S(\tilde T \mid X)
+  \right\},
+\end{equation*}
+where \(f_S\) is the conditional density or pmf corresponding to \(S\). \vfill
+
+However, for many common survival estimators this loss function is unsuitable for evaluating
+performance in hold-out samples as (a.s.)
+\begin{equation*}
+  f_{\hat S}(\tilde T_i \mid X_i) = 0
+  \quad \text{when} \quad
+  \hat S =\est(\mathcal{D}_{-k})
+  \quad \text{and} \quad
+  (\tilde T_i, \Delta_i, X_i) \in \mathcal{D}_k.
+\end{equation*}
+#+end_export
+
+** [Hold-out sample illustration]
+
+** The Kullback-Leibler divergence and the partial likelihood
+
+** Inverse probability of censoring weighted loss functions
+
+\small A conceptually more attractive (and necessary) strategy is to
+#+ATTR_LATEX: :options [{(i)}]
+1. use a loss function better suited for evaluating the performance of an estimator of the /survival
+   function/ (and not its density), and
+2. use a loss function defined for in terms of the distribution \(Q\) of interest and not \(P\).
+
+One example could be the Brier score
+#+begin_export latex
+\begin{equation*}
+  L_{\mathrm{Brier}}(S, Z) = 
+  \left(
+    S(t \mid X) - \1
+    {\left\{
+        T > t
+      \right\}}
+  \right)^2,
+  \quad Z = (T, X) \sim Q.
+\end{equation*}
+#+end_export
+We can identify the risk of such a loss function using inverse probability of censoring weights
+(IPCW) \citep{graf1999assessment,gerds2006consistent,van2003unicv}, as
+#+begin_export latex
+\begin{equation*}
+  \E_Q\left[ L_{\mathrm{Brier}}(S, Z) \right]
+  = \E_P\left[W_G \cdot L_{\mathrm{Brier}}(S, Z) \right],
+\end{equation*}
+with
+\begin{equation*}
+  W_G = \frac{\1{\{\tilde T > t\}} + \1{\{\tilde T \leq t\}}\Delta}{G(\tilde T \wedge t \mid X)},
+\end{equation*}
+where \(G\) is the conditional ``survivor'' function for the censoring distribution. 
+#+end_export
+
+
+** [Iteration / loop]
+
+Estimation of the conditional "survivor" function for the censoring, \(G\), is also a survival
+problem in the sense that the event time of interest is now observed when \(\Delta =0\) an only
+partly observed when \(\Delta =1\). Hence we could use any estimator in \(\mathcal{E}\) and apply it
+to the data set with observations \((\tilde T_i, 1-\Delta_i, X_i)\) to get and estimator of \(G\).
+
+#+BEGIN_EXPORT latex
+\def\shift{3}
+\def\ls{}
+\def\lw{.5mm}
+\begin{center}
+\begin{tikzpicture}
+  \node[] (S) at (0,\shift) {$\hat S$};
+  \node[] (WG) at (\shift,\shift) {$W_{\hat G}$};
+  \node[] (G) at (\shift,0) {$\hat G$};
+  \node[] (WS) at (0,0) {$W_{\hat S}$};
+  \draw[->, \ls, line width=\lw, cyan] (S) -- (WG);
+  \draw[->, \ls, line width=\lw, cyan] (WG) -- (G);
+  \draw[->, \ls, line width=\lw, cyan] (G) -- (WS);
+  \draw[->, \ls, line width=\lw, cyan] (WS) -- (S);
+\end{tikzpicture}
+\end{center}
+#+END_EXPORT
+
+
+* The conditional survivor function as a nuisance parameter
+** The conditional survivor function as nuisance parameter
+Consider now the situation where we want to estimate a low dimensional feature of \(Q\); as example
+we take the marginal survival at a fixed time point, \(Q(T > t)\). Under coarsening at random and a
+positivity assumption we can write
+#+begin_export latex
+\begin{equation*}
+  Q(T > t) = \Psi(P),
+  \quad \text{where} \quad
+  \Psi(P) = \E_P\left[ S(t \mid X) \right],
+\end{equation*}
+where \(S\) denotes the conditional survival function identifiable from \(P\). 
+#+end_export
+
+\vfill
+
+As \(S\) is not of interest in itself, we might hope to be able to side-step the issue of finding a
+suitable loss function by focusing directly of the target parameter instead. 
+
+** Double robustness
+\small Many estimators based on the efficient influence function has a double robustness property.
+For instance, the efficient influence function of $\Psi$ is \(\psi(O, P) = \phi(O, S_P, G_P) -
+\Psi(P)\), with
+#+begin_export latex
+\begin{equation*}
+  \phi(O, S, G) = S(t \mid X)
+  \left(
+    1- \int_0^t \frac{N(\diff u) - \1{\{\tilde T \geq u\}} \Lambda_S(\diff u \mid X)}{G(u \mid X) S(u \mid X)}   
+  \right),
+\end{equation*}
+where \(N(u) = \1{\{\tilde T \leq u, \Delta=1\}}\) is the counting process and $\Lambda_S$ is the
+conditional cumulative hazard corresponding to \(S\). It holds that
+\begin{equation*}
+  \E_P{\left[ \phi(O, S_P, G_*) \right]}
+  = \E_P{\left[ \phi(O, S_*, G_P) \right]}
+  = \Psi(P),
+\end{equation*}
+for any \(S_*\) and \(G_*\), where \(S_P\) and \(G_P\) are the conditional survivor functions of the
+data generating distribution.
+
+\vfill
+
+% With nuisance parameter estimates \(\hat S\) and \(\hat G\) t
+This motivates estimating $\Psi(P)$ with
+\begin{equation*}
+  \hat \Psi = \frac{1}{n}\sum_{i=1}^{n}\phi(O_i, \hat S, \hat G),
+\end{equation*}
+which is consistent if either \(\hat S\) or \(\hat G\) is consistent.
+#+end_export
+
+
+** Fluctuation risk -- exploiting double robustness
+#+begin_export latex
+\small Let \(\mathcal{G}\) be a (finite) collection of models for \(G\). The double robustness
+property implies that
+\(\E_P{\left[ \phi(O, S_P, G) \right]} = \E_P{\left[ \phi(O, S_P, G') \right]}\) for any
+\(G, G' \in \mathcal{G}\). In particular,
+\begin{equation*}
+  \max_{G, G' \in \mathcal{G}}\big\vert
+  \E_P{\left[ \phi(O, S_P, G) \right]}
+  - \E_P{\left[ \phi(O, S_P, G') \right]}     
+  \big\vert
+  = 0.
+\end{equation*}
+This motivates the ``fluctuation risk'',
+\begin{equation*}
+  % \label{eq:dr}
+  R(S)
+  =
+  \max_{G, G' \in \mathcal{G}}\big\vert
+  \E_P{\left[ \phi(O, S, G) \right]}
+  - \E_P{\left[ \phi(O, S, G') \right]}     
+  \big\vert.
+\end{equation*}
+% which depend on the class \(\mathcal{G}\).
+
+Let $\mathcal{E}_c$ be a collection of estimators of \(G\). For any $\nu \in \mathcal{E}$,
+$\gamma \in \mathcal{E}_c$, and \(k = 1, \dots, K\) define
+\begin{equation*}
+  \hat{\Psi}_{\nu, \gamma}^k =
+  \frac{1}{|\mathcal{D}_k|} \sum_{O \in \mathcal{D}_k}
+  \phi(O, \nu(\mathcal{D}_{-k}), \gamma(\mathcal{D}_{-k})).
+\end{equation*}
+For any $\nu \in \mathcal{E}$ we approximate the fluctuation risk with
+\begin{equation*}
+  \hat R(\nu) =
+  \frac{1}{K}
+  \sum_{k=1}^{K}
+  \max_{\gamma, \gamma' \in \mathcal{E}_c}
+  \big|\hat{\Psi}_{\nu, \gamma}^k -
+  \hat{\Psi}_{\nu, \gamma'}^k\big|.  
+\end{equation*}
+% and select our final nuisance estimator as
+% \begin{equation*}
+%   \argmin_{\nu \in \mathcal{E}} R(\nu).
+% \end{equation*}
+% (We use a similar strategy to pick $\gamma \in \mathcal{E}_c$.)
+#+end_export
+
+
+** [Illustration of the method]
+
+** [Theoretical results??]
+
+** [Compare to pre-selected estimators]
+Also shows 
+
+* The conditional survivor function as the target parameter
+
+** The conditional survivor function as target parameter
+
+*** Compare a finite collection of models
+
+*** Training models on IPCW'ed data
+
+
+* References
+:PROPERTIES:
+:UNNUMBERED: t
+:END:
+** References
+\footnotesize \bibliography{./latex-settings/default-bib.bib}
+
+* HEADER :noexport:
+#+TITLE: Loss functions and cross-validation with censored survival data
+#+Author: Anders Munch \newline \small joint work with Thomas Gerds
+#+Date: September 7, 2022 -- JICI
+
+#+LANGUAGE:  en
+#+OPTIONS:   H:2 num:t toc:nil ':t ^:t
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LATEX_CLASS_OPTIONS: [smaller]
+#+LaTeX_HEADER: \institute{PhD Student, Section of Biostatistics \\ University of Copenhagen}
+#+LaTeX_HEADER: \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+#+LaTeX_HEADER: \bibliographystyle{abbrvnat}
+#+LaTeX_HEADER: \input{./latex-settings/standard-commands.tex}
+#+BIBLIOGRAPHY: ./latex-settings/default-bib plain
+
+#+LaTeX_HEADER: \newcommand{\est}{\ensuremath{\nu}}
+
+# Beamer settins:
+# #+LaTeX_HEADER: \usefonttheme[onlymath]{serif} 
+#+LaTeX_HEADER: \setbeamertemplate{footline}[frame number]
+#+LaTeX_HEADER: \beamertemplatenavigationsymbolsempty
+#+LaTeX_HEADER: \usepackage{appendixnumberbeamer}
+#+LaTeX_HEADER: \setbeamercolor{gray}{bg=white!90!black}
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+LATEX_HEADER: \setbeamertemplate{itemize items}{$\circ$}
+
+# Check this:
+# #+LaTeX_HEADER: \lstset{basicstyle=\ttfamily\small}
+
+# For handout mode: (check order...)
+# #+LATEX_CLASS_OPTIONS: [handout]
+# #+LaTeX_HEADER: \pgfpagesuselayout{4 on 1}[border shrink=1mm]
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{1}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{2}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{3}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{4}{border code=\pgfusepath{stroke}}

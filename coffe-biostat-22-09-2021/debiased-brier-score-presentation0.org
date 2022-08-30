@@ -616,7 +616,7 @@ $ (C) = \empmeas \left[ f^t(O; \hat{G}_n, \hat{S}_n) \right] \approx 0$.\footnot
 # #+LaTeX_HEADER: \lstset{basicstyle=\ttfamily\small}
 
 # For handout mode: (check order...)
-# #+LATEX_CLASS_OPTIONS: [handout]
+#+LATEX_CLASS_OPTIONS: [handout]
 # #+LaTeX_HEADER: \pgfpagesuselayout{4 on 1}[border shrink=1mm]
 # #+LaTeX_HEADER: \pgfpageslogicalpageoptions{1}{border code=\pgfusepath{stroke}}
 # #+LaTeX_HEADER: \pgfpageslogicalpageoptions{2}{border code=\pgfusepath{stroke}}
