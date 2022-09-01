@@ -1,4 +1,4 @@
-% Created 2022-08-29 Mon 18:40
+% Created 2022-09-01 Thu 10:20
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -37,6 +37,7 @@ basewidth={0.5em,0.4em},
 \usepackage{appendixnumberbeamer}
 \setbeamercolor{gray}{bg=white!90!black}
 \setbeamertemplate{itemize items}{$\circ$}
+\lstset{basicstyle=\ttfamily\footnotesize,keywordstyle=\color{black}}
 
 \renewcommand*\familydefault{\sfdefault}
 \itemsep2pt
@@ -58,13 +59,13 @@ basewidth={0.5em,0.4em},
 \begin{document}
 
 \maketitle
-\section{Introduction}
-\label{sec:orgbbe5c3a}
-\begin{frame}[label={sec:org6b5005a}]{[Intro?]}
+\begin{frame}{Outline}
+\tableofcontents
 \end{frame}
-\section{Setup}
-\label{sec:orgf24f6dc}
-\begin{frame}[label={sec:org532680f}]{Data structure and target of inference}
+
+\section{Setting and data structure}
+\label{sec:org76a4680}
+\begin{frame}[label={sec:orga03934a}]{Data structure and target of inference}
 \small
 \begin{block}{Survival setting}
 \begin{description}
@@ -78,8 +79,7 @@ basewidth={0.5em,0.4em},
 \begin{itemize}
 \item Low-dimensional feature of \(Q\), e.g., the marginal survival probability \(Q(T > t)\) for a fixed
 time horizon \(t \in \R_+\).
-\item The conditional survival probability at a fixed time horizon, \(x \mapsto S(t \mid x)\) for \(x
-  \in \R^p\), with \(S(t \mid x) = Q(T > t \mid X=x)\).
+\item The conditional survival probability \(S(t \mid x) = Q(T > t \mid X=x)\), for \(x \in \R^p\).
 \end{itemize}
 
 \hfill
@@ -90,7 +90,7 @@ function \(S\) for both problems.
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:orgb42da49}]{Cross-validation and Super Learning for \(S\)}
+\begin{frame}[label={sec:orgc3e59cc}]{Cross-validation and Super Learning for \(S\)}
 Most machine learning methods depends on one or more hyperparameters which is typically chosen using
 \textbf{cross-validation}.
 
@@ -98,7 +98,7 @@ Most machine learning methods depends on one or more hyperparameters which is ty
 
 More generally, to build robust estimators we can use \textbf{stacked regression} or
 \textbf{Super~Learning} \citep{breiman1996stacked,van2007super} to select from or combine a
-collection candidate estimators.
+collection candidate estimators/algorithms.
 
 \vfill
 
@@ -107,32 +107,40 @@ training and test folds. A suitable loss function is then used to evaluate the p
 estimator in hold-out samples.
 \end{frame}
 
-\begin{frame}[label={sec:org847d0e8}]{Evaluate performance in hold-out samples}
-Let \(\mathcal{E}\) be a collection of estimators of \(S \in \mathcal{S}\). Each \(\est \in
-\mathcal{E}\) is a mapping \(\mathcal{D} \mapsto \est(\mathcal{D}) = \hat S \in \mathcal{S}\), where
-\(\mathcal{D} = (O_1, \dots, O_n)\) is a data set and \(\hat S\) is an estimate of the survival
-function \(S\). Let \(L \colon \mathcal{S} \times \mathcal{O} \rightarrow \R_+\) be a loss function.
+\begin{frame}[label={sec:orgd464615}]{Evaluate performance in hold-out samples}
+\small
+
+\begin{description}
+\item[{\(\mathcal{D}\)}] data set \((O_1, \dots, O_n)\)
+\item[{\(\mathcal{A}\)}] collection of algorithms for estimating \(S \in \mathcal{S}\)
+\item[{\(\nu \in \mathcal{A}\)}] mapping \(\mathcal{D} \longmapsto \est(\mathcal{D}) = \hat S \in
+  \mathcal{S}\)
+\item[{\(L\)}] loss function, \(L \colon \mathcal{S} \times \mathcal{O} \rightarrow \R_+\)
+\end{description}
 
 \vfill
+To evaluate the performance of \(\est \in \mathcal{A}\) let
+\begin{description}
+\item[{\(\mathcal{D}_1, \dots, \mathcal{D}_K\)}] partition of the data set \(\mathcal{D}\)
+\item[{\(\mathcal{D}_{-k}\)}] the \(k\)'th training sample, \(\mathcal{D}_{-k} = \mathcal{D} \setminus
+  \mathcal{D}_{k}\), \(k=1, \dots, K\)
+\end{description}
 
-Let \(\mathcal{D}_1, \dots, \mathcal{D}_K\) be a (random) partition of the data set \(D\) and let
-\(\mathcal{D}_{-k} := \mathcal{D} \setminus \mathcal{D}_{k}\), for \(k=1, \dots, K\). To evaluate
-the performance of an estimator \(\est \in \mathcal{E}\) we calculate for all \(k =1, \dots, K\),
+\vfill For all \(k =1, \dots, K\),
 \begin{equation*}
 L(\est(\mathcal{D}_{-k}), O_i),
 \quad \text{for all} \quad O_i \in \mathcal{D}_k.
 \end{equation*}
-Averaging these values across all observations \(O_i\) and folds \(\mathcal{D}_n\) gives us an
-estimate of the average loss (risk) of the estimator. We repeat this for all \(\est \in \mathcal{E}\)
-and pick the estimator with lowest risk. Alternatively, we can use these value as inputs for a meta
-learner and combine all the estimators into a Super Learner.
+Averaging these values gives us an estimate of the average loss (risk) of the algorithm \(\nu \in
+\mathcal{A}\), and we can then pick the one with lowest risk. Alternatively, we can use these value
+to combine all algorithm into a Super Learner.
 \end{frame}
 
 
-\section{Loss functions for survival data}
-\label{sec:org4895232}
+\section{Loss functions and hold-out samples for survival data}
+\label{sec:org4bc27b9}
 
-\begin{frame}[label={sec:org59f7cac}]{The partial likelihood and hold-out samples}
+\begin{frame}[label={sec:org2de3626}]{The partial likelihood and hold-out samples}
 A popular choice of loss function for training survival models is the negative partial
 log-likelihood. Under coarsening at random and non-informative censoring the likelihood for the
 observed data factorizes as
@@ -152,7 +160,7 @@ the baseline covariates. The negative partial log-likelihood for the component \
 where \(f_S\) is the conditional density or pmf corresponding to \(S\). \vfill
 
 However, for many common survival estimators this loss function is unsuitable for evaluating
-performance in hold-out samples as (a.s.)
+performance in hold-out samples, because (a.s.)
 \begin{equation*}
   f_{\hat S}(\tilde T_i \mid X_i) = 0
   \quad \text{when} \quad
@@ -162,21 +170,110 @@ performance in hold-out samples as (a.s.)
 \end{equation*}
 \end{frame}
 
-\begin{frame}[label={sec:org7d6c41d}]{[Hold-out sample illustration]}
+\begin{frame}[label={sec:org725f1ca}]{Illustration}
+\begin{onlyenv}<1>
+\begin{center}
+\includegraphics[width=.9\linewidth]{fig-km-surv.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<2>
+\begin{center}
+\includegraphics[width=.9\linewidth]{fig-km-surv2.pdf}
+\end{center}
+\end{onlyenv}
 \end{frame}
 
-\begin{frame}[label={sec:orga2edde5}]{The Kullback-Leibler divergence and the partial likelihood}
+\begin{frame}[label={sec:org1d43bb0}]{Kullback-Leibler divergence and partial likelihoods}
+\small Maximum likelihood estimation is connected to minimizing the Kullback-Leibler
+divergence and gives an interpretation of the MLE under misspecified models.
+\begin{equation*}
+  \KL(P_0 \, || \, P) := P_0
+  {\left[
+      % p_1/p_2
+    \log \frac{p_0}{p}
+  \right]},
+  \quad \text{where} \quad
+  P_0 = p_0 \cdot \mu,   P = p \cdot \mu.
+\end{equation*}
+
+\begin{onlyenv}<1>
+\phantom{For a partial likelihood we are minimizing}
+\begin{equation*}
+ \phantom{  Q \longmapsto \KL(P_{Q_0,G} \, || \, P_{Q,G}), \quad \text{with} \quad Q \in \mathcal{Q}_*.}
+\end{equation*}
+
+\vfill
+
+\begin{tikzpicture}
+  \draw[line width = .2mm] plot [smooth, tension=.8] coordinates { (0,0) (3,2) (6, 1.2) (9,1)};
+  \fill (3,2) circle (0.05);
+  \fill (2.6,4) circle (0.05);
+  \node[above] (P) at (2.6,4) {\makebox[0pt][l]{$P_0$}\phantom{$P_{Q_0, G}$}};
+  \node[] (PP) at (4,.5) {$\mathcal{P}_*$};
+  \node[below] (G) at (3,2) {$P_*$};
+  \draw[dashed] (3,2) -- (2.6,4);
+\end{tikzpicture}
+\end{onlyenv}
+
+\begin{onlyenv}<2>
+For a partial likelihood we are minimizing
+\begin{equation*}
+  Q \longmapsto \KL(P_{Q_0,G} \, || \, P_{Q,G}),
+  \quad \text{with} \quad Q \in \mathcal{Q}_*.
+\end{equation*}
+
+\vfill
+
+\begin{tikzpicture}
+  \draw[line width = .2mm] plot [smooth, tension=.8] coordinates { (0,0) (3,2) (6, 1.2) (9,1)};
+  \fill (3,2) circle (0.05);
+  \fill (2.6,4) circle (0.05);
+  \node[] (PP) at (4,.5) {$\mathcal{Q}_*$};
+  \node[above] (P) at (2.6,4) {$P_{Q_0, G}$};
+  \node[below] (G) at (3,2) {$Q_*$};
+  \draw[dashed] (2.6,4) -- (3,2);
+\end{tikzpicture}
+\end{onlyenv}
+
+\begin{onlyenv}<3>
+For a partial likelihood we are minimizing
+\begin{equation*}
+  Q \longmapsto \KL(P_{Q_0,G} \, || \, P_{Q,G}),
+  \quad \text{with} \quad Q \in \mathcal{Q}_*.
+\end{equation*}
+
+\vfill
+
+\begin{tikzpicture}
+  \draw[line width = .2mm] plot [smooth, tension=.8] coordinates { (0,0) (3,2) (6, 1.2) (9,1)};
+  \node[] (PP) at (4,.5) {$\mathcal{Q}_*$};
+  \node[above] (P) at (2.6,4) {$P_{Q_0, G}$};
+  \node[above] (P2) at (6.2,3.5) {$P_{Q_0, \tilde{G}}$};
+  \node[below] (G) at (3,2) {$Q_*$};
+  \node[below] (D) at (6, 1.2) {$\tilde{Q}_*$};
+  \draw[dashed] (P2) -- (D);
+  \draw[dashed] (2.6,4) -- (3,2);
+  \fill (3,2) circle (0.05);
+  \fill (2.6,4) circle (0.05);
+  \fill (6, 1.2) circle (0.05);
+  \fill (6.2,3.5) circle (0.05);
+\end{tikzpicture}
+\end{onlyenv}
 \end{frame}
 
-\begin{frame}[label={sec:org7e19160}]{Inverse probability of censoring weighted loss functions}
-\small A conceptually more attractive (and necessary) strategy is to
+
+\begin{frame}[label={sec:org51aaf5c}]{Inverse probability of censoring weighted loss functions}
+\small A conceptually more attractive strategy is to use loss functions that are
 \begin{enumerate}[{(i)}]
-\item use a loss function better suited for evaluating the performance of an estimator of the \emph{survival
-function} (and not its density), and
-\item use a loss function defined for in terms of the distribution \(Q\) of interest and not \(P\).
+\item suited for evaluating the performance of estimating the \emph{survival function}
+\item defined in terms of the \emph{distribution \(Q\) of interest}
 \end{enumerate}
 
-One example could be the Brier score
+\vfill
+
+We can do this using inverse probability of censoring weighted (IPCW) loss functions. For instance,
+with the Brier score
 \begin{equation*}
   L_{\mathrm{Brier}}(S, Z) = 
   \left(
@@ -185,10 +282,9 @@ One example could be the Brier score
         T > t
       \right\}}
   \right)^2,
-  \quad Z = (T, X) \sim Q.
+  \quad Z = (T, X) \sim Q,
 \end{equation*}
-We can identify the risk of such a loss function using inverse probability of censoring weights
-(IPCW) \citep{graf1999assessment,gerds2006consistent,van2003unicv}, as
+the risk according to this loss is identifiable through
 \begin{equation*}
   \E_Q\left[ L_{\mathrm{Brier}}(S, Z) \right]
   = \E_P\left[W_G \cdot L_{\mathrm{Brier}}(S, Z) \right],
@@ -197,17 +293,25 @@ with
 \begin{equation*}
   W_G = \frac{\1{\{\tilde T > t\}} + \1{\{\tilde T \leq t\}}\Delta}{G(\tilde T \wedge t \mid X)},
 \end{equation*}
-where \(G\) is the conditional ``survivor'' function for the censoring distribution. 
+where \(G\) is the conditional ``survivor'' function for the censoring distribution
+\citep{graf1999assessment,gerds2006consistent,van2003unicv}.
 \end{frame}
 
 
-\begin{frame}[label={sec:orgc12e12a}]{[Iteration / loop]}
-Estimation of the conditional ``survivor'' function for the censoring, \(G\), is also a survival
-problem in the sense that the event time of interest is now observed when \(\Delta =0\) an only
-partly observed when \(\Delta =1\). Hence we could use any estimator in \(\mathcal{E}\) and apply it
-to the data set with observations \((\tilde T_i, 1-\Delta_i, X_i)\) to get and estimator of \(G\).
+\begin{frame}[label={sec:org7169e7c}]{Estimation of the IPC weights}
+\small
 
-\def\shift{3}
+To use IPCW loss function in practice we need to estimate the \(G\). This can also be seen as a
+survival problem in the sense that the event time of interest is now observed when \(\Delta =0\) and
+only partly observed when \(\Delta =1\).
+
+\vfill
+
+\(\implies\) The exact same challenges face us when attacking this problem.
+
+\vfill
+
+\def\shift{2.3}
 \def\ls{}
 \def\lw{.5mm}
 \begin{center}
@@ -216,35 +320,45 @@ to the data set with observations \((\tilde T_i, 1-\Delta_i, X_i)\) to get and e
   \node[] (WG) at (\shift,\shift) {$W_{\hat G}$};
   \node[] (G) at (\shift,0) {$\hat G$};
   \node[] (WS) at (0,0) {$W_{\hat S}$};
-  \draw[->, \ls, line width=\lw, cyan] (S) -- (WG);
-  \draw[->, \ls, line width=\lw, cyan] (WG) -- (G);
-  \draw[->, \ls, line width=\lw, cyan] (G) -- (WS);
-  \draw[->, \ls, line width=\lw, cyan] (WS) -- (S);
+  \draw[<-, \ls, line width=\lw, cyan] (S) to[out=30,in=150] (WG);
+  \draw[<-, \ls, line width=\lw, cyan] (WG) to[out=30-90,in=150-90] (G);
+  \draw[<-, \ls, line width=\lw, cyan] (G) to[out=30-180,in=150-180] (WS);
+  \draw[<-, \ls, line width=\lw, cyan] (WS) to[out=30-270,in=150-270] (S);
 \end{tikzpicture}
 \end{center}
+
+\vfill
+
+Recently, \cite{han2021inverse} and \cite{westling2021inference} have suggested to iterate between
+estimation of \(\hat S\) and \(\hat G\) until convergence.
 \end{frame}
 
 
-\section{The conditional survivor function as a nuisance parameter}
-\label{sec:org6350022}
-\begin{frame}[label={sec:org4194fdb}]{The conditional survivor function as nuisance parameter}
+\section{Double robustness and fluctuation risk}
+\label{sec:org2f87225}
+\begin{frame}[label={sec:org9383a37}]{The conditional survivor function as nuisance parameter}
 Consider now the situation where we want to estimate a low dimensional feature of \(Q\); as example
 we take the marginal survival at a fixed time point, \(Q(T > t)\). Under coarsening at random and a
 positivity assumption we can write
 \begin{equation*}
   Q(T > t) = \Psi(P),
   \quad \text{where} \quad
-  \Psi(P) = \E_P\left[ S(t \mid X) \right],
+  \Psi(P) = \E_P{\left[ S_P(t \mid X) \right]},
 \end{equation*}
-where \(S\) denotes the conditional survival function identifiable from \(P\). 
+where \(S_P\) denotes the conditional survival function identifiable from \(P\). 
 
 \vfill
 
-As \(S\) is not of interest in itself, we might hope to be able to side-step the issue of finding a
-suitable loss function by focusing directly of the target parameter instead. 
+As \(S\) is not of interest in itself, we might hope to side-step the issue of finding a suitable
+loss function for the nuisance parameter \(S\) by focusing directly on the target parameter instead.
+
+\vfill
+
+\cite{tchetgenYifanTagetDML}, building on ideas from \cite{robins2007comment}, proposed to exploit
+double robustness as a model selection criteria.
 \end{frame}
 
-\begin{frame}[label={sec:org3b28e4b}]{Double robustness}
+\begin{frame}[label={sec:org5a76730}]{Double robustness}
 \small Many estimators based on the efficient influence function has a double robustness property.
 For instance, the efficient influence function of \(\Psi\) is \(\psi(O, P) = \phi(O, S_P, G_P) -
 \Psi(P)\), with
@@ -274,8 +388,7 @@ This motivates estimating $\Psi(P)$ with
 which is consistent if either \(\hat S\) or \(\hat G\) is consistent.
 \end{frame}
 
-
-\begin{frame}[label={sec:org40f36b8}]{Fluctuation risk -- exploiting double robustness}
+\begin{frame}[label={sec:orga040568}]{Fluctuation risk -- exploiting double robustness}
 \small Let \(\mathcal{G}\) be a (finite) collection of models for \(G\). The double robustness
 property implies that
 \(\E_P{\left[ \phi(O, S_P, G) \right]} = \E_P{\left[ \phi(O, S_P, G') \right]}\) for any
@@ -299,55 +412,133 @@ This motivates the ``fluctuation risk'',
 \end{equation*}
 % which depend on the class \(\mathcal{G}\).
 
-Let $\mathcal{E}_c$ be a collection of estimators of \(G\). For any $\nu \in \mathcal{E}$,
-$\gamma \in \mathcal{E}_c$, and \(k = 1, \dots, K\) define
+Let $\mathcal{A}_c$ be a collection of algorithms for estimating \(G\). For any $\nu \in \mathcal{A}$,
+$\gamma \in \mathcal{A}_c$, and \(k = 1, \dots, K\) define
 \begin{equation*}
   \hat{\Psi}_{\nu, \gamma}^k =
   \frac{1}{|\mathcal{D}_k|} \sum_{O \in \mathcal{D}_k}
   \phi(O, \nu(\mathcal{D}_{-k}), \gamma(\mathcal{D}_{-k})).
 \end{equation*}
-For any $\nu \in \mathcal{E}$ we approximate the fluctuation risk with
+For any $\nu \in \mathcal{A}$ we approximate the fluctuation risk with
 \begin{equation*}
   \hat R(\nu) =
   \frac{1}{K}
   \sum_{k=1}^{K}
-  \max_{\gamma, \gamma' \in \mathcal{E}_c}
+  \max_{\gamma, \gamma' \in \mathcal{A}_c}
   \big|\hat{\Psi}_{\nu, \gamma}^k -
   \hat{\Psi}_{\nu, \gamma'}^k\big|.  
 \end{equation*}
 % and select our final nuisance estimator as
 % \begin{equation*}
-%   \argmin_{\nu \in \mathcal{E}} R(\nu).
+%   \argmin_{\nu \in \mathcal{A}} R(\nu).
 % \end{equation*}
-% (We use a similar strategy to pick $\gamma \in \mathcal{E}_c$.)
+% (We use a similar strategy to pick $\gamma \in \mathcal{A}_c$.)
 \end{frame}
 
+\begin{frame}[label={sec:org1a3628f},fragile]{Illustration of the method}
+ \begin{onlyenv}<1>
+\small Consider the following simple setting where \(X=(A_1, A_2, A_3)^T\) with \(A_j \in \{0,1\}\)
+for all \(j\), and that we consider using Kaplan-Meier estimators stratified on each of \(A_j\). (In
+this simulation, only \(A_1\) influences survival and censoring.)
 
-\begin{frame}[label={sec:orgb13192c}]{[Illustration of the method]}
-\end{frame}
+\vspace{.4cm}
 
-\begin{frame}[label={sec:orged8a3da}]{[Theoretical results??]}
-\end{frame}
-
-\begin{frame}[label={sec:org1d360dc}]{[Compare to pre-selected estimators]}
-Also shows 
-\end{frame}
-
-\section{The conditional survivor function as the target parameter}
-\label{sec:orgf082892}
-
-\begin{frame}[label={sec:orge91294d}]{The conditional survivor function as target parameter}
-\begin{block}{Compare a finite collection of models}
+\begin{block}{\centering outcome algorithms}
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+km1 <- function(d) prodlim(Surv(time, event) ~ A1, data = d)
+km2 <- function(d) prodlim(Surv(time, event) ~ A2, data = d)
+km3 <- function(d) prodlim(Surv(time, event) ~ A3, data = d)
+\end{lstlisting}
 \end{block}
 
-\begin{block}{Training models on IPCW'ed data}
+\begin{block}{\centering censoring algorithms}
+\lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
+\begin{lstlisting}
+km1_cens <- function(d) prodlim(Surv(time, !event) ~ A1, data = d)
+km2_cens <- function(d) prodlim(Surv(time, !event) ~ A2, data = d)
+km3_cens <- function(d) prodlim(Surv(time, !event) ~ A3, data = d)
+\end{lstlisting}
 \end{block}
+\end{onlyenv}
+
+\begin{onlyenv}<2->
+\begin{onlyenv}<2>
+\begin{center}
+\includegraphics[width=.9\linewidth]{fig-illustrate-fluct-risk.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<3>
+\begin{center}
+\includegraphics[width=.9\linewidth]{fig-illustrate-fluct-risk2.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<4>
+\begin{center}
+\includegraphics[width=.9\linewidth]{fig-illustrate-fluct-risk3.pdf}
+\end{center}
+\end{onlyenv}
+\end{onlyenv}
 \end{frame}
 
+\begin{frame}[label={sec:org20c68b1}]{Some simulation results}
+\begin{onlyenv}<1>
+\begin{center}
+\includegraphics[width=.9\linewidth]{sim-results1.pdf}
+\end{center}
+\end{onlyenv}
+
+
+\begin{onlyenv}<2>
+\begin{center}
+\includegraphics[width=.9\linewidth]{sim-results2.pdf}
+\end{center}
+\end{onlyenv}
+\end{frame}
+
+\begin{frame}[label={sec:orgf4cd749}]{The conditional survivor function as target parameter}
+\small Consider now the situation where the conditional survival function \(S(t \mid x)\) is the
+actual parameter of interest for fixed \(t\). Assume that our goal is to build a prediction model
+minimizing the average Brier score. Given a model \(S \in \mathcal{S}\) we can consider the average
+Brier score of \(S\) as a low dimensional target parameter
+\begin{equation*}
+  \Psi_S(P) = \E_P{\left[ W_G \cdot L_{Brier}(S, Z) \right]}
+  \quad \text{with} \quad G = G_P,
+\end{equation*}
+and proceed as above. \pause
+
+\begin{itemize}
+\item With a finite \emph{collection} of models \(\mathcal{S}^* \subset \mathcal{S}\) we get a different target parameter
+\(\Psi_S\) for each \(S \in\mathcal{S}^*\). \pause
+\item With an infinite collection of models \(\mathcal{S}^* \subset \mathcal{S}\) (e.g., indexed by
+\(\beta \in \R^p\)) the previous approach is problematic. \pause
+\end{itemize}
+
+\(\implies\) It is desirable to fit the weights \emph{once} so that they are ``universally''
+applicable for estimating the performance of all \(S \in \mathcal{S}\).
+
+\vfill
+
+One idea is to use undersmoothed HAL to do this.
+\end{frame}
+
+\begin{frame}[label={sec:orgc264535}]{Conclusion}
+\begin{itemize}
+\item It is not obvious what loss function to use for estimating the conditional survivor function with
+censored data observed in continuous time.
+\item If the parameter of interest is a low-dimension feature of the full data distribution we could
+exploit this and evaluate the performance of the nuisance parameter estimators in terms of their
+effect on the estimator of the target parameter.
+\item If the conditional survivor function itself is the parameter of interest this approach has some
+additional challenges.
+\end{itemize}
+\end{frame}
 
 \section*{References}
-\label{sec:orge1067d2}
-\begin{frame}[label={sec:org80b7fdd}]{References}
+\label{sec:org7cef444}
+\begin{frame}[label={sec:orgb283cd5}]{References}
 \footnotesize \bibliography{./latex-settings/default-bib.bib}
 \end{frame}
 \end{document}
