@@ -448,7 +448,7 @@ which is consistent if either \(\hat S\) or \(\hat G\) is consistent.
 ** Fluctuation risk -- exploiting double robustness
 #+begin_export latex
 \small Let \(\mathcal{G}\) be a (finite) collection of models for \(G\). The double robustness
-property implies that
+property implies that 
 \(\E_P{\left[ \phi(O, S_P, G) \right]} = \E_P{\left[ \phi(O, S_P, G') \right]}\) for any
 \(G, G' \in \mathcal{G}\). In particular,
 \begin{equation*}
@@ -458,7 +458,7 @@ property implies that
   \big\vert
   = 0.
 \end{equation*}
-This motivates the ``fluctuation risk'',
+This motivates the ``fluctuation risk'',\footnote{or pseudo-risk because it depends \(\mathcal{G}\) which is suppressed in the notation.}
 \begin{equation*}
   % \label{eq:dr}
   R(S)
