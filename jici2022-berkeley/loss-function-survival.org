@@ -5,7 +5,7 @@
 - [ ] Check EIF calculation and that both ways agree
 - [X] KL slides
 - [X] Further discussion on the conditional survival function as the target parameter.
-- [ ] Add pauses
+- [ ] *Add pauses*
 - [X] Visualizing results from simulation
 - [X] Downplay fixed time horizon
 - [X] Change \mathcal{D} to D
@@ -21,7 +21,11 @@
   risk. (Everybody knows what DR is)
 - [X] Change !event to rev=1 and call them S and G on all slides.
 - [X] Skip slide 16 (last slide before conclusion).
-- [ ] Change focus to be on just a low dimensional parameter of interest
+- [X] Change focus to be on just a low dimensional parameter of interest
+- [ ] Maybe different small and big $\psi$?
+- [X] slide 12: \small? + blær
+- [X] slide 14: bottom
+- [X] Slide 3: Add line with what the focus is?
 
 
   
@@ -69,16 +73,16 @@ Remember to exceture (C-c C-c) the following line:
   \times \{0,1\} \times \R^p$.
 - $Z = (T, X) \sim Q \in \mathcal{Q}$ :: The distribution $Q$ (or a feature of it) is of interest.
 
-\hfill
+\hfill \pause
   
 *** Parameters of interest
 Low-dimensional feature of \(Q\), e.g., the marginal survival probability \(Q(T > t)\) for a fixed
 time horizon \(t \in \R_+\).
 # - The conditional survival probability \(S(t \mid x) = Q(T > t \mid X=x) \), for \(x \in \R^p\).
-\hfill
+\hfill 
 
 
-*** Nuisance parameter
+*** Estimation of the nuisance parameter S
 
 The distribution \(Q\) is identifiable from the observed data distribution \(P\) under coarsening at
 random. Without further assumptions we would typically need to estimate the conditional survival
@@ -120,7 +124,7 @@ and evaluate for all \(i = 1, \dots, n\),
 #+begin_export latex
 \begin{equation*}
 L(\est(D_{-k}), O_i),
-\quad \text{for all} \quad O_i \in D_k.
+\quad \text{where} \quad O_i \in D_k.
 \end{equation*}
 #+end_export
 Averaging these values gives us an estimate of the expected loss of the algorithm \(\nu \in
@@ -334,7 +338,7 @@ With partial likelihood we are minimizing
 1. suited for evaluating the performance of estimating the /survival function/
 2. defined in terms of the /distribution \(Q\) of interest/
 
-\vfill
+\vfill \pause
 
 We can do this using inverse probability of censoring weighted (IPCW) loss functions. For instance,
 with the Brier score
@@ -372,7 +376,7 @@ where \(G\) is the conditional ``survivor'' function for the censoring distribut
 To use IPCW loss functions in practice we need to estimate \(G\). This is the same estimation
 problem as estimation of \(S\), just with the meaning of $\Delta$ reversed. 
 
-\vfill
+\vfill \pause
 
 $\implies$ The exact same challenges face us when attacking this problem.
 
@@ -421,9 +425,9 @@ criteria designed for the parameter of interest. \pause
 
 *** 
 
-*** Exploiting double robustness
-\cite{tchetgenYifanTagetDML}, building on ideas from \cite{robins2007comment}, proposed to exploit
-double robustness as a model selection criteria.
+*** Exploit double robustness
+\pause \cite{tchetgenYifanTagetDML}, building on ideas from \cite{robins2007comment}, proposed to
+exploit double robustness as a model selection criteria.
 
 
 ** The conditional survivor function as nuisance parameter :noexport:
@@ -481,8 +485,8 @@ which is consistent if either \(\hat S\) or \(\hat G\) is consistent.
 #+end_export
 
 ** Fluctuation risk
-Let $\psi$ be the efficient influence for the parameter $\Psi$, and assume we can write \(\psi(O, P)
-= \phi(O, S_P, G_P) - \Psi(P)\) such that
+\small Let $\psi$ be the efficient influence for the parameter $\Psi$, and assume we can write
+\(\psi(O, P) = \phi(O, S_P, G_P) - \Psi(P)\) such that
 \begin{equation*}
   \E_P{\left[ \phi(O, S_P, G_*) \right]}
   = \E_P{\left[ \phi(O, S_*, G_P) \right]}
@@ -494,7 +498,7 @@ corresponding to the data generating distribution.
 \vfill \pause
 
 #+begin_export latex
-\small Let \(\mathcal{G}\) be a (finite) collection of models for \(G\). The double robustness
+Let \(\mathcal{G}\) be a (finite) collection of models for \(G\). The double robustness
 property implies that 
 \(\E_P{\left[ \phi(O, S_P, G) \right]} = \E_P{\left[ \phi(O, S_P, G') \right]}\) for any
 \(G, G' \in \mathcal{G}\). In particular,
@@ -556,10 +560,13 @@ Recall
 :BEAMER_env: onlyenv
 :END:
 
+#+begin_export latex
 \small Consider the following simple setting where \(X=(A_1, A_2, A_3)^T\) with \(A_j \in \{0,1\}\)
 for all \(j\) and our parameter of interest is the marginal survival probability \(Q(T > t)\) at
 some fixed time \(t>0\). We consider using Kaplan-Meier estimators stratified on each of
-\(A_j\).\footnote{In this simulation, only \(A_1\) influences survival and censoring.}
+\(A_j\).\footnote<1>{In this simulation, only \(A_1\) influences survival and censoring.}
+#+end_export
+
 
 \vspace{.4cm}
 
