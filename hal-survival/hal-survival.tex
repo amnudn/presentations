@@ -1,0 +1,724 @@
+% Created 2023-02-14 Tue 22:52
+% Intended LaTeX compiler: pdflatex
+\documentclass[smaller]{beamer}\usepackage{listings}
+\usepackage{color}
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage[T1]{fontenc}
+\usepackage{natbib}
+\lstset{
+keywordstyle=\color{blue},
+commentstyle=\color{red},stringstyle=\color[rgb]{0,.5,0},
+literate={~}{$\sim$}{1},
+basicstyle=\ttfamily\small,
+columns=fullflexible,
+breaklines=true,
+breakatwhitespace=false,
+numbers=left,
+numberstyle=\ttfamily\tiny\color{gray},
+stepnumber=1,
+numbersep=10pt,
+backgroundcolor=\color{white},
+tabsize=4,
+keepspaces=true,
+showspaces=false,
+showstringspaces=false,
+xleftmargin=.23in,
+frame=single,
+basewidth={0.5em,0.4em},
+}
+\usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+\bibliographystyle{abbrvnat}
+\input{./latex-settings/standard-commands.tex}
+\setbeamertemplate{footline}[frame number]
+\beamertemplatenavigationsymbolsempty
+\usepackage{appendixnumberbeamer}
+\setbeamercolor{gray}{bg=white!90!black}
+\setbeamertemplate{itemize items}{$\circ$}
+
+\renewcommand*\familydefault{\sfdefault}
+\itemsep2pt
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\usetheme{default}
+\author{Anders Munch \newline \small joint work with Thomas G., Helene, and Mark van der Laan}
+\date{\today}
+\title{Some comments about the Highly-Adaptive LASSO with focus on survival data}
+\begin{document}
+
+\maketitle
+\begin{frame}{Outline}
+\tableofcontents
+\end{frame}
+
+\section{Setting and motivation}
+\label{sec:org4797d1c}
+\begin{frame}[label={sec:org92f6536}]{Motivation}
+\small
+\begin{block}{Reasons for using HAL}
+\begin{itemize}
+\item Theoretically important
+\item ``Dimension-free'' convergence rate
+\item Few assumptions imposed
+\end{itemize}
+
+\pause  
+\end{block}
+
+\begin{block}{Better understanding of the estimator}
+\begin{itemize}
+\item Multivariate càdlàg functions
+\item Sectional variation norm
+\end{itemize}
+
+\pause
+\end{block}
+
+\begin{block}{Theoretical discussion}
+\begin{itemize}
+\item In practice we will have to approximate the HAL estimator for computational
+reasons
+\item Still nice to know that the estimator we approximate has  nice properties
+\end{itemize}
+\end{block}
+\end{frame}
+
+
+\section{Functions of bounded sectional variation norm}
+\label{sec:orga7c3652}
+\begin{frame}[label={sec:org12fba9a}]{Definition of the estimator}
+\small
+
+\begin{description}
+\item[{\(\mathcal{D}_M([0,1]^d)\)}] the space of \color{blue}càdlàg \color{black}
+functions \(f \colon [0,1]^d \rightarrow \R\) with \color{blue}sectional
+variation norm \color{black} bounded by \(M\).
+\item[{\(\mathcal{O}\)}] the sample space
+\item[{\(L\)}] a loss function, \(L(f, O) \in \R_+\)
+\end{description}
+
+\vfill 
+
+The parameter of interest is the function minimizing the expected loss (risk)
+\begin{equation*}
+  f_0 = \argmin_{f\in \mathcal{D}_M([0,1]^d)} P[L(f, \blank)]
+  = \argmin_{f\in \mathcal{D}_M([0,1]^d)} \int_{\mathcal{O}} L(f, o)  P (\diff o).
+\end{equation*}
+
+\vfill 
+
+We estimate \(f_0\) with the function minimizing the empirical risk
+\begin{equation*}
+  \hat{f}_n
+  = \argmin_{f\in \mathcal{D}_M([0,1]^d)} \empmeas[L(f, \blank)]
+  = \argmin_{f\in \mathcal{D}_M([0,1]^d)} \frac{1}{n}\sum_{i=1}^{n}L(f,O_i).
+\end{equation*}
+\end{frame}
+
+\begin{frame}[label={sec:orgddd7a6b}]{Multivariate càdlàg functions}
+\small Which direction is ``left'' when \(d>1\)? \pause \vfill
+
+\begin{definition}[\cite{neuhaus1971weak}]
+For a point \(u \in [0,1]^d\) and a vertex $\textbf{a} \in \{0,1\}^d$ look at
+quadrants \(Q_{\textbf{a}}(u)\) spanned by \(u\) and \(\textbf{a}\). The limit
+of \(f(u_n)\) for \(\{u_n\} \subset Q_{\textbf{a}}(u)\), \(u_n \rightarrow u\)
+should exist, and if \(\textbf{a} = (1, 1, \dots, 1)\) then
+\(\lim_{n\rightarrow\infty}f(u_n) = f(u)\).
+
+\hfill
+\end{definition}
+
+\begin{onlyenv}<1-2>
+\begin{center}
+\includegraphics[width=.45\textwidth]{/tmp/babel-rOvgph/figure-C3B1q9.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<3>
+\begin{center}
+\includegraphics[width=.45\textwidth]{/tmp/babel-rOvgph/figure-IWZuos.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<4>
+\begin{center}
+\includegraphics[width=.45\textwidth]{/tmp/babel-rOvgph/figure-DoBTJf.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<5>
+\begin{center}
+\includegraphics[width=.45\textwidth]{/tmp/babel-rOvgph/figure-PJlUg9.pdf}
+\end{center}
+\end{onlyenv}
+
+
+\begin{onlyenv}<6>
+\begin{center}
+\includegraphics[width=.45\textwidth]{/tmp/babel-rOvgph/figure-yqrcdJ.pdf}
+\end{center}
+\end{onlyenv}
+\end{frame}
+
+
+\begin{frame}[label={sec:orgd741d85}]{Càdlàg function with jumps}
+If we picture ``continuous from the right with left-hand limits'' in dimension
+\(d=1\) this does not seem very restrictive -- for instance, ``jumps'' are allowed.\pause
+
+\begin{alertblock}{\center Don't trust \(d=1\)!}
+\end{alertblock}
+
+\begin{onlyenv}<1-2>
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-rC1Ra9.pdf}
+\end{center}
+\end{onlyenv}
+
+
+\begin{onlyenv}<3>
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-jx8plX.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<4>
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-l9e5sH.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<5>
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-85pO7q.pdf}
+\end{center}
+\end{onlyenv}
+\end{frame}
+
+\begin{frame}[label={sec:org45c949e}]{Sectional variation norm}
+\pause
+In dimension $d=1$, the variation norm of a function is
+\begin{equation*}
+  \Vert f \Vert_{v} = \sup_{\pi} \sum_{i=1}^{|\pi|} |f(t_{i})-f(t_{i-1})|,
+\end{equation*}
+where the supremum is taken over all finite partitions
+\(0=t_0 < t_1 < \dots < t_{\pi} = 1\).
+
+\vfill \pause
+
+At first sight, a natural generalization seems to be the \emph{Vitali variation}:
+\begin{equation*}
+  V^{(d)}(f) = \sup_{\pi} \sum_{A \in \pi} | \Delta(f;A)|,
+\end{equation*}
+where the supremum is taken over all ``grid partitions'' and \(\Delta(f;A)\) is
+the \textit{quasi-volume} that \(f\) assigns the rectangle $A$.
+\end{frame}
+
+
+\begin{frame}[label={sec:org2588226}]{Vitali variation: \normalsize \(V^{(d)}(f) = \sup_{\pi} \sum_{A \in \pi} | \Delta(f;A)|\)}
+\begin{onlyenv}<2>
+\small
+\color{white}
+\begin{equation*}
+  \text{When \(d=2\),} \quad 
+  \Delta(f;A) = f(b_1, b_2) - f(b_1, a_2) - f(a_1, b_2) + f(a_1, a_2).
+\end{equation*}
+\color{black}
+
+\vfill
+
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-Sgklgx.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<3>
+\small
+\color{black}
+\begin{equation*}
+  \text{When \(d=2\),} \quad 
+  \Delta(f;A) = f(b_1, b_2) - f(b_1, a_2) - f(a_1, b_2) + f(a_1, a_2).
+\end{equation*}
+\color{black}
+
+\vfill
+
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-YYGyFB.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<4>
+\small
+\color{black}
+\begin{equation*}
+  \text{When \(d=2\),} \quad 
+  \Delta(f;A) = f(b_1, b_2) - f(b_1, a_2) - f(a_1, b_2) + f(a_1, a_2).
+\end{equation*}
+\color{black}
+
+\vfill
+
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-OWE0WT.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<5>
+\small
+\color{black}
+\begin{equation*}
+  \text{When \(d=2\),} \quad 
+  \Delta(f;A) = f(b_1, b_2) - f(b_1, a_2) - f(a_1, b_2) + f(a_1, a_2).
+\end{equation*}
+\color{black}
+
+\vfill
+
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-KGylG2.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<6>
+\small
+\color{black}
+\begin{equation*}
+  \text{When \(d=2\),} \quad 
+  \Delta(f;A) = f(b_1, b_2) - f(b_1, a_2) - f(a_1, b_2) + f(a_1, a_2).
+\end{equation*}
+\color{black}
+
+\vfill
+
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-aYiSCu.pdf}
+\end{center}
+\end{onlyenv}
+\end{frame}
+
+
+\begin{frame}[label={sec:org2892906}]{Sectional variation norm (Hardy-Krause variation)}
+However, many interesting functions have Vitalli variation equal to 0, e.g., the
+function $f(x,y) = x$.
+
+\vfill \pause We should also look at the function on the \textit{faces}
+\begin{equation*}
+  U_s = \{(u_1, \dots, u_d) \in [0,1]^d : u_j = 0, j \not\in s \},
+\end{equation*}
+for non-empty subsets \(s \subset \{1, \dots, d\}\).
+
+\vfill \pause
+We denote by \(f_s \colon [0,1]^{|s|} \rightarrow \R\) the restriction of \(f\)
+to \(U_s\) and define the norm
+\begin{equation*}
+  \Vert f \Vert_{v} = \sum_{s} V^{(|s|)}(f_s),
+\end{equation*}
+where the sum is taken over all non-empty subsets \(s \subset \{1, \dots, d\}\).
+
+\vfill
+
+This is referred to as the \emph{Hardy-Krause variation} by
+\cite{fang2021multivariate} and the \emph{sectional variation norm} by
+\cite{van2017generally}.
+\end{frame}
+
+
+\begin{frame}[label={sec:org3aa0e08}]{The sectional variation norm of smooth functions}
+In $d=1$, if $f$ is differentiable then
+\begin{equation*}
+  \Vert f \Vert_{v} = \int_0^1 |f'(x)| \diff x.
+\end{equation*}
+\pause $\rightarrow$ Mild regularity condition. 
+
+\pause
+
+\begin{alertblock}{\center Don't trust \(d=1\)!}
+\hfill\pause
+
+In $d>1$, if $f$ is sufficiently smooth then
+\begin{equation*}
+  \Vert f \Vert_{v} = \sum_{s} \int_0^1 \cdots \int_0^1
+  \left\vert
+    \frac{\partial^{|s|} f }{\partial x_1 \cdots \partial x_{|s|}}
+  \right\vert\diff x_1 \dots x_{|s|}.
+\end{equation*}
+
+\hspace{0.5cm}
+
+\pause $\rightarrow$ Constraints on all mixed derivatives of order less than or
+equal to \(d\).
+
+\hspace{0.5cm}
+
+\pause $\rightarrow$ The sum contains \(\sum_{k=1}^{n} {n \choose k} = (2^d-1)\)
+terms.
+\end{alertblock}
+\end{frame}
+
+
+
+\begin{frame}[label={sec:org2c09576}]{Implementation of the estimator}
+\pause \small \cite{gill1995inefficient} and \cite{van2017generally} give the
+following representation of any \(f\in \mathcal{D}_M([0,1]^d)\):
+\begin{equation*}
+    f(x) =
+          \int_{[0, x]} \diff f
+ = f(0)
+          + \sum_{s} \int_{(0_s, x_s]} \diff f_s.
+\end{equation*}
+
+\vfill
+\pause
+
+The norm $\Vert f \Vert_{v}$ is equal to the sum of the total variation of the
+measures on $(0(s), 1(s)]$ generated by the section $f_s$ of $f$ -- hence the
+name.
+
+\vfill
+\pause
+
+Suggests estimating \(f\) by estimating the measures \(\diff f_s\) with weighted
+empirical measures in the sections \(s\):
+\begin{equation*}
+  f_{\beta} = \beta_0 +
+  \sum_{s}\sum_{i=1}^{n}\beta_{i,s} \psi_{i,s}(x),
+  \quad \text{with} \quad
+  \psi_{i,s}(x)=
+  \1\{X_i(s) \leq x(s)\},
+\end{equation*}
+with \(\Vert\beta\Vert_1 = \sum |\beta_{s,i}| \leq M\).
+
+\vfill
+\pause
+
+This can be phrased as the LASSO problem
+\begin{equation*}
+ \argmin_{\beta }
+  \empmeas{[L(f_{\beta}, \blank)]},
+  \quad \text{such that} \quad
+  \Vert \beta \Vert_1 \leq M.
+\end{equation*}
+\end{frame}
+
+\begin{frame}[label={sec:org199b560}]{Basis functions for the HAL estimator}
+\begin{onlyenv}<1>
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-wJjow6.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<2>
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-H2rg2d.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<3>
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-Mcrndj.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<4>
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-vkJ45q.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<5>
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-Rywnq6.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<6>
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-O2X9Lf.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<7>
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-dj0Wj4.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<8>
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-5jmbHN.pdf}
+\end{center}
+\end{onlyenv}
+\end{frame}
+
+
+\section{Some challenges with the exact definition of the estimator}
+\label{sec:org538056c}
+\begin{frame}[label={sec:org66f28f3}]{The solution to the minimization problem}
+\small \vspace{-.5cm}
+\begin{equation*}
+ \hat{\beta}_n=\argmin_{\beta : \Vert \beta \Vert_1 \leq M}
+  \empmeas{[L(f_{\beta}, \blank)]},
+  \quad \text{with} \quad 
+  f_{\beta} =\beta_0 +
+  \sum_{s}\sum_{i=1}^{n}\beta_{i,s} \psi_{i,s}(x).
+\end{equation*}
+\pause It seems to be common wisdom that
+\begin{equation*}
+  f_{\hat{\beta}_n} = \hat{f}_n= \argmin_{f \in \mathcal{D}_M{([0,1]^d)}} \empmeas{[L(f, \blank)]}.
+\end{equation*}
+
+\pause \vfill
+
+\begin{block}{\normalsize \(\checkmark\) when \(d=1\) and, for instance, \(L(f,(X,Y)) =  \{f(X)-Y\}^2\)}
+\small \pause
+
+Given \(f\), construct \(\bar{f}\) as the piece-wise constant function such that
+\(\bar{f}(X_i) = f(X_i)\) and \(\bar{f}(0) = f(0)\). \pause Then
+\begin{equation*}
+  L(f, (X_i, Y_i)) =L(\bar{f}, (X_i, Y_i)),
+  \quad \text{for all} \quad i =1, \dots,n,
+\end{equation*}
+\pause and, with \(0=X_{(0)} \leq X_{(1)} \cdots \leq X_{(n)}\),
+\begin{align*}
+  \Vert \bar{f} \Vert_{v}
+  =
+  \sum_{i=1}^{n} |\bar{f}(X_{(i)})-\bar{f}(X_{(i-1)})|
+  & =
+    \sum_{i=1}^{n} |f(X_{(i)})-f(X_{(i-1)})|
+  \\
+  &
+    \leq
+    \sup_{\pi} \sum_{i=1}^{|\pi|} |f(t_{i})-f(t_{i-1})|
+    = \Vert f \Vert_{v}.
+\end{align*}
+\end{block}
+\end{frame}
+
+\begin{frame}[label={sec:org83bb0e9}]{Not clear same trick works when \(d>1\) \pause -- \color{red} don't trust \(d=1\)!}
+\begin{onlyenv}<3>
+\phantom{We have $6\times 3 +1 = 17$ basis functions but $(6+1)^2 = 49$ rectangles.}
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-MmKJKt.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<4>
+We have \(6\times 3 +1 = 17\) basis functions but \((6+1)^2 = 49\) rectangles.
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-JNtasN.pdf}
+\end{center}
+\end{onlyenv}
+
+
+\begin{onlyenv}<5->
+\cite{fang2021multivariate} formally show that when \(L\) is the squared error
+loss, the minimizer
+\begin{equation*}
+  \hat{f}_n= \argmin_{f \in \mathcal{D}_M{([0,1]^d)}} \empmeas{[L(f, \blank)]}
+\end{equation*}
+can be taken to be the solution to a LASSO problem using indicator functions as
+basis functions.
+
+\vfill
+
+\begin{beamercolorbox}[rounded=true]{gray}
+However, they need up to $\asymp {\color{red}n^d}$ basis functions whereas the HAL estimator is made
+up of only $n \times (2^d-1) + 1 \asymp {\color{red}n}$ basis functions.
+\end{beamercolorbox}
+\end{onlyenv}
+\end{frame}
+
+
+\begin{frame}[label={sec:orgc7aa811}]{The estimator \(\hat{f}_n\) in the survival setting}
+\pause
+
+Consider estimation of the hazard for the survival time \(T\).
+
+\vfill
+
+\begin{description}
+\item[{Data}] \(O=(\tilde{T}, \Delta)\), \(\tilde{T} = T \wedge C\), \(\Delta \in \{0,1\}\)
+\item[{Hazard}] \(h = e^{f}\), \(f \in \mathcal{D}_M{([0,1])}\)
+\item[{Loss}] \(L(f, O) = \int_0^{\tilde{T}} e^{f(s)} - \Delta f(\tilde{T})\)
+\end{description}
+
+\vfill
+\pause
+
+\begin{beamercolorbox}[rounded=true]{gray}
+If there is an \(i \in \{1, \dots, n-1\}\) such that \(f(\tilde{T}_{(i)}) >
+f(\tilde{T}_{(i+1)})\) then \(f\) is not the minimizer of \(\empmeas{[L(f,\blank)]}\)
+over \(\mathcal{D}_M{([0,1])}\).
+
+\pause
+\end{beamercolorbox}
+
+\begin{block}{\color{white} .}
+\begin{description}
+\item[{\(\implies\)}] The empirical risk minimizer \(\hat{f}_n\) is in general either not
+well-defined or a very bad estimator.
+\end{description}
+\end{block}
+\end{frame}
+
+
+\begin{frame}[label={sec:org74360b4}]{Proof by picture}
+\begin{equation*}
+  L(f, O_i) = \int_0^{\tilde{T}_i} e^{f(s)} - \Delta_i f(\tilde{T}_i),
+  \qquad
+  \empmeas{[L(f, \blank)]} = \frac{1}{n}\sum_{i=1}^{n} L(f, O_i)
+\end{equation*}
+
+\vfill
+
+\begin{onlyenv}<1>
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-rVP0Rt.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<2>
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-uhLFpX.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<3>
+\begin{center}
+\includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-ghI2ny.pdf}
+\end{center}
+\end{onlyenv}
+\end{frame}
+
+
+\section{Approximate minimization is sufficient}
+\label{sec:org8577335}
+\begin{frame}[label={sec:orgfdcb0ce}]{\color{white} break title}
+\begin{block}{\center \Large Need results for \(f_{\hat{\beta}_n}\) instead of \(\hat{f}_n\)}
+\vspace{2cm}
+\pause
+(Note that \(f_{\hat{\beta}_n}\) is well-defined in the survival setting.)
+\end{block}
+\end{frame}
+
+\begin{frame}[label={sec:org4d131b4}]{Deriving convergence rates using empirical processes theory}
+\pause \small
+The convergence rate for an empirical loss minimizer over a function space
+$\mathcal{F}$ can be read off from the \textit{modulus of continuity} of the
+empirical process \(\mathbb{G}_n = \sqrt{n}(\empmeas-P)\) over the space
+\begin{equation*}
+  \mathcal{L} = \{L(f, \blank) - L(f_0, \blank) : f \in \mathcal{F}\},
+\end{equation*}
+which is defined as
+\begin{equation*}
+  \phi_n(\delta) = \E\left[ \Vert \mathbb{G}_n \Vert_{\mathcal{L}(\delta)} \right],
+  \quad \text{where} \quad
+  \Vert \mathbb{G}_n \Vert_{\mathcal{L}(\delta)}
+  = \sup_{h \in {\mathcal{L}(\delta)}} |\mathbb{G}_n{[h]}|,
+\end{equation*}
+and \(\mathcal{L}(\delta) = \{h \in \mathcal{L}: \Vert h \Vert \leq \delta \}\).
+
+\vfill \pause
+
+The modulus $\phi_n$ can be controlled by the covering or bracketing entropy for
+$\mathcal{F}$. When $\mathcal{F}= \mathcal{D}_M{([0,1]^d)}$ this leads to the
+convergence rate
+\begin{equation*}
+  \Vert \hat{f}_n - f_0 \Vert = \smallO_P(r_n),
+  \quad \text{for} \quad 
+  r_n = n^{-1/3}\log(n)^{2(d-1)/3}.
+\end{equation*}
+
+\vfill \pause
+
+{\color{blue}\textbf{Exact minimization is not needed}} -- we just need the
+estimator \(f_n^{\star}\) to fulfill
+\begin{equation*}
+  \empmeas{[L(f^{\star}_n, \blank)]} \leq \empmeas{[L(f_0, \blank)]}  + \mathcal{O}_P{(r_n^2)}.
+\end{equation*}
+\end{frame}
+
+\begin{frame}[label={sec:org2d326ff}]{This holds for \large \(f_{\hat{\beta}_n}\): \(\empmeas{[L(f_{\hat{\beta}_n}, \blank)]} \leq \empmeas{[L(f_0, \blank)]}  + \mathcal{O}_P{(r_n^2)}\)}
+\small\pause
+Write
+\begin{equation*}
+  f_0(x) = f_0(0)
+  + \sum_{s} \int_{(0_s, x_s]} \diff f_{0,s}
+  = f_0(0)
+  + \sum_{s} \int_{(0_s, x_s]} \frac{\diff f_{0,s}}{\diff P_s} \diff P_s,
+\end{equation*}
+and define
+\begin{equation*}
+  \tilde{f}_n = f_0(0)
+  + \sum_{s} \int_{(0_s, x_s]} \frac{\diff f_{0,s}}{\diff P_s} \diff
+  \mathbb{P}_{s,n}.
+\end{equation*}
+
+\vfill \pause
+
+The function \(\tilde{f}_n\) is on the form
+\( f_{\beta} = \beta_0 + \sum_{s}\sum_{i=1}^{n}\beta_{i,s} \psi_{i,s}(x)\), and
+by the law of large numbers
+\( \Vert \tilde{f}_n \Vert_{v} \arrow{P} \Vert f_0 \Vert_{v}\).
+
+\vfill\pause Hence if \(\Vert f_0 \Vert_{v}<M\) then
+\(\empmeas{[L(f_{\hat{\beta}_n}, \blank)]} \leq \empmeas{[L(\tilde{f}_{n},
+  \blank)]}\) with prob. $\rightarrow$ 1, so
+\begin{equation*}
+  \empmeas{[L(f_{\hat{\beta}_n}, \blank)]} - \empmeas{[L(f_0, \blank)]}
+  \leq
+  \empmeas{[L(\tilde{f}_{n},
+  \blank)]}
+- \empmeas{[L(f_0, \blank)]}
+\quad \text{with prob.\ } \rightarrow 1.
+\end{equation*}
+
+\vfill \pause
+
+\begin{equation*}
+  \Vert \tilde{f}_n - f_0 \Vert_{\infty} = 
+  n^{-1/2}
+  \sum_{s} \Vert \mathbb{G}_{s,n}
+  \Vert_{\mathcal{D}}
+  = \mathcal{O}_p{(n^{-1/2})}.  
+\end{equation*}
+
+\vfill \pause Combine this with a bound on \(\phi_n(\delta)\) for
+\(\mathcal{D}_M{([0,1]^d)}\) to obtain
+\begin{equation*}
+  \empmeas{[L(\tilde{f}_{n}, \blank)]}
+  - \empmeas{[L(f_0, \blank)]} =
+  \mathcal{O}_P{(r_n^2)}.
+\end{equation*}
+\end{frame}
+
+\begin{frame}[label={sec:org1f4f1cf}]{Conclusion and discussion}
+\begin{itemize}[<+->]
+\item We obtain the wanted convergence rate when using \(f_{\hat{\beta}_n}\) as our
+estimator instead of \(\hat{f}_n\).
+\item This is an \emph{asymptotic} result -- no focus on finite sample bounds.
+\item Would \(\hat{f}_n\) (when it is defined) perform better than
+\(f_{\hat{\beta}_n}\)? -- or is the reduction in the number of basis functions
+actually attractive in finite samples?
+\item Can we reduce the number of basis functions further? -- would be
+computationally attractive.
+\item What kind of constraints are put on functions in
+\(\mathcal{D}_M{([0,1]^d)}\) that are continuous but not much smoother?
+\end{itemize}
+\end{frame}
+
+\section*{References}
+\label{sec:orgd231cbc}
+\begin{frame}[label={sec:orgbc2cc3c}]{References}
+\footnotesize \bibliography{./latex-settings/default-bib.bib}
+\end{frame}
+\end{document}

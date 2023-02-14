@@ -1,0 +1,1179 @@
+* Setting                                                          :noexport:
+Remember to exceture (C-c C-c) the following line:
+#+PROPERTY: header-args:R :async :results output verbatim  :exports results  :session *R* :cache yes
+
+#+BEGIN_SRC R
+  library(ggplot2)
+  library(data.table)
+  library(latex2exp)
+  library(gridExtra)
+  set.seed(3249)
+  data_points <- data.table(x1 = c(0,1.5, 8, 5,2, 3,4),
+			    x2 = c(0,1.5, 1, 6, 8, 9,2),
+			    x1_par = c(0,runif(6, -1,1)),
+			    x2_par = c(0,runif(6, -1,1)),
+			    x1x2_par = c(0, runif(6, -1,1)))
+  hal_vals <- do.call(rbind, lapply(1:(data_points[, .N]), function(ii){
+    xx1 = c(sort(data_points$x1), 10)
+    xx2 = c(sort(data_points$x2), 10)
+    out = data.table(x1_start = xx1[ii], x1_end = xx1[ii+1],
+		     x2_start = xx2[-length(xx2)], x2_end = xx2[-1],
+		     x1_eff = as.numeric(NA),
+		     x2_eff = as.numeric(NA),
+		     x1x2_eff = as.numeric(NA),
+		     total_eff = as.numeric(NA))
+    return(out)
+  }))
+  for(jj in 1:hal_vals[, .N]){
+    xx1_c = hal_vals[jj, x1_start]
+    xx2_c = hal_vals[jj, x2_start]
+    xx1_main = data_points[x1 <= xx1_c, sum(x1_par)]
+    xx2_main = data_points[x2 <= xx2_c, sum(x2_par)]
+    x1x2_inter = data_points[x1 <= xx1_c & x2 <= xx2_c, sum(x1x2_par)]
+    hal_vals[jj, ":="(x1_eff = xx1_main, x2_eff = xx2_main, x1x2_eff = x1x2_inter)]
+    hal_vals[jj, total_eff := x1_eff+x2_eff+x1x2_eff]
+  }
+  hal_vals[, c("x1_eff", "x2_eff", "x1x2_eff", "total_eff") := {
+    vv0 = list(x1_eff, x2_eff, x1x2_eff, total_eff)
+    min_val = min(unlist(vv0))
+    max_val = max(unlist(vv0))
+    lapply(vv0, function(x) (x-min_val)/(max_val-min_val))
+  }]
+  base_plot <- ggplot(hal_vals) +
+    theme_classic() +
+    theme(panel.border = element_blank(),
+	  panel.grid = element_blank(),
+	  axis.text.x=element_blank(),
+	  axis.ticks.x=element_blank(),
+	  axis.text.y=element_blank(),
+	  axis.ticks.y=element_blank()) +
+    scale_x_continuous(expand = c(0, 0), lim = c(0,10)) +
+    scale_y_continuous(expand = c(0, 0), lim = c(0,10)) +
+    ylab("") +  xlab("") + labs(fill = TeX(r'($f(x)$)')) +
+    theme(legend.position = "none") +
+    ## scale_fill_gradient(low = "gray90", high = "gray10")
+    scale_fill_gradient(low = "yellow", high = "red", limits = c(0,1), breaks = c(0,1)) +
+    scale_color_gradient(low = "yellow", high = "red", limits = c(0,1), breaks = c(0,1))
+  plot_fun <- function(value, draw_fill = TRUE, draw_line = FALSE, point_size = 3){
+    out_plot = base_plot
+    if(draw_fill)
+      out_plot = out_plot + geom_rect(aes(xmin = x1_start,
+					  xmax = x1_end,
+					  ymin = x2_start,
+					  ymax = x2_end,
+					  fill = get(value),
+					  col = get(value)))
+    out_plot = out_plot + geom_point(data = data_points[x1>0&x2>0], aes(x = x1, y = x2), size = point_size)
+    if(!draw_line)
+      return(out_plot)
+    if(value == "x1_eff")
+      out_plot = out_plot + geom_segment(data = data_points[x1>0&x2>0], aes(x = x1, xend = x1, y = 0, yend = 10))
+    if(value == "x2_eff")
+      out_plot = out_plot + geom_segment(data = data_points[x1>0&x2>0], aes(x = 0, xend = 10, y = x2, yend = x2))
+    if(value == "x1x2_eff"){
+      out_plot = out_plot +
+	geom_segment(data = data_points[x1>0&x2>0], aes(x = x1, xend = 10, y = x2, yend = x2))  +
+	geom_segment(data = data_points[x1>0&x2>0], aes(x = x1, xend = x1, y = x2, yend = 10)) 
+    }
+    if(value == "total_eff"){
+      out_plot = out_plot +
+	geom_segment(data = data_points[x1>0&x2>0], aes(x = 0, xend = 10, y = x2, yend = x2))  +
+	geom_segment(data = data_points[x1>0&x2>0], aes(x = x1, xend = x1, y = 0, yend = 10)) 
+    }  
+    return(out_plot)
+  }
+  draw_shape <- function(x = c(0.5, 0.5, 1.5, 1.5),
+			 y = c(0.5, 1.5, 1.5, 0.5),
+			 fill = "white",
+			 col = "black",
+			 ...){
+    geom_polygon(data = data.table(x = x, y = y), aes(x = x, y = y), fill = fill, col = col, ...)
+  }
+#+END_SRC
+
+#+RESULTS[(2023-02-14 14:24:07) d32029a8929d6687591958fdccef7f1d5b90c09d]:
+#+begin_example
+    x1_start x1_end x2_start x2_end     x1_eff    x2_eff  x1x2_eff  total_eff
+ 1:      0.0    1.5      0.0    1.0 0.26506806 0.2650681 0.2650681 0.26506806
+ 2:      0.0    1.5      1.0    1.5 0.26506806 0.2958695 0.2650681 0.29586952
+ 3:      0.0    1.5      1.5    2.0 0.26506806 0.4113891 0.2650681 0.41138913
+ 4:      0.0    1.5      2.0    6.0 0.26506806 0.2827710 0.2650681 0.28277101
+ 5:      0.0    1.5      6.0    8.0 0.26506806 0.4497174 0.2650681 0.44971739
+ 6:      0.0    1.5      8.0    9.0 0.26506806 0.5741827 0.2650681 0.57418274
+ 7:      0.0    1.5      9.0   10.0 0.26506806 0.5341319 0.2650681 0.53413188
+ 8:      1.5    2.0      0.0    1.0 0.48824716 0.2650681 0.2650681 0.48824716
+ 9:      1.5    2.0      1.0    1.5 0.48824716 0.2958695 0.2650681 0.51904862
+10:      1.5    2.0      1.5    2.0 0.48824716 0.4113891 0.2631771 0.63267730
+11:      1.5    2.0      2.0    6.0 0.48824716 0.2827710 0.2631771 0.50405918
+12:      1.5    2.0      6.0    8.0 0.48824716 0.4497174 0.2631771 0.67100556
+13:      1.5    2.0      8.0    9.0 0.48824716 0.5741827 0.2631771 0.79547091
+14:      1.5    2.0      9.0   10.0 0.48824716 0.5341319 0.2631771 0.75542005
+15:      2.0    3.0      0.0    1.0 0.27733338 0.2650681 0.2650681 0.27733338
+16:      2.0    3.0      1.0    1.5 0.27733338 0.2958695 0.2650681 0.30813484
+17:      2.0    3.0      1.5    2.0 0.27733338 0.4113891 0.2631771 0.42176352
+18:      2.0    3.0      2.0    6.0 0.27733338 0.2827710 0.2631771 0.29314540
+19:      2.0    3.0      6.0    8.0 0.27733338 0.4497174 0.2631771 0.46009178
+20:      2.0    3.0      8.0    9.0 0.27733338 0.5741827 0.3642546 0.68563456
+21:      2.0    3.0      9.0   10.0 0.27733338 0.5341319 0.3642546 0.64558371
+22:      3.0    4.0      0.0    1.0 0.10319630 0.2650681 0.2650681 0.10319630
+23:      3.0    4.0      1.0    1.5 0.10319630 0.2958695 0.2650681 0.13399776
+24:      3.0    4.0      1.5    2.0 0.10319630 0.4113891 0.2631771 0.24762644
+25:      3.0    4.0      2.0    6.0 0.10319630 0.2827710 0.2631771 0.11900832
+26:      3.0    4.0      6.0    8.0 0.10319630 0.4497174 0.2631771 0.28595469
+27:      3.0    4.0      8.0    9.0 0.10319630 0.5741827 0.3642546 0.51149748
+28:      3.0    4.0      9.0   10.0 0.10319630 0.5341319 0.4907760 0.59796806
+29:      4.0    5.0      0.0    1.0 0.03183187 0.2650681 0.2650681 0.03183187
+30:      4.0    5.0      1.0    1.5 0.03183187 0.2958695 0.2650681 0.06263333
+31:      4.0    5.0      1.5    2.0 0.03183187 0.4113891 0.2631771 0.17626201
+32:      4.0    5.0      2.0    6.0 0.03183187 0.2827710 0.4705187 0.25498546
+33:      4.0    5.0      6.0    8.0 0.03183187 0.4497174 0.4705187 0.42193184
+34:      4.0    5.0      8.0    9.0 0.03183187 0.5741827 0.5715961 0.64747462
+35:      4.0    5.0      9.0   10.0 0.03183187 0.5341319 0.6981176 0.73394520
+36:      5.0    8.0      0.0    1.0 0.00000000 0.2650681 0.2650681 0.00000000
+37:      5.0    8.0      1.0    1.5 0.00000000 0.2958695 0.2650681 0.03080146
+38:      5.0    8.0      1.5    2.0 0.00000000 0.4113891 0.2631771 0.14443014
+39:      5.0    8.0      2.0    6.0 0.00000000 0.2827710 0.4705187 0.22315359
+40:      5.0    8.0      6.0    8.0 0.00000000 0.4497174 0.6722040 0.59178523
+41:      5.0    8.0      8.0    9.0 0.00000000 0.5741827 0.7732814 0.81732802
+42:      5.0    8.0      9.0   10.0 0.00000000 0.5341319 0.8998028 0.90379860
+43:      8.0   10.0      0.0    1.0 0.05345352 0.2650681 0.2650681 0.05345352
+44:      8.0   10.0      1.0    1.5 0.05345352 0.2958695 0.3078159 0.12700286
+45:      8.0   10.0      1.5    2.0 0.05345352 0.4113891 0.3059250 0.24063155
+46:      8.0   10.0      2.0    6.0 0.05345352 0.2827710 0.5132666 0.31935499
+47:      8.0   10.0      6.0    8.0 0.05345352 0.4497174 0.7149519 0.68798663
+48:      8.0   10.0      8.0    9.0 0.05345352 0.5741827 0.8160293 0.91352942
+49:      8.0   10.0      9.0   10.0 0.05345352 0.5341319 0.9425507 1.00000000
+    x1_start x1_end x2_start x2_end     x1_eff    x2_eff  x1x2_eff  total_eff
+#+end_example
+
+* Notes/todo :noexport:
+- [X] Add some reference
+- [X] Make figures
+- [X] Conclusion / round off slide
+- [ ] Start slide
+- [X] Clean up slides
+
+* Setting and motivation
+** Motivation
+\small
+*** Reasons for using HAL
+- Theoretically important
+- "Dimension-free" convergence rate
+- Few assumptions imposed
+
+\pause  
+
+*** Better understanding of the estimator
+- Multivariate càdlàg functions
+- Sectional variation norm
+
+\pause
+
+*** Theoretical discussion
+- In practice we will have to approximate the HAL estimator for computational
+  reasons
+- Still nice to know that the estimator we approximate has  nice properties
+
+
+* Functions of bounded sectional variation norm
+** Definition of the estimator
+
+\small
+
+- $\mathcal{D}_M([0,1]^d)$ :: the space of \color{blue}càdlàg \color{black}
+  functions \(f \colon [0,1]^d \rightarrow \R\) with \color{blue}sectional
+  variation norm \color{black} bounded by $M$.
+- $\mathcal{O}$ :: the sample space
+- $L$ :: a loss function, $L(f, O) \in \R_+$
+
+\vfill 
+  
+#+begin_export latex
+The parameter of interest is the function minimizing the expected loss (risk)
+\begin{equation*}
+  f_0 = \argmin_{f\in \mathcal{D}_M([0,1]^d)} P[L(f, \blank)]
+  = \argmin_{f\in \mathcal{D}_M([0,1]^d)} \int_{\mathcal{O}} L(f, o)  P (\diff o).
+\end{equation*}
+
+\vfill 
+
+We estimate \(f_0\) with the function minimizing the empirical risk
+\begin{equation*}
+  \hat{f}_n
+  = \argmin_{f\in \mathcal{D}_M([0,1]^d)} \empmeas[L(f, \blank)]
+  = \argmin_{f\in \mathcal{D}_M([0,1]^d)} \frac{1}{n}\sum_{i=1}^{n}L(f,O_i).
+\end{equation*}
+#+end_export
+
+** Multivariate càdlàg functions
+\small Which direction is "left" when $d>1$? \pause \vfill
+
+*** \cite{neuhaus1971weak}                                                           :B_definition:
+:PROPERTIES:
+:BEAMER_env: definition
+:END:
+#+begin_export latex
+For a point \(u \in [0,1]^d\) and a vertex $\textbf{a} \in \{0,1\}^d$ look at
+quadrants \(Q_{\textbf{a}}(u)\) spanned by \(u\) and \(\textbf{a}\). The limit
+of \(f(u_n)\) for \(\{u_n\} \subset Q_{\textbf{a}}(u)\), \(u_n \rightarrow u\)
+should exist, and if \(\textbf{a} = (1, 1, \dots, 1)\) then
+\(\lim_{n\rightarrow\infty}f(u_n) = f(u)\).
+#+end_export
+
+\hfill
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <1-2>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 3 :width 3
+  base_plot + theme(line = element_blank()) 
+#+END_SRC
+
+#+ATTR_LATEX: :width .45\textwidth
+#+RESULTS[(2023-02-14 19:45:07) f35f66fc7850f5aef0864975ca54edca2f5f3d37]:
+[[file:/tmp/babel-rOvgph/figure-C3B1q9.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <3>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 3 :width 3
+  base_plot + geom_point(data = data.table(x = 3, y = 5), aes(x = x,y = y), size = 2) 
+#+END_SRC
+
+#+ATTR_LATEX: :width .45\textwidth
+#+RESULTS[(2023-02-14 19:45:08) 7ceb8e5d0ec4595febc7f08e578cf2228ebaac51]:
+[[file:/tmp/babel-rOvgph/figure-IWZuos.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <4>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 3 :width 3
+  quad_plot1 <- base_plot +
+    draw_shape(x = c(3,3,0,0), y = c(5,10,10,5)) +
+    annotate("text", x=.5, y=7, label=TeX(r'($Q_{(0,1)}(u)$)', output="character"),
+	     hjust=0, size = 3, parse = TRUE)
+  quad_plot1 + geom_point(data = data.table(x = 3, y = 5), aes(x = x,y = y), size = 2) 
+#+END_SRC
+
+#+ATTR_LATEX: :width .45\textwidth
+#+RESULTS[(2023-02-14 19:45:08) f7e8cfe85d89b36ad4ffe46ea52b1c72e41bbbd6]:
+[[file:/tmp/babel-rOvgph/figure-DoBTJf.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <5>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 3 :width 3
+  quad_plot2 <- quad_plot1 +
+    draw_shape(x = c(3,3,0,0), y = c(5,0,0,5)) +
+    annotate("text", x=0.5, y=2, label=TeX(r'($Q_{(0,0)}(u)$)', output="character"),
+	     hjust=0, size = 3, parse = TRUE) + 
+    draw_shape(x = c(3,3,10,10), y = c(5,0,0,5)) +
+    annotate("text", x=7, y=2, label=TeX(r'($Q_{(1,0)}(u)$)', output="character"),
+	     hjust=0, size = 3, parse = TRUE)
+  quad_plot2 +   geom_point(data = data.table(x = 3, y = 5), aes(x = x,y = y), size = 2) 
+#+END_SRC
+
+#+ATTR_LATEX: :width .45\textwidth
+#+RESULTS[(2023-02-14 19:45:08) 9dddda3cd6bd641eb0a9ac536505e626c7ec91ca]:
+[[file:/tmp/babel-rOvgph/figure-PJlUg9.pdf]]
+
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <6>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 3 :width 3
+  quad_plot2 +
+    draw_shape(x = c(3,3,10,10), y = c(5,10,10,5)) +
+    annotate("text", x=7, y=7, label=TeX(r'($Q_{(1,1)}(u)$)', output="character"),
+	     hjust=0, size = 3, parse = TRUE) +
+    geom_point(data = data.table(x = 3, y = 5), aes(x = x,y = y), size = 2) 
+#+END_SRC
+
+#+ATTR_LATEX: :width .45\textwidth
+#+RESULTS[(2023-02-14 19:45:08) a4588924149ed47f1eae166044624cef7da4de95]:
+[[file:/tmp/babel-rOvgph/figure-yqrcdJ.pdf]]
+
+
+** Càdlàg function with jumps 
+If we picture "continuous from the right with left-hand limits" in dimension
+$d=1$ this does not seem very restrictive -- for instance, "jumps" are allowed.\pause
+
+*** \center Don't trust $d=1$!                                 :B_alertblock:
+:PROPERTIES:
+:BEAMER_env: alertblock
+:END:
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <1-2>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 3 :width 7
+grid.arrange(base_plot +theme(line = element_blank(), plot.margin = unit(c(0,1,0,0), "cm")),
+             base_plot +theme(line = element_blank(), plot.margin = unit(c(0,0,0,1), "cm")),
+             nrow=1)
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) 3d99669dae3c74907c7896ac7d76e27fc71761ce]:
+[[file:/tmp/babel-rOvgph/figure-rC1Ra9.pdf]]
+
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <3>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 3 :width 7
+  grid.arrange(base_plot +theme(plot.margin = unit(c(0,1,0,0), "cm")) +
+	       draw_shape(x = c(3,3,8,8), y = c(4,8,8,4), fill = "gray", col = "gray"),
+	       base_plot +theme(line = element_blank(), plot.margin = unit(c(0,0,0,1), "cm")),
+	       nrow=1)
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) e8bdf72e5607984fab7da0a9bdfbb582d1814ee3]:
+[[file:/tmp/babel-rOvgph/figure-jx8plX.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <4>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 3 :width 7
+  grid.arrange(base_plot +theme(plot.margin = unit(c(0,1,0,0), "cm")) +
+	       draw_shape(x = c(3,3,8,8), y = c(4,8,8,4), fill = "gray", col = "gray"),
+	       base_plot +theme(plot.margin = unit(c(0,0,0,1), "cm")) +
+	       draw_shape(x = c(3,2,7,8), y = c(4,8,8,4), fill = "gray", col = "gray"),
+	       nrow=1)
+  ## line = element_blank()
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) a2b5843e4cd20e022cabbcc36048baea9bd0c307]:
+[[file:/tmp/babel-rOvgph/figure-l9e5sH.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <5>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 3 :width 7
+  grid.arrange(base_plot +theme(plot.margin = unit(c(0,1,0,0), "cm")) +
+	       draw_shape(x = c(3,3,8,8), y = c(4,8,8,4), fill = "gray", col = "gray"),
+	       base_plot +theme(plot.margin = unit(c(0,0,0,1), "cm")) +
+	       draw_shape(x = c(3,2,7,8), y = c(4,8,8,4), fill = "gray", col = "gray") +
+	       draw_shape(x = c(2.75,2.75,0,0), y = c(5,10,10,5), alpha = 0, linetype = 2)+
+	       geom_point(x = 2.75, y = 5, size = 2),
+	       nrow=1)
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) 0dafc67a434d5d9afd3a20a33a6a766cb07c5d17]:
+[[file:/tmp/babel-rOvgph/figure-85pO7q.pdf]]
+
+** Sectional variation norm
+\pause
+#+begin_export latex
+In dimension $d=1$, the variation norm of a function is
+\begin{equation*}
+  \Vert f \Vert_{v} = \sup_{\pi} \sum_{i=1}^{|\pi|} |f(t_{i})-f(t_{i-1})|,
+\end{equation*}
+where the supremum is taken over all finite partitions
+\(0=t_0 < t_1 < \dots < t_{\pi} = 1\).
+#+end_export
+
+\vfill \pause
+
+At first sight, a natural generalization seems to be the /Vitali variation/:
+#+begin_export latex
+\begin{equation*}
+  V^{(d)}(f) = \sup_{\pi} \sum_{A \in \pi} | \Delta(f;A)|,
+\end{equation*}
+where the supremum is taken over all ``grid partitions'' and \(\Delta(f;A)\) is
+the \textit{quasi-volume} that \(f\) assigns the rectangle $A$.
+#+end_export
+
+
+** Vitali variation: \normalsize $V^{(d)}(f) = \sup_{\pi} \sum_{A \in \pi} | \Delta(f;A)|$ 
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <2>
+:BEAMER_env: onlyenv
+:END:
+\small
+#+begin_export latex
+\color{white}
+\begin{equation*}
+  \text{When \(d=2\),} \quad 
+  \Delta(f;A) = f(b_1, b_2) - f(b_1, a_2) - f(a_1, b_2) + f(a_1, a_2).
+\end{equation*}
+\color{black}
+#+end_export
+
+\vfill
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 5
+  plot_fun("total_eff", draw_fill = 0, draw_line = 1, point_size = 0) +
+    theme(panel.border=element_rect(colour = "black", fill=NA, size=1))
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) 071c6078372e971655997cda155160ee323e7736]:
+[[file:/tmp/babel-rOvgph/figure-Sgklgx.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <3>
+:BEAMER_env: onlyenv
+:END:
+\small
+#+begin_export latex
+\color{black}
+\begin{equation*}
+  \text{When \(d=2\),} \quad 
+  \Delta(f;A) = f(b_1, b_2) - f(b_1, a_2) - f(a_1, b_2) + f(a_1, a_2).
+\end{equation*}
+\color{black}
+#+end_export
+
+\vfill
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 5
+  shift_var <- 0.2
+  rectA_plot <- base_plot +
+    theme(panel.border=element_rect(colour = "black", fill=NA, size=1)) +
+    draw_shape(x = c(0,0,10,10), y = c(0,10,10,0), fill="gray90") +
+    draw_shape(x = c(5,5,8,8), y = c(2,6,6,2), fill="gray50") +
+    geom_text(x = 6.5,y = 4, label = "A", size = 10) +
+    geom_text(x = 5+shift_var,y = 2+2*shift_var, label = "a", size = 5) +
+    geom_text(x = 8+shift_var,y = 6+shift_var, label = "b", size = 5)
+  rectA_plot
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) fd59478232105523c367b7ab414f5a6362641ad8]:
+[[file:/tmp/babel-rOvgph/figure-YYGyFB.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <4>
+:BEAMER_env: onlyenv
+:END:
+\small
+#+begin_export latex
+\color{black}
+\begin{equation*}
+  \text{When \(d=2\),} \quad 
+  \Delta(f;A) = f(b_1, b_2) - f(b_1, a_2) - f(a_1, b_2) + f(a_1, a_2).
+\end{equation*}
+\color{black}
+#+end_export
+
+\vfill
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 5
+  rectA_plot +
+    geom_text(x = 7,y = 5, label = "+", size = 10) +
+    draw_shape(x = c(5,5,8,8), y = c(0,2,2,0), fill="gray50", col="gray50") +
+    draw_shape(x = c(0,0,5,5), y = c(2,6,6,2), fill="gray50", col="gray50") +
+    draw_shape(x = c(0,0,5,5), y = c(0,2,2,0), fill="gray50", col="gray50") +
+    draw_shape(x = c(5,5,8,8), y = c(2,6,6,2), alpha = 0) +
+        draw_shape(x = c(0,0,8,8), y = c(0,6,6,0), alpha = 0)
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) 083289dc8169ad80727a536d55be31c709d4e420]:
+[[file:/tmp/babel-rOvgph/figure-OWE0WT.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <5>
+:BEAMER_env: onlyenv
+:END:
+\small
+#+begin_export latex
+\color{black}
+\begin{equation*}
+  \text{When \(d=2\),} \quad 
+  \Delta(f;A) = f(b_1, b_2) - f(b_1, a_2) - f(a_1, b_2) + f(a_1, a_2).
+\end{equation*}
+\color{black}
+#+end_export
+
+\vfill
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 5
+  rectA_plot +
+    geom_text(x = 7,y = 5, label = "+", size = 10) +
+    draw_shape(x = c(5,5,8,8), y = c(0,2,2,0), fill="gray90") +
+    draw_shape(x = c(0,0,5,5), y = c(2,6,6,2), fill="gray90") +
+    geom_text(x = 4,y = 5, label = "-", size = 10) +
+    geom_text(x = 7,y = 1, label = "-", size = 10) + 
+    draw_shape(x = c(0,0,5,5), y = c(0,2,2,0), fill="white") 
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) 61cd0e72a404ebc81473a5f69497baba411d5610]:
+[[file:/tmp/babel-rOvgph/figure-KGylG2.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <6>
+:BEAMER_env: onlyenv
+:END:
+\small
+#+begin_export latex
+\color{black}
+\begin{equation*}
+  \text{When \(d=2\),} \quad 
+  \Delta(f;A) = f(b_1, b_2) - f(b_1, a_2) - f(a_1, b_2) + f(a_1, a_2).
+\end{equation*}
+\color{black}
+#+end_export
+
+\vfill
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 5
+  rectA_plot +
+    geom_text(x = 7,y = 5, label = "+", size = 10) +
+    draw_shape(x = c(5,5,8,8), y = c(0,2,2,0), fill="gray90") +
+    draw_shape(x = c(0,0,5,5), y = c(2,6,6,2), fill="gray90") +
+    geom_text(x = 4,y = 5, label = "-", size = 10) +
+    geom_text(x = 7,y = 1, label = "-", size = 10) + 
+    draw_shape(x = c(0,0,5,5), y = c(0,2,2,0), fill="white")  +
+        draw_shape(x = c(0,0,5,5), y = c(0,2,2,0), fill="gray90")  +
+    geom_text(x = 4,y = 1, label = "+", size = 10) 
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) 61cb4e10cba241c84fae1ea591f52e2f5f3554bc]:
+[[file:/tmp/babel-rOvgph/figure-aYiSCu.pdf]]
+
+
+** Sectional variation norm (Hardy-Krause variation)
+
+#+begin_export latex
+However, many interesting functions have Vitalli variation equal to 0, e.g., the
+function $f(x,y) = x$.
+
+\vfill \pause We should also look at the function on the \textit{faces}
+\begin{equation*}
+  U_s = \{(u_1, \dots, u_d) \in [0,1]^d : u_j = 0, j \not\in s \},
+\end{equation*}
+for non-empty subsets \(s \subset \{1, \dots, d\}\).
+
+\vfill \pause
+We denote by \(f_s \colon [0,1]^{|s|} \rightarrow \R\) the restriction of \(f\)
+to \(U_s\) and define the norm
+\begin{equation*}
+  \Vert f \Vert_{v} = \sum_{s} V^{(|s|)}(f_s),
+\end{equation*}
+where the sum is taken over all non-empty subsets \(s \subset \{1, \dots, d\}\).
+#+end_export
+
+\vfill
+
+This is referred to as the /Hardy-Krause variation/ by
+\cite{fang2021multivariate} and the /sectional variation norm/ by
+\cite{van2017generally}.
+
+
+** The sectional variation norm of smooth functions
+#+begin_export latex
+In $d=1$, if $f$ is differentiable then
+\begin{equation*}
+  \Vert f \Vert_{v} = \int_0^1 |f'(x)| \diff x.
+\end{equation*}
+\pause $\rightarrow$ Mild regularity condition. 
+#+end_export
+
+\pause
+
+*** \center Don't trust $d=1$!                                 :B_alertblock:
+:PROPERTIES:
+:BEAMER_env: alertblock
+:END:
+
+\hfill\pause
+
+#+begin_export latex
+In $d>1$, if $f$ is sufficiently smooth then
+\begin{equation*}
+  \Vert f \Vert_{v} = \sum_{s} \int_0^1 \cdots \int_0^1
+  \left\vert
+    \frac{\partial^{|s|} f }{\partial x_1 \cdots \partial x_{|s|}}
+  \right\vert\diff x_1 \dots x_{|s|}.
+\end{equation*}
+
+\hspace{0.5cm}
+
+\pause $\rightarrow$ Constraints on all mixed derivatives of order less than or
+equal to \(d\).
+
+\hspace{0.5cm}
+
+\pause $\rightarrow$ The sum contains \(\sum_{k=1}^{n} {n \choose k} = (2^d-1)\)
+terms.
+#+end_export
+
+
+
+** Implementation of the estimator
+\pause \small \cite{gill1995inefficient} and \cite{van2017generally} give the
+following representation of any $f\in \mathcal{D}_M([0,1]^d)$:
+#+begin_export latex
+\begin{equation*}
+    f(x) =
+          \int_{[0, x]} \diff f
+ = f(0)
+          + \sum_{s} \int_{(0_s, x_s]} \diff f_s.
+\end{equation*}
+#+end_export
+
+\vfill
+\pause
+
+#+begin_export latex
+The norm $\Vert f \Vert_{v}$ is equal to the sum of the total variation of the
+measures on $(0(s), 1(s)]$ generated by the section $f_s$ of $f$ -- hence the
+name.
+#+end_export
+
+\vfill
+\pause
+
+Suggests estimating $f$ by estimating the measures $\diff f_s$ with weighted
+empirical measures in the sections $s$:
+#+begin_export latex
+\begin{equation*}
+  f_{\beta} = \beta_0 +
+  \sum_{s}\sum_{i=1}^{n}\beta_{i,s} \psi_{i,s}(x),
+  \quad \text{with} \quad
+  \psi_{i,s}(x)=
+  \1\{X_i(s) \leq x(s)\},
+\end{equation*}
+with \(\Vert\beta\Vert_1 = \sum |\beta_{s,i}| \leq M\).
+#+end_export
+
+\vfill
+\pause
+
+#+begin_export latex
+This can be phrased as the LASSO problem
+\begin{equation*}
+ \argmin_{\beta }
+  \empmeas{[L(f_{\beta}, \blank)]},
+  \quad \text{such that} \quad
+  \Vert \beta \Vert_1 \leq M.
+\end{equation*}
+#+end_export
+
+** Basis functions for the HAL estimator
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <1>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :width 9
+plot_fun("x1_eff", draw_fill = 0, draw_line = 0)
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) 028155180b648cca4b8376329cd40bd9d8f199ea]:
+[[file:/tmp/babel-rOvgph/figure-wJjow6.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <2>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :width 9
+plot_fun("x1_eff", draw_fill = 0, draw_line = 1)
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) 79593dd8127f1e354c7ff32e70f6dabae8a987ce]:
+[[file:/tmp/babel-rOvgph/figure-H2rg2d.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <3>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :width 9
+plot_fun("x1_eff", draw_fill = 1, draw_line = 1)
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) b0704fb7c8323074d29b202b1dfceca35077b59e]:
+[[file:/tmp/babel-rOvgph/figure-Mcrndj.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <4>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :width 9
+plot_fun("x2_eff", draw_fill = 0, draw_line = 1)
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) 040d94683f721b4fd6e83c1628b516d0594d1310]:
+[[file:/tmp/babel-rOvgph/figure-vkJ45q.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <5>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :width 9
+plot_fun("x2_eff", draw_fill = 1, draw_line = 1)
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) f7eb19b2d26c411115d226a980678e382e7c3ef3]:
+[[file:/tmp/babel-rOvgph/figure-Rywnq6.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <6>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :width 9
+plot_fun("x1x2_eff", draw_fill = 0, draw_line = 1)
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) 6ed12224ae00ab1bd803ece9d4f88406f39f7a37]:
+[[file:/tmp/babel-rOvgph/figure-O2X9Lf.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <7>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :width 9
+plot_fun("x1x2_eff", draw_fill = 1, draw_line = 1)
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) 1c4c8a339061f9a429956a6b20a190db342f5eb7]:
+[[file:/tmp/babel-rOvgph/figure-dj0Wj4.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <8>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :width 9
+plot_fun("total_eff", draw_fill = 1, draw_line = 0)
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) ed818a55399a9e1a5ca817ca9fdcf13aac1ce04b]:
+[[file:/tmp/babel-rOvgph/figure-5jmbHN.pdf]]
+
+
+* Some challenges with the exact definition of the estimator
+** The solution to the minimization problem
+\small \vspace{-.5cm}
+#+begin_export latex
+\begin{equation*}
+ \hat{\beta}_n=\argmin_{\beta : \Vert \beta \Vert_1 \leq M}
+  \empmeas{[L(f_{\beta}, \blank)]},
+  \quad \text{with} \quad 
+  f_{\beta} =\beta_0 +
+  \sum_{s}\sum_{i=1}^{n}\beta_{i,s} \psi_{i,s}(x).
+\end{equation*}
+\pause It seems to be common wisdom that
+\begin{equation*}
+  f_{\hat{\beta}_n} = \hat{f}_n= \argmin_{f \in \mathcal{D}_M{([0,1]^d)}} \empmeas{[L(f, \blank)]}.
+\end{equation*}
+#+end_export
+
+\pause \vfill
+
+*** \normalsize $\checkmark$ when $d=1$ and, for instance, $L(f,(X,Y)) =  \{f(X)-Y\}^2$
+
+\small \pause
+
+#+begin_export latex
+Given \(f\), construct \(\bar{f}\) as the piece-wise constant function such that
+\(\bar{f}(X_i) = f(X_i)\) and \(\bar{f}(0) = f(0)\). \pause Then
+\begin{equation*}
+  L(f, (X_i, Y_i)) =L(\bar{f}, (X_i, Y_i)),
+  \quad \text{for all} \quad i =1, \dots,n,
+\end{equation*}
+\pause and, with \(0=X_{(0)} \leq X_{(1)} \cdots \leq X_{(n)}\),
+\begin{align*}
+  \Vert \bar{f} \Vert_{v}
+  =
+  \sum_{i=1}^{n} |\bar{f}(X_{(i)})-\bar{f}(X_{(i-1)})|
+  & =
+    \sum_{i=1}^{n} |f(X_{(i)})-f(X_{(i-1)})|
+  \\
+  &
+    \leq
+    \sup_{\pi} \sum_{i=1}^{|\pi|} |f(t_{i})-f(t_{i-1})|
+    = \Vert f \Vert_{v}.
+\end{align*}
+#+end_export
+
+** Not clear same trick works when $d>1$ \pause -- \color{red} don't trust $d=1$!
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <3>
+:BEAMER_env: onlyenv
+:END:
+
+\phantom{We have $6\times 3 +1 = 17$ basis functions but $(6+1)^2 = 49$ rectangles.}
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :width 9
+plot_fun("total_eff", draw_fill = 1, draw_line = 0)
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) c08150a4e5afcf07cb563047dd81fa79c50d3bf0]:
+[[file:/tmp/babel-rOvgph/figure-MmKJKt.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <4>
+:BEAMER_env: onlyenv
+:END:
+
+We have $6\times 3 +1 = 17$ basis functions but $(6+1)^2 = 49$ rectangles.
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :width 9
+plot_fun("total_eff", draw_fill = 1, draw_line = 1)
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) 0ebf532828664ac73cfc8481626748d3738fadd4]:
+[[file:/tmp/babel-rOvgph/figure-JNtasN.pdf]]
+
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <5->
+:BEAMER_env: onlyenv
+:END:
+
+\cite{fang2021multivariate} formally show that when $L$ is the squared error
+loss, the minimizer
+#+begin_export latex
+\begin{equation*}
+  \hat{f}_n= \argmin_{f \in \mathcal{D}_M{([0,1]^d)}} \empmeas{[L(f, \blank)]}
+\end{equation*}
+#+end_export
+can be taken to be the solution to a LASSO problem using indicator functions as
+basis functions.
+
+\vfill
+
+**** gray                                                  :B_beamercolorbox:
+:PROPERTIES:
+:BEAMER_env: beamercolorbox
+:BEAMER_opt: rounded=true
+:END:
+
+#+begin_export latex
+However, they need up to $\asymp {\color{red}n^d}$ basis functions whereas the HAL estimator is made
+up of only $n \times (2^d-1) + 1 \asymp {\color{red}n}$ basis functions.
+#+end_export
+
+
+** The estimator $\hat{f}_n$ in the survival setting
+\pause
+
+Consider estimation of the hazard for the survival time $T$.
+
+\vfill
+
+- Data :: $O=(\tilde{T}, \Delta)$, $\tilde{T} = T \wedge C$, $\Delta \in \{0,1\}$ 
+- Hazard :: \(h = e^{f}\), \(f \in \mathcal{D}_M{([0,1])}\)
+- Loss :: $L(f, O) = \int_0^{\tilde{T}} e^{f(s)} - \Delta f(\tilde{T})$
+
+\vfill
+\pause
+
+*** gray                                        :B_beamercolorbox:
+:PROPERTIES:
+:BEAMER_env: beamercolorbox
+:BEAMER_opt: rounded=true
+:END:
+
+If there is an $i \in \{1, \dots, n-1\}$ such that $f(\tilde{T}_{(i)}) >
+f(\tilde{T}_{(i+1)})$ then $f$ is not the minimizer of $\empmeas{[L(f,\blank)]}$
+over $\mathcal{D}_M{([0,1])}$.
+
+\pause
+
+*** \color{white} .
+- $\implies$ :: The empirical risk minimizer $\hat{f}_n$ is in general either not
+  well-defined or a very bad estimator.
+
+
+** Proof by picture
+#+begin_export latex
+\begin{equation*}
+  L(f, O_i) = \int_0^{\tilde{T}_i} e^{f(s)} - \Delta_i f(\tilde{T}_i),
+  \qquad
+  \empmeas{[L(f, \blank)]} = \frac{1}{n}\sum_{i=1}^{n} L(f, O_i)
+\end{equation*}
+#+end_export
+
+\vfill
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <1>
+:BEAMER_env: onlyenv
+:END:
+
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 3 :width 5
+  set.seed(1214)
+  plot_surv_dat <- data.table(xstart = c(0,0.1, 0.2, 0.5, 0.7, 0.8))
+  yy0 <- runif(plot_surv_dat[, .N])
+  yy0[5] <- -runif(1)
+  plot_surv_dat[, y := cumsum(yy0)]
+  plot_surv_dat <- rbind(plot_surv_dat, copy(plot_surv_dat[5])[, xstart :=  xstart-0.1])
+  setkey(plot_surv_dat, xstart)
+  plot_surv_dat$xend <- c(plot_surv_dat$xstart[-1], 1)
+  surv_plot_base <- ggplot(plot_surv_dat[xstart != 0.6]) +
+    theme_classic() +
+    geom_point(data = plot_surv_dat[xstart != 0.6 & xstart != 0.7], aes(x = xstart, y = y)) +
+    geom_segment(aes(x = xstart, xend = xend, y = y,yend = y)) +
+    xlab("") +  ylab("") +
+    theme(panel.border = element_blank(),
+	  panel.grid = element_blank(),
+	  ## axis.text.x=element_blank(),
+	  ## axis.ticks.x=element_blank(),
+	  axis.text.y=element_blank(),
+	  axis.ticks.y=element_blank()) +
+    scale_x_continuous(breaks = c(0.5, 0.7),
+		       labels = c(TeX("$\\tilde{T}_{(i)}$"),TeX("$\\tilde{T}_{(i+1)}$")))
+  surv_plot_base +  
+    geom_segment(data = plot_surv_dat[xstart == 0.5],
+		 aes(x = xstart, xend = 0.7, y = y,yend = y)) +
+    geom_point(data = plot_surv_dat[xstart == 0.7],
+		 aes(x = xstart, y = y))
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) 358a22dd7dd24cdf155f4e5676b50803832aefff]:
+[[file:/tmp/babel-rOvgph/figure-rVP0Rt.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <2>
+:BEAMER_env: onlyenv
+:END:
+
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 3 :width 5
+surv_plot_base +  
+  geom_segment(data = plot_surv_dat[xstart == 0.6],
+               aes(x = xstart, xend = xend, y = y,yend = y)) +
+  geom_segment(data = plot_surv_dat[xstart == 0.5],
+               aes(x = 0.6, xend = 0.7, y = y,yend = y), linetype = 2) +
+  geom_point(data = plot_surv_dat[xstart == 0.6],
+             aes(x = xstart, y = y))
+
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) bfd3248770b4d3d548c76d84ff87674177f760f2]:
+[[file:/tmp/babel-rOvgph/figure-uhLFpX.pdf]]
+
+*** overlay block 
+:PROPERTIES:
+:BEAMER_act: <3>
+:BEAMER_env: onlyenv
+:END:
+
+
+#+BEGIN_SRC R :results graphics file :exports results :file (org-babel-temp-file "./figure-" ".pdf") :height 3 :width 5
+  y_vals <- c(plot_surv_dat[xstart == 0.5, y], plot_surv_dat[xstart == 0.7, y])
+  surv_plot_base +
+    draw_shape(x = c(0.6,0.6,0.7,0.7), y = c(y_vals[1], y_vals[2], y_vals[2], y_vals[1]), fill = "gray90", col = "gray90") +
+    geom_segment(data = plot_surv_dat[xstart == 0.6],
+		 aes(x = xstart, xend = xend, y = y,yend = y)) +
+    geom_segment(data = plot_surv_dat[xstart == 0.5],
+		 aes(x = 0.6, xend = 0.7, y = y,yend = y), linetype = 2) +
+    geom_point(data = plot_surv_dat[xstart == 0.6],
+	       aes(x = xstart, y = y))
+#+END_SRC
+
+#+RESULTS[(2023-02-14 19:45:08) 404dd6ba2dc424541ce68a3a9a6ac311e2be005d]:
+[[file:/tmp/babel-rOvgph/figure-ghI2ny.pdf]]
+
+
+* Approximate minimization is sufficient
+** \color{white} break title
+*** \center \Large Need results for $f_{\hat{\beta}_n}$ instead of $\hat{f}_n$
+\vspace{2cm}
+\pause
+(Note that $f_{\hat{\beta}_n}$ is well-defined in the survival setting.)
+
+** Deriving convergence rates using empirical processes theory
+
+\pause \small
+#+begin_export latex
+The convergence rate for an empirical loss minimizer over a function space
+$\mathcal{F}$ can be read off from the \textit{modulus of continuity} of the
+empirical process \(\mathbb{G}_n = \sqrt{n}(\empmeas-P)\) over the space
+\begin{equation*}
+  \mathcal{L} = \{L(f, \blank) - L(f_0, \blank) : f \in \mathcal{F}\},
+\end{equation*}
+which is defined as
+\begin{equation*}
+  \phi_n(\delta) = \E\left[ \Vert \mathbb{G}_n \Vert_{\mathcal{L}(\delta)} \right],
+  \quad \text{where} \quad
+  \Vert \mathbb{G}_n \Vert_{\mathcal{L}(\delta)}
+  = \sup_{h \in {\mathcal{L}(\delta)}} |\mathbb{G}_n{[h]}|,
+\end{equation*}
+and \(\mathcal{L}(\delta) = \{h \in \mathcal{L}: \Vert h \Vert \leq \delta \}\).
+#+end_export
+
+\vfill \pause
+
+#+begin_export latex
+The modulus $\phi_n$ can be controlled by the covering or bracketing entropy for
+$\mathcal{F}$. When $\mathcal{F}= \mathcal{D}_M{([0,1]^d)}$ this leads to the
+convergence rate
+\begin{equation*}
+  \Vert \hat{f}_n - f_0 \Vert = \smallO_P(r_n),
+  \quad \text{for} \quad 
+  r_n = n^{-1/3}\log(n)^{2(d-1)/3}.
+\end{equation*}
+#+end_export
+
+\vfill \pause
+
+#+begin_export latex
+{\color{blue}\textbf{Exact minimization is not needed}} -- we just need the
+estimator \(f_n^{\star}\) to fulfill
+\begin{equation*}
+  \empmeas{[L(f^{\star}_n, \blank)]} \leq \empmeas{[L(f_0, \blank)]}  + \mathcal{O}_P{(r_n^2)}.
+\end{equation*}
+#+end_export
+
+** This holds for \large $f_{\hat{\beta}_n}$: $\empmeas{[L(f_{\hat{\beta}_n}, \blank)]} \leq \empmeas{[L(f_0, \blank)]}  + \mathcal{O}_P{(r_n^2)}$ 
+\small\pause
+#+begin_export latex
+Write
+\begin{equation*}
+  f_0(x) = f_0(0)
+  + \sum_{s} \int_{(0_s, x_s]} \diff f_{0,s}
+  = f_0(0)
+  + \sum_{s} \int_{(0_s, x_s]} \frac{\diff f_{0,s}}{\diff P_s} \diff P_s,
+\end{equation*}
+and define
+\begin{equation*}
+  \tilde{f}_n = f_0(0)
+  + \sum_{s} \int_{(0_s, x_s]} \frac{\diff f_{0,s}}{\diff P_s} \diff
+  \mathbb{P}_{s,n}.
+\end{equation*}
+
+\vfill \pause
+
+The function \(\tilde{f}_n\) is on the form
+\( f_{\beta} = \beta_0 + \sum_{s}\sum_{i=1}^{n}\beta_{i,s} \psi_{i,s}(x)\), and
+by the law of large numbers
+\( \Vert \tilde{f}_n \Vert_{v} \arrow{P} \Vert f_0 \Vert_{v}\).
+
+\vfill\pause Hence if \(\Vert f_0 \Vert_{v}<M\) then
+\(\empmeas{[L(f_{\hat{\beta}_n}, \blank)]} \leq \empmeas{[L(\tilde{f}_{n},
+  \blank)]}\) with prob. $\rightarrow$ 1, so
+\begin{equation*}
+  \empmeas{[L(f_{\hat{\beta}_n}, \blank)]} - \empmeas{[L(f_0, \blank)]}
+  \leq
+  \empmeas{[L(\tilde{f}_{n},
+  \blank)]}
+- \empmeas{[L(f_0, \blank)]}
+\quad \text{with prob.\ } \rightarrow 1.
+\end{equation*}
+
+\vfill \pause
+
+\begin{equation*}
+  \Vert \tilde{f}_n - f_0 \Vert_{\infty} = 
+  n^{-1/2}
+  \sum_{s} \Vert \mathbb{G}_{s,n}
+  \Vert_{\mathcal{D}}
+  = \mathcal{O}_p{(n^{-1/2})}.  
+\end{equation*}
+
+\vfill \pause Combine this with a bound on \(\phi_n(\delta)\) for
+\(\mathcal{D}_M{([0,1]^d)}\) to obtain
+\begin{equation*}
+  \empmeas{[L(\tilde{f}_{n}, \blank)]}
+  - \empmeas{[L(f_0, \blank)]} =
+  \mathcal{O}_P{(r_n^2)}.
+\end{equation*}
+#+end_export
+
+** Conclusion and discussion
+
+#+ATTR_LATEX: :options [<+->]
+- We obtain the wanted convergence rate when using $f_{\hat{\beta}_n}$ as our
+  estimator instead of $\hat{f}_n$.
+- This is an /asymptotic/ result -- no focus on finite sample bounds.
+- Would $\hat{f}_n$ (when it is defined) perform better than
+  $f_{\hat{\beta}_n}$? -- or is the reduction in the number of basis functions
+  actually attractive in finite samples?
+- Can we reduce the number of basis functions further? -- would be
+  computationally attractive.
+- What kind of constraints are put on functions in
+  \(\mathcal{D}_M{([0,1]^d)}\) that are continuous but not much smoother?
+# - Is the HAL estimator particularly attractive when doing targeted learning?
+
+* References
+:PROPERTIES:
+:UNNUMBERED: t
+:END:
+** References
+\footnotesize \bibliography{./latex-settings/default-bib.bib}
+
+* HEADER :noexport:
+#+TITLE: Some comments about the Highly-Adaptive LASSO with focus on survival data
+#+Author: Anders Munch \newline \small joint work with Thomas G., Helene, and Mark van der Laan
+#+Date: \today
+
+#+LANGUAGE:  en
+#+OPTIONS:   H:2 num:t toc:t ':t ^:t
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LATEX_CLASS_OPTIONS: [smaller]
+#+LaTeX_HEADER: \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+#+LaTeX_HEADER: \bibliographystyle{abbrvnat}
+#+LaTeX_HEADER: \input{./latex-settings/standard-commands.tex}
+#+BIBLIOGRAPHY: ./latex-settings/default-bib plain
+
+# Beamer settins:
+# #+LaTeX_HEADER: \usefonttheme[onlymath]{serif} 
+#+LaTeX_HEADER: \setbeamertemplate{footline}[frame number]
+#+LaTeX_HEADER: \beamertemplatenavigationsymbolsempty
+#+LaTeX_HEADER: \usepackage{appendixnumberbeamer}
+#+LaTeX_HEADER: \setbeamercolor{gray}{bg=white!90!black}
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+LATEX_HEADER: \setbeamertemplate{itemize items}{$\circ$}
+
+# Check this:
+# #+LaTeX_HEADER: \lstset{basicstyle=\ttfamily\small}
+
+# For handout mode: (check order...)
+# #+LATEX_CLASS_OPTIONS: [handout]
+# #+LaTeX_HEADER: \pgfpagesuselayout{4 on 1}[border shrink=1mm]
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{1}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{2}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{3}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{4}{border code=\pgfusepath{stroke}}
