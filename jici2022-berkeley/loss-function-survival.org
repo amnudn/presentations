@@ -453,37 +453,6 @@ loss function for the nuisance parameter \(S\) by focusing directly on the targe
 \cite{tchetgenYifanTagetDML}, building on ideas from \cite{robins2007comment}, proposed to exploit
 double robustness as a model selection criteria.
 
-** Double robustness :noexport:
-\small Many estimators based on the efficient influence function has a double robustness property.
-For instance, the efficient influence function for $\Psi$ is \(\psi(O, P) = \phi(O, S_P, G_P) -
-\Psi(P)\), with
-#+begin_export latex
-\begin{equation*}
-  \phi(O, S, G) = S(t \mid X)
-  \left(
-    1- \int_0^t \frac{N(\diff u) - \1{\{\tilde T \geq u\}} \Lambda_S(\diff u \mid X)}{G(u \mid X) S(u \mid X)}   
-  \right),
-\end{equation*}
-where \(N(u) = \1{\{\tilde T \leq u, \Delta=1\}}\) is the counting process and $\Lambda_S$ is the
-conditional cumulative hazard corresponding to \(S\). It holds that
-\begin{equation*}
-  \E_P{\left[ \phi(O, S_P, G_*) \right]}
-  = \E_P{\left[ \phi(O, S_*, G_P) \right]}
-  = \Psi(P),
-\end{equation*}
-for any \(S_*\) and \(G_*\), where \(S_P\) and \(G_P\) are the conditional survivor functions of the
-data generating distribution.
-
-\vfill
-
-% With nuisance parameter estimates \(\hat S\) and \(\hat G\) t
-This motivates estimating $\Psi(P)$ with
-\begin{equation*}
-  \hat \Psi = \frac{1}{n}\sum_{i=1}^{n}\phi(O_i, \hat S, \hat G),
-\end{equation*}
-which is consistent if either \(\hat S\) or \(\hat G\) is consistent.
-#+end_export
-
 ** Fluctuation risk
 \small Let $\psi$ be the efficient influence for the parameter $\Psi$, and assume we can write
 \(\psi(O, P) = \phi(O, S_P, G_P) - \Psi(P)\) such that
@@ -808,6 +777,37 @@ applicable for estimating the performance of all \(S \in \mathcal{S}\).
 \vfill
 
 One idea is to use undersmoothed HAL to do this.
+
+** Double robustness
+\small Many estimators based on the efficient influence function has a double robustness property.
+For instance, the efficient influence function for $\Psi$ is \(\psi(O, P) = \phi(O, S_P, G_P) -
+\Psi(P)\), with
+#+begin_export latex
+\begin{equation*}
+  \phi(O, S, G) = S(t \mid X)
+  \left(
+    1- \int_0^t \frac{N(\diff u) - \1{\{\tilde T \geq u\}} \Lambda_S(\diff u \mid X)}{G(u \mid X) S(u \mid X)}   
+  \right),
+\end{equation*}
+where \(N(u) = \1{\{\tilde T \leq u, \Delta=1\}}\) is the counting process and $\Lambda_S$ is the
+conditional cumulative hazard corresponding to \(S\). It holds that
+\begin{equation*}
+  \E_P{\left[ \phi(O, S_P, G_*) \right]}
+  = \E_P{\left[ \phi(O, S_*, G_P) \right]}
+  = \Psi(P),
+\end{equation*}
+for any \(S_*\) and \(G_*\), where \(S_P\) and \(G_P\) are the conditional survivor functions of the
+data generating distribution.
+
+\vfill
+
+% With nuisance parameter estimates \(\hat S\) and \(\hat G\) t
+This motivates estimating $\Psi(P)$ with
+\begin{equation*}
+  \hat \Psi = \frac{1}{n}\sum_{i=1}^{n}\phi(O_i, \hat S, \hat G),
+\end{equation*}
+which is consistent if either \(\hat S\) or \(\hat G\) is consistent.
+#+end_export
 
 * HEADER :noexport:
 #+TITLE: Loss functions and cross-validation with censored survival data

@@ -1,4 +1,4 @@
-% Created 2022-09-06 Tue 22:05
+% Created 2022-09-08 Thu 14:45
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -64,8 +64,8 @@ basewidth={0.5em,0.4em},
 \end{frame}
 
 \section{Setting and data structure}
-\label{sec:org108f2e3}
-\begin{frame}[label={sec:org240f6cc}]{Data structure and target of inference}
+\label{sec:orga5b0c20}
+\begin{frame}[label={sec:orgecba2dd}]{Data structure and target of inference}
 \small
 \begin{block}{Survival setting}
 \begin{description}
@@ -92,7 +92,7 @@ function \(S(t \mid x) = Q(T > t \mid X=x)\) (and/or the conditional censoring d
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org2ec45d2}]{Cross-validation and super learning for \(S\)}
+\begin{frame}[label={sec:orgcceeb5b}]{Cross-validation and super learning for \(S\)}
 \pause Most machine learning methods depend on one or more hyperparameters which are typically
 chosen using \textbf{cross-validation}.
 
@@ -109,7 +109,7 @@ training and test folds. A suitable loss function is then used to evaluate the p
 estimator in hold-out samples.
 \end{frame}
 
-\begin{frame}[label={sec:orgc5c9d7f}]{Evaluate performance in hold-out samples}
+\begin{frame}[label={sec:orgd8dbc04}]{Evaluate performance in hold-out samples}
 \small
 
 \begin{description}
@@ -140,9 +140,9 @@ these value to combine all algorithms into a super learner.
 
 
 \section{Loss functions and hold-out samples for survival data}
-\label{sec:org9867fc2}
+\label{sec:org9d2858e}
 
-\begin{frame}[label={sec:orga1d7da9}]{The partial likelihood and hold-out samples}
+\begin{frame}[label={sec:org3f7d886}]{The partial likelihood and hold-out samples}
 \small A popular choice for training survival models is the negative partial log-likelihood loss.
 Assuming conditional independence between the outcome and the censoring given the covariates, the
 observed data factorizes as
@@ -172,7 +172,7 @@ common survival estimators in hold-out samples, because (a.s.)
 \end{equation*}
 \end{frame}
 
-\begin{frame}[label={sec:orgdfaea1a}]{Illustration}
+\begin{frame}[label={sec:orgd7eb9a7}]{Illustration}
 \begin{onlyenv}<1>
 \begin{center}
 \includegraphics[width=.9\linewidth]{fig-km-surv.pdf}
@@ -186,7 +186,7 @@ common survival estimators in hold-out samples, because (a.s.)
 \end{onlyenv}
 \end{frame}
 
-\begin{frame}[label={sec:org0191569}]{Kullback-Leibler divergence and partial likelihoods}
+\begin{frame}[label={sec:org75c9b7b}]{Kullback-Leibler divergence and partial likelihoods}
 \small Maximum likelihood estimation is connected to minimizing the Kullback-Leibler
 divergence and gives an interpretation of the MLE under misspecified models.
 \begin{equation*}
@@ -265,7 +265,7 @@ With partial likelihood we are minimizing
 \end{frame}
 
 
-\begin{frame}[label={sec:org28edda5}]{Inverse probability of censoring weighted loss functions}
+\begin{frame}[label={sec:orgc5355a9}]{Inverse probability of censoring weighted loss functions}
 \small A conceptually more attractive strategy is to use loss functions that are
 \begin{enumerate}[{(i)}]
 \item suited for evaluating the performance of estimating the \emph{survival function}
@@ -300,7 +300,7 @@ where \(G\) is the conditional ``survivor'' function for the censoring distribut
 \end{frame}
 
 
-\begin{frame}[label={sec:orga0ca51f}]{Estimation of the IPC weights}
+\begin{frame}[label={sec:org4fef6fe}]{Estimation of the IPC weights}
 \small
 
 To use IPCW loss functions in practice we need to estimate \(G\). This is the same estimation
@@ -336,8 +336,8 @@ estimation of \(\hat S\) and \(\hat G\) until convergence.
 
 
 \section{Double robustness and fluctuation risk}
-\label{sec:org76f3856}
-\begin{frame}[label={sec:org85d1d0f}]{}
+\label{sec:orgdde4964}
+\begin{frame}[label={sec:org2931615}]{}
 \begin{block}{\centering Not obvious how to select our survival model}
 \pause
 \end{block}
@@ -358,7 +358,7 @@ exploit double robustness as a model selection criteria.
 \end{frame}
 
 
-\begin{frame}[label={sec:orgf08017f}]{Fluctuation risk}
+\begin{frame}[label={sec:org6c84a52}]{Fluctuation risk}
 \small Let \(\psi\) be the efficient influence for the parameter \(\Psi\), and assume we can write
 \(\psi(O, P) = \phi(O, S_P, G_P) - \Psi(P)\) such that
 \begin{equation*}
@@ -394,7 +394,7 @@ property implies that
 \end{equation*}
 \end{frame}
 
-\begin{frame}[label={sec:orgfd4253c}]{Estimating the fluctuation risk}
+\begin{frame}[label={sec:orga6792a6}]{Estimating the fluctuation risk}
 Let $\mathcal{A}_c$ be a collection of algorithms for estimating \(G\). For any $\nu \in \mathcal{A}$,
 $\gamma \in \mathcal{A}_c$, and \(k = 1, \dots, K\) define
 \begin{equation*}
@@ -427,7 +427,7 @@ Recall
 \end{description}
 \end{frame}
 
-\begin{frame}[label={sec:org4948db4},fragile]{Illustration of the method}
+\begin{frame}[label={sec:orgf059dd4},fragile]{Illustration of the method}
  \begin{onlyenv}<1>
 \small Consider the following simple setting where \(X=(A_1, A_2, A_3)^T\) with \(A_j \in \{0,1\}\)
 for all \(j\) and our parameter of interest is the marginal survival probability \(Q(T > t)\) at
@@ -477,7 +477,7 @@ G3 <- function(d) prodlim(Surv(time,event) ~ A3, rev = T, data = d)
 \end{onlyenv}
 \end{frame}
 
-\begin{frame}[label={sec:orgbc137fa}]{Some simulation results}
+\begin{frame}[label={sec:org9ea7479}]{Some simulation results}
 \begin{onlyenv}<1>
 \begin{center}
 \includegraphics[width=.9\linewidth]{sim-results1.pdf}
@@ -492,7 +492,7 @@ G3 <- function(d) prodlim(Surv(time,event) ~ A3, rev = T, data = d)
 \end{onlyenv}
 \end{frame}
 
-\begin{frame}[label={sec:org3cb335a}]{Conclusion}
+\begin{frame}[label={sec:org284699f}]{Conclusion}
 \begin{itemize}
 \item It is not obvious what loss function to use for estimating the conditional survivor function with
 censored data observed in continuous time.
@@ -503,14 +503,14 @@ effect on the estimator of the target parameter.
 \end{frame}
 
 \section*{References}
-\label{sec:org35546a3}
-\begin{frame}[label={sec:org067dc48}]{References}
+\label{sec:org46cf02e}
+\begin{frame}[label={sec:orgdf0eabd}]{References}
 \footnotesize \bibliography{./latex-settings/default-bib.bib}
 \end{frame}
 \section*{Appendix}
-\label{sec:orgda25f58}
+\label{sec:org7d1fc8a}
 \appendix
-\begin{frame}[label={sec:org715af93}]{If the conditional survivor function was the target parameter}
+\begin{frame}[label={sec:org0bd107e}]{If the conditional survivor function was the target parameter}
 \small Consider now the situation where the conditional survival function \(S(t \mid x)\) is the
 actual parameter of interest for fixed \(t\). Assume that our goal is to build a prediction model
 minimizing the average Brier score. Given a model \(S\) we can consider the average
@@ -534,5 +534,35 @@ applicable for estimating the performance of all \(S \in \mathcal{S}\).
 \vfill
 
 One idea is to use undersmoothed HAL to do this.
+\end{frame}
+
+\begin{frame}[label={sec:orga16fffb}]{Double robustness}
+\small Many estimators based on the efficient influence function has a double robustness property.
+For instance, the efficient influence function for \(\Psi\) is \(\psi(O, P) = \phi(O, S_P, G_P) -
+\Psi(P)\), with
+\begin{equation*}
+  \phi(O, S, G) = S(t \mid X)
+  \left(
+    1- \int_0^t \frac{N(\diff u) - \1{\{\tilde T \geq u\}} \Lambda_S(\diff u \mid X)}{G(u \mid X) S(u \mid X)}   
+  \right),
+\end{equation*}
+where \(N(u) = \1{\{\tilde T \leq u, \Delta=1\}}\) is the counting process and $\Lambda_S$ is the
+conditional cumulative hazard corresponding to \(S\). It holds that
+\begin{equation*}
+  \E_P{\left[ \phi(O, S_P, G_*) \right]}
+  = \E_P{\left[ \phi(O, S_*, G_P) \right]}
+  = \Psi(P),
+\end{equation*}
+for any \(S_*\) and \(G_*\), where \(S_P\) and \(G_P\) are the conditional survivor functions of the
+data generating distribution.
+
+\vfill
+
+% With nuisance parameter estimates \(\hat S\) and \(\hat G\) t
+This motivates estimating $\Psi(P)$ with
+\begin{equation*}
+  \hat \Psi = \frac{1}{n}\sum_{i=1}^{n}\phi(O_i, \hat S, \hat G),
+\end{equation*}
+which is consistent if either \(\hat S\) or \(\hat G\) is consistent.
 \end{frame}
 \end{document}
