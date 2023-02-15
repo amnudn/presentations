@@ -1,4 +1,4 @@
-% Created 2023-02-14 Tue 22:52
+% Created 2023-02-15 Wed 09:20
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -51,7 +51,7 @@ basewidth={0.5em,0.4em},
 \usepackage{hyperref}
 \usetheme{default}
 \author{Anders Munch \newline \small joint work with Thomas G., Helene, and Mark van der Laan}
-\date{\today}
+\date{February 15, 2023}
 \title{Some comments about the Highly-Adaptive LASSO with focus on survival data}
 \begin{document}
 
@@ -61,8 +61,8 @@ basewidth={0.5em,0.4em},
 \end{frame}
 
 \section{Setting and motivation}
-\label{sec:org4797d1c}
-\begin{frame}[label={sec:org92f6536}]{Motivation}
+\label{sec:org6487cad}
+\begin{frame}[label={sec:org41966fe}]{Motivation}
 \small
 \begin{block}{Reasons for using HAL}
 \begin{itemize}
@@ -93,9 +93,9 @@ reasons
 \end{frame}
 
 
-\section{Functions of bounded sectional variation norm}
-\label{sec:orga7c3652}
-\begin{frame}[label={sec:org12fba9a}]{Definition of the estimator}
+\section{Multivariate càdlàg functions of bounded sectional variation norm}
+\label{sec:org0cff20b}
+\begin{frame}[label={sec:org057a68c}]{Definition of the estimator}
 \small
 
 \begin{description}
@@ -124,7 +124,7 @@ We estimate \(f_0\) with the function minimizing the empirical risk
 \end{equation*}
 \end{frame}
 
-\begin{frame}[label={sec:orgddd7a6b}]{Multivariate càdlàg functions}
+\begin{frame}[label={sec:org2b035de}]{Multivariate càdlàg functions}
 \small Which direction is ``left'' when \(d>1\)? \pause \vfill
 
 \begin{definition}[\cite{neuhaus1971weak}]
@@ -170,7 +170,7 @@ should exist, and if \(\textbf{a} = (1, 1, \dots, 1)\) then
 \end{frame}
 
 
-\begin{frame}[label={sec:orgd741d85}]{Càdlàg function with jumps}
+\begin{frame}[label={sec:orgd3cc74f}]{Càdlàg function with jumps}
 If we picture ``continuous from the right with left-hand limits'' in dimension
 \(d=1\) this does not seem very restrictive -- for instance, ``jumps'' are allowed.\pause
 
@@ -203,14 +203,14 @@ If we picture ``continuous from the right with left-hand limits'' in dimension
 \end{onlyenv}
 \end{frame}
 
-\begin{frame}[label={sec:org45c949e}]{Sectional variation norm}
+\begin{frame}[label={sec:org00b8088}]{Sectional variation norm}
 \pause
 In dimension $d=1$, the variation norm of a function is
 \begin{equation*}
   \Vert f \Vert_{v} = \sup_{\pi} \sum_{i=1}^{|\pi|} |f(t_{i})-f(t_{i-1})|,
 \end{equation*}
 where the supremum is taken over all finite partitions
-\(0=t_0 < t_1 < \dots < t_{\pi} = 1\).
+\(0=t_0 < t_1 < \dots < t_{|\pi|} = 1\).
 
 \vfill \pause
 
@@ -223,7 +223,7 @@ the \textit{quasi-volume} that \(f\) assigns the rectangle $A$.
 \end{frame}
 
 
-\begin{frame}[label={sec:org2588226}]{Vitali variation: \normalsize \(V^{(d)}(f) = \sup_{\pi} \sum_{A \in \pi} | \Delta(f;A)|\)}
+\begin{frame}[label={sec:orgedc8ebc}]{Vitali variation: \normalsize \(V^{(d)}(f) = \sup_{\pi} \sum_{A \in \pi} | \Delta(f;A)|\)}
 \begin{onlyenv}<2>
 \small
 \color{white}
@@ -306,11 +306,11 @@ the \textit{quasi-volume} that \(f\) assigns the rectangle $A$.
 \end{frame}
 
 
-\begin{frame}[label={sec:org2892906}]{Sectional variation norm (Hardy-Krause variation)}
+\begin{frame}[label={sec:orgee71dd0}]{Sectional variation norm (Hardy-Krause variation)}
 However, many interesting functions have Vitalli variation equal to 0, e.g., the
 function $f(x,y) = x$.
 
-\vfill \pause We should also look at the function on the \textit{faces}
+\vfill \pause We should also look at the function on the \textit{lower dimensional faces}
 \begin{equation*}
   U_s = \{(u_1, \dots, u_d) \in [0,1]^d : u_j = 0, j \not\in s \},
 \end{equation*}
@@ -332,7 +332,7 @@ This is referred to as the \emph{Hardy-Krause variation} by
 \end{frame}
 
 
-\begin{frame}[label={sec:org3aa0e08}]{The sectional variation norm of smooth functions}
+\begin{frame}[label={sec:orgd4484c0}]{The sectional variation norm of smooth functions}
 In $d=1$, if $f$ is differentiable then
 \begin{equation*}
   \Vert f \Vert_{v} = \int_0^1 |f'(x)| \diff x.
@@ -366,7 +366,7 @@ terms.
 
 
 
-\begin{frame}[label={sec:org2c09576}]{Implementation of the estimator}
+\begin{frame}[label={sec:orgefadb01}]{Implementation of the estimator}
 \pause \small \cite{gill1995inefficient} and \cite{van2017generally} give the
 following representation of any \(f\in \mathcal{D}_M([0,1]^d)\):
 \begin{equation*}
@@ -409,7 +409,7 @@ This can be phrased as the LASSO problem
 \end{equation*}
 \end{frame}
 
-\begin{frame}[label={sec:org199b560}]{Basis functions for the HAL estimator}
+\begin{frame}[label={sec:org2349aec}]{Basis functions for the HAL estimator}
 \begin{onlyenv}<1>
 \begin{center}
 \includegraphics[width=.9\linewidth]{/tmp/babel-rOvgph/figure-wJjow6.pdf}
@@ -461,8 +461,8 @@ This can be phrased as the LASSO problem
 
 
 \section{Some challenges with the exact definition of the estimator}
-\label{sec:org538056c}
-\begin{frame}[label={sec:org66f28f3}]{The solution to the minimization problem}
+\label{sec:orgea02c6d}
+\begin{frame}[label={sec:org5595869}]{The solution to the minimization problem}
 \small \vspace{-.5cm}
 \begin{equation*}
  \hat{\beta}_n=\argmin_{\beta : \Vert \beta \Vert_1 \leq M}
@@ -503,7 +503,7 @@ Given \(f\), construct \(\bar{f}\) as the piece-wise constant function such that
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org83bb0e9}]{Not clear same trick works when \(d>1\) \pause -- \color{red} don't trust \(d=1\)!}
+\begin{frame}[label={sec:orgcac3dab}]{Not clear same trick works when \(d>1\) \pause -- \color{red} don't trust \(d=1\)!}
 \begin{onlyenv}<3>
 \phantom{We have $6\times 3 +1 = 17$ basis functions but $(6+1)^2 = 49$ rectangles.}
 \begin{center}
@@ -538,7 +538,7 @@ up of only $n \times (2^d-1) + 1 \asymp {\color{red}n}$ basis functions.
 \end{frame}
 
 
-\begin{frame}[label={sec:orgc7aa811}]{The estimator \(\hat{f}_n\) in the survival setting}
+\begin{frame}[label={sec:org6f41189}]{The estimator \(\hat{f}_n\) in the survival setting}
 \pause
 
 Consider estimation of the hazard for the survival time \(T\).
@@ -571,7 +571,7 @@ well-defined or a very bad estimator.
 \end{frame}
 
 
-\begin{frame}[label={sec:org74360b4}]{Proof by picture}
+\begin{frame}[label={sec:orgbe7875e}]{Proof by picture}
 \begin{equation*}
   L(f, O_i) = \int_0^{\tilde{T}_i} e^{f(s)} - \Delta_i f(\tilde{T}_i),
   \qquad
@@ -601,8 +601,8 @@ well-defined or a very bad estimator.
 
 
 \section{Approximate minimization is sufficient}
-\label{sec:org8577335}
-\begin{frame}[label={sec:orgfdcb0ce}]{\color{white} break title}
+\label{sec:org558c15f}
+\begin{frame}[label={sec:org2f90d59}]{\color{white} break title}
 \begin{block}{\center \Large Need results for \(f_{\hat{\beta}_n}\) instead of \(\hat{f}_n\)}
 \vspace{2cm}
 \pause
@@ -610,7 +610,7 @@ well-defined or a very bad estimator.
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org4d131b4}]{Deriving convergence rates using empirical processes theory}
+\begin{frame}[label={sec:orgb2bc31e}]{Deriving convergence rates using empirical processes theory}
 \pause \small
 The convergence rate for an empirical loss minimizer over a function space
 $\mathcal{F}$ can be read off from the \textit{modulus of continuity} of the
@@ -647,7 +647,7 @@ estimator \(f_n^{\star}\) to fulfill
 \end{equation*}
 \end{frame}
 
-\begin{frame}[label={sec:org2d326ff}]{This holds for \large \(f_{\hat{\beta}_n}\): \(\empmeas{[L(f_{\hat{\beta}_n}, \blank)]} \leq \empmeas{[L(f_0, \blank)]}  + \mathcal{O}_P{(r_n^2)}\)}
+\begin{frame}[label={sec:orgf8f7dad}]{This holds for \large \(f_{\hat{\beta}_n}\): \(\empmeas{[L(f_{\hat{\beta}_n}, \blank)]} \leq \empmeas{[L(f_0, \blank)]}  + \mathcal{O}_P{(r_n^2)}\)}
 \small\pause
 Write
 \begin{equation*}
@@ -701,7 +701,7 @@ by the law of large numbers
 \end{equation*}
 \end{frame}
 
-\begin{frame}[label={sec:org1f4f1cf}]{Conclusion and discussion}
+\begin{frame}[label={sec:org06b43d1}]{Conclusion and discussion}
 \begin{itemize}[<+->]
 \item We obtain the wanted convergence rate when using \(f_{\hat{\beta}_n}\) as our
 estimator instead of \(\hat{f}_n\).
@@ -717,8 +717,8 @@ computationally attractive.
 \end{frame}
 
 \section*{References}
-\label{sec:orgd231cbc}
-\begin{frame}[label={sec:orgbc2cc3c}]{References}
+\label{sec:orgc2a3d77}
+\begin{frame}[label={sec:org38c52b5}]{References}
 \footnotesize \bibliography{./latex-settings/default-bib.bib}
 \end{frame}
 \end{document}

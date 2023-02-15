@@ -175,7 +175,7 @@ Remember to exceture (C-c C-c) the following line:
 - Still nice to know that the estimator we approximate has  nice properties
 
 
-* Functions of bounded sectional variation norm
+* Multivariate càdlàg functions of bounded sectional variation norm
 ** Definition of the estimator
 
 \small
@@ -395,7 +395,7 @@ In dimension $d=1$, the variation norm of a function is
   \Vert f \Vert_{v} = \sup_{\pi} \sum_{i=1}^{|\pi|} |f(t_{i})-f(t_{i-1})|,
 \end{equation*}
 where the supremum is taken over all finite partitions
-\(0=t_0 < t_1 < \dots < t_{\pi} = 1\).
+\(0=t_0 < t_1 < \dots < t_{|\pi|} = 1\).
 #+end_export
 
 \vfill \pause
@@ -568,7 +568,7 @@ the \textit{quasi-volume} that \(f\) assigns the rectangle $A$.
 However, many interesting functions have Vitalli variation equal to 0, e.g., the
 function $f(x,y) = x$.
 
-\vfill \pause We should also look at the function on the \textit{faces}
+\vfill \pause We should also look at the function on the \textit{lower dimensional faces}
 \begin{equation*}
   U_s = \{(u_1, \dots, u_d) \in [0,1]^d : u_j = 0, j \not\in s \},
 \end{equation*}
@@ -1146,7 +1146,7 @@ by the law of large numbers
 * HEADER :noexport:
 #+TITLE: Some comments about the Highly-Adaptive LASSO with focus on survival data
 #+Author: Anders Munch \newline \small joint work with Thomas G., Helene, and Mark van der Laan
-#+Date: \today
+#+Date: February 15, 2023
 
 #+LANGUAGE:  en
 #+OPTIONS:   H:2 num:t toc:t ':t ^:t
