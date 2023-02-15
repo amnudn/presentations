@@ -156,7 +156,7 @@ Remember to exceture (C-c C-c) the following line:
 * Setting and motivation
 ** Motivation
 \small
-*** Reasons for using HAL
+*** Reasons for using HAL \citep{van2017generally}
 - Theoretically important
 - "Dimension-free" convergence rate
 - Few assumptions imposed
