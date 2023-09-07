@@ -1,0 +1,191 @@
+% Created 2023-09-07 Thu 13:05
+% Intended LaTeX compiler: pdflatex
+\documentclass[smaller]{beamer}\usepackage{listings}
+\usepackage{color}
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage[T1]{fontenc}
+\usepackage{natbib}
+\lstset{
+keywordstyle=\color{blue},
+commentstyle=\color{red},stringstyle=\color[rgb]{0,.5,0},
+literate={~}{$\sim$}{1},
+basicstyle=\ttfamily\small,
+columns=fullflexible,
+breaklines=true,
+breakatwhitespace=false,
+numbers=left,
+numberstyle=\ttfamily\tiny\color{gray},
+stepnumber=1,
+numbersep=10pt,
+backgroundcolor=\color{white},
+tabsize=4,
+keepspaces=true,
+showspaces=false,
+showstringspaces=false,
+xleftmargin=.23in,
+frame=single,
+basewidth={0.5em,0.4em},
+}
+\usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+\bibliographystyle{abbrvnat}
+\input{./latex-settings/standard-commands.tex}
+\setbeamertemplate{footline}[frame number]
+\beamertemplatenavigationsymbolsempty
+\usepackage{appendixnumberbeamer}
+\setbeamercolor{gray}{bg=white!90!black}
+\setbeamertemplate{itemize items}{$\circ$}
+
+\renewcommand*\familydefault{\sfdefault}
+\itemsep2pt
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\usetheme{default}
+\author{Anders Munch and Thomas Gerds}
+\date{September 11, 2023}
+\title{Targeted learning under shape constraints}
+\begin{document}
+
+\maketitle
+\begin{frame}[label={sec:org5852d92}]{Motivation}
+The road map of causal learning tells us to incorporate all the knowledge that we have
+  into the statistical model for the distribution of the data
+\vfill
+
+In many real applications, subject matter knowledge is available
+  regarding the shape of the underlying conditional density and
+  regression functions
+\vfill
+
+Examples of biologically motivated shapes are
+\begin{itemize}
+\item risk of disease is not decreasing with age (given other covariates)
+\item The risk of disease should be a monotone function of age (given other covariates)
+\item The number of comorbidities increases the risk of disease
+\item the effect of a biomarker on the risk of disease is an unimodal function (given other covariates)
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label={sec:orgfa6f328}]{}
+\begin{block}{Working hypotheses}
+\begin{itemize}
+\item Shape constraints can be incorporated into machine learning for nuisance parameters
+\item Biologically motivated shape constraints 
+may lead to improved estimators
+\end{itemize}
+
+\vspace{4em}
+\end{block}
+
+\begin{block}{Goal for the workshop}
+\begin{itemize}
+\item Discuss some initial hypotheses and ideas
+\item Help us move in the right research direction
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}[label={sec:org12aae74}]{Multivariate shape constraints}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.7\textwidth]{./a.pdf}
+\label{fig:1}
+\end{figure}
+\end{frame}
+
+\begin{frame}[label={sec:org5ca159e}]{Machine learning (from the shelf)}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.7\textwidth]{./b.pdf}
+\label{fig:1}
+\end{figure}
+\end{frame}
+\begin{frame}[label={sec:org7d666ee}]{Shape constraints}
+\begin{block}{Examples}
+\begin{itemize}
+\item Monotonicity
+\item Unimodality
+\item Convexity
+\item Log-concave densities
+\end{itemize}
+\end{block}
+
+\begin{block}{Constraints imposed on target or nuisance parameter}
+Shape constraint on a function-valued target parameter has been
+considered
+\citep[e.g.,][]{groeneboom2014nonparametric,westling2020unified,wu2022nonparametric}. We
+will mostly discuss imposing shape-constraints on nuisance parameters.
+\end{block}
+\end{frame}
+
+\begin{frame}[label={sec:orgd8bf389}]{Information bounds}
+\begin{alertblock}{Claim 1}
+Most shape constraints will not restrict the tangent space, and hence imposing
+shape constraints does not change the information bound for a statistical
+estimation problem.
+
+\begin{itemize}
+\item Which shape constraints (if any) is this true for?
+\item Can we still expect to improve a TMLE by imposing shape constraints on the
+nuisance parameters?
+\end{itemize}
+\end{alertblock}
+
+\begin{alertblock}{Claim 2}
+Constructing a TMLE under a shape constrained model will typically result in a
+sub-model that is not contained in the shape constrained model.
+
+\begin{itemize}
+\item Is this a problem?
+\end{itemize}
+\end{alertblock}
+\end{frame}
+
+\begin{frame}[label={sec:org7d82c30}]{(Un)necessary restrictions on nuisance parameters?}
+\begin{block}{Undersmoothing}
+It has been argued that undersmoothing estimators of nuisance parameters can
+provide better estimators of a low-dimensional target parameter
+\citep[e.g.,][]{goldstein1996efficient,hjort2001note,van2022efficient}. Could shape constrained estimators provide
+unnecessary smoothing of nuisance parameter estimators, which might in fact be
+damaging?
+\end{block}
+
+\begin{block}{Biologically reasonable nuisance parameter estimators?}
+Should we pay attention to whether nuisance parameters are estimated by
+biologically meaningful estimators?
+
+\hfill
+
+Should we accept a biologically unreasonable estimator of a nuisance parameter
+as long as it provides a good estimator of the target parameter?
+\end{block}
+\end{frame}
+
+
+\begin{frame}[label={sec:org4c44df0}]{Challenges for future research}
+\begin{itemize}
+\item Should we distinguish between learning Q vs G parts of a causal
+model/information loss model?
+
+\item How do we translate ``marginal'' smoothness constraints into 
+constraints on a multivariate function?
+
+\item In longitudinal settings: need to discuss shape-constraints on the
+history (filtration)
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[label={sec:org8ce415e}]{References}
+\footnotesize \bibliography{./latex-settings/default-bib.bib}
+\end{frame}
+\end{document}

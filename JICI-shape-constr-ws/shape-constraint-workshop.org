@@ -1,0 +1,219 @@
+* Motivation
+
+The road map of causal learning tells us to incorporate all the knowledge that we have
+  into the statistical model for the distribution of the data
+\vfill
+
+In many real applications, subject matter knowledge is available
+  regarding the shape of the underlying conditional density and
+  regression functions
+\vfill
+
+Examples of biologically motivated shapes are
+  - risk of disease is not decreasing with age (given other covariates)
+  - The risk of disease should be a monotone function of age (given other covariates)
+  - The number of comorbidities increases the risk of disease
+  - the effect of a biomarker on the risk of disease is an unimodal function (given other covariates)
+
+* 
+
+** Working hypotheses
+- Shape constraints can be incorporated into machine learning for nuisance parameters
+- Biologically motivated shape constraints 
+  may lead to improved estimators
+
+\vspace{4em}
+ 
+** Goal for the workshop
+- Discuss some initial hypotheses and ideas
+- Help us move in the right research direction
+  
+* Multivariate shape constraints
+
+#+BEGIN_SRC R :results file graphics :file ./a.pdf :exports none :session *R* :cache yes
+library(data.table)
+library(ggplot2)
+setwd("~/research/SuperVision/Anders/presentations/jici-workshop-september-2023/")
+dgm <- function(Age, Parasites) expit(-3.5-.3*Age+.85*Parasites+0.35*Age*Parasites)
+simulateMalariaData <- function(N){
+  expit <- function(x){exp(x)/(1+exp(x))}
+  Age <- runif(N,.5,15)
+  Parasites <- rnorm(N,mean=3.5-0.03*Age)
+  Fever <- rbinom(N,1,dgm(Age,Parasites))
+  data.table(Fever,Age,Parasites)
+}
+grid <- expand.grid(Age = seq(0.5, 15, length.out = 50),Parasites = seq(0, 7, length.out = 50))
+setDT(grid)
+grid[,ps:=dgm(Age, Parasites)]
+ggplot(grid, aes(x = Age, y = Parasites, fill = ps)) + 
+  theme_bw() +
+  theme(text = element_text(size=17),
+        axis.text.x = element_text(angle=0, hjust=1))+
+  geom_tile() +
+  theme(legend.position="bottom")+
+  scale_fill_gradientn(limits = c(0, 1), colors = c("blue", "green", "red")) + 
+  xlab("Age") + 
+  ylab("Biomarker") + 
+  ggtitle("The data-generating regression function") +
+  labs(fill = "Probability")
+#+END_SRC
+
+#+RESULTS[(2023-09-07 12:25:10) 0717d7b031fbba39e3af1f48c3d40a054e8a2978]:
+[[file:./a.pdf]]
+
+#+name: fig:1
+#+ATTR_LATEX: :width 0.7\textwidth
+#+CAPTION:
+[[file:./a.pdf]]
+
+* Machine learning (from the shelf)
+
+
+#+BEGIN_SRC R :results file graphics :file ./b.pdf :exports none :session *R* :cache yes
+setwd("~/research/SuperVision/Anders/presentations/jici-workshop-september-2023/")
+library(data.table)
+library(ggplot2)
+library(randomForestSRC)
+set.seed(13)
+dgm <- function(Age, Parasites) expit(-3.5-.3*Age+.85*Parasites+0.35*Age*Parasites)
+simulateMalariaData <- function(N){
+  expit <- function(x){exp(x)/(1+exp(x))}
+  Age <- runif(N,.5,15)
+  Parasites <- rnorm(N,mean=3.5-0.03*Age)
+  Fever <- rbinom(N,1,dgm(Age,Parasites))
+  data.table(Fever=factor(Fever),Age,Parasites)
+}
+d=simulateMalariaData(471)
+fit=rfsrc(Fever~Age+Parasites,data=d)
+grid[,rf:=predictRisk(fit,newdata=grid)]
+ggplot(grid, aes(x = Age, y = Parasites, fill = rf)) + 
+  theme_bw() +
+  theme(text = element_text(size=20),
+        axis.text.x = element_text(angle=0, hjust=1))+
+  theme(legend.position="bottom")+
+  geom_tile() +
+  scale_fill_gradientn(limits = c(0, 1), colors = c("blue", "green", "red")) + 
+  xlab("Age") + 
+  ylab("Biomarker") + 
+  ggtitle("Random forest fit without tuning") +
+  labs(fill = "Probability")
+#+END_SRC
+
+#+RESULTS[(2023-09-07 12:25:49) b57d674237fb5d7fabc89f797c056f1eb607415c]:
+[[file:./b.pdf]]
+
+#+name: fig:1
+#+ATTR_LATEX: :width 0.7\textwidth
+#+CAPTION:
+[[file:./b.pdf]]
+* Shape constraints
+** Examples
+- Monotonicity
+- Unimodality
+- Convexity
+- Log-concave densities
+
+** Constraints imposed on target or nuisance parameter
+
+Shape constraint on a function-valued target parameter has been
+considered
+\citep[e.g.,][]{groeneboom2014nonparametric,westling2020unified,wu2022nonparametric}. We
+will mostly discuss imposing shape-constraints on nuisance parameters.
+
+* Information bounds
+** Claim 1                                                     :B_alertblock:
+:PROPERTIES:
+:BEAMER_env: alertblock
+:END:
+Most shape constraints will not restrict the tangent space, and hence imposing
+shape constraints does not change the information bound for a statistical
+estimation problem.
+
+- Which shape constraints (if any) is this true for?
+- Can we still expect to improve a TMLE by imposing shape constraints on the
+  nuisance parameters?
+
+** Claim 2                                                     :B_alertblock:
+:PROPERTIES:
+:BEAMER_env: alertblock
+:END:
+Constructing a TMLE under a shape constrained model will typically result in a
+sub-model that is not contained in the shape constrained model.
+
+- Is this a problem?
+
+* (Un)necessary restrictions on nuisance parameters?
+
+** Undersmoothing
+It has been argued that undersmoothing estimators of nuisance parameters can
+provide better estimators of a low-dimensional target parameter
+\citep[e.g.,][]{goldstein1996efficient,hjort2001note,van2022efficient}. Could shape constrained estimators provide
+unnecessary smoothing of nuisance parameter estimators, which might in fact be
+damaging?
+
+** Biologically reasonable nuisance parameter estimators?
+Should we pay attention to whether nuisance parameters are estimated by
+biologically meaningful estimators?
+
+\hfill
+
+Should we accept a biologically unreasonable estimator of a nuisance parameter
+as long as it provides a good estimator of the target parameter?
+
+
+* Challenges for future research
+
+- Should we distinguish between learning Q vs G parts of a causal
+  model/information loss model?
+
+- How do we translate "marginal" smoothness constraints into 
+  constraints on a multivariate function?
+  
+- In longitudinal settings: need to discuss shape-constraints on the
+  history (filtration)
+
+
+* References
+:PROPERTIES:
+:UNNUMBERED: t
+:END:
+\footnotesize \bibliography{./latex-settings/default-bib.bib}
+
+* R and figures                                                    :noexport:
+Remember to exceture (C-c C-c) the following line:
+#+PROPERTY: header-args:R :async :results output verbatim  :exports results  :session *R* :cache yes
+
+* HEADER                                                           :noexport:
+#+TITLE: Targeted learning under shape constraints
+#+Author: Anders Munch and Thomas Gerds
+#+Date: September 11, 2023
+
+#+LANGUAGE:  en
+#+OPTIONS:   H:1 num:t toc:nil ':t ^:t
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LATEX_CLASS_OPTIONS: [smaller]
+#+LaTeX_HEADER: \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+#+LaTeX_HEADER: \bibliographystyle{abbrvnat}
+#+LaTeX_HEADER: \input{./latex-settings/standard-commands.tex}
+#+BIBLIOGRAPHY: ./latex-settings/default-bib plain
+
+# Beamer settins:
+# #+LaTeX_HEADER: \usefonttheme[onlymath]{serif} 
+#+LaTeX_HEADER: \setbeamertemplate{footline}[frame number]
+#+LaTeX_HEADER: \beamertemplatenavigationsymbolsempty
+#+LaTeX_HEADER: \usepackage{appendixnumberbeamer}
+#+LaTeX_HEADER: \setbeamercolor{gray}{bg=white!90!black}
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+LATEX_HEADER: \setbeamertemplate{itemize items}{$\circ$}
+
+# Check this:
+# #+LaTeX_HEADER: \lstset{basicstyle=\ttfamily\small}
+
+# For handout mode: (check order...)
+# #+LATEX_CLASS_OPTIONS: [handout]
+# #+LaTeX_HEADER: \pgfpagesuselayout{4 on 1}[border shrink=1mm]
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{1}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{2}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{3}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{4}{border code=\pgfusepath{stroke}}
