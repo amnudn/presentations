@@ -162,9 +162,9 @@ for the statistical estimation problem.
 :PROPERTIES:
 :BEAMER_env: alertblock
 :END:
-Constructing a TMLE under a shape constrained model will typically
-result in a sub-model that is not contained in the shape constrained
-model. 
+Constructing a TMLE under a shape constrained model will typically result in a
+sub-model that is not contained in the shape constrained model (c.f.,
+\cite{van1989asymptotic}).
 
 ** Conjecture 3                                                :B_alertblock:
 :PROPERTIES:

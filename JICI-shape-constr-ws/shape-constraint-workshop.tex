@@ -1,4 +1,4 @@
-% Created 2023-09-08 Fri 09:58
+% Created 2023-09-08 Fri 10:03
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -56,7 +56,7 @@ basewidth={0.5em,0.4em},
 \begin{document}
 
 \maketitle
-\begin{frame}[label={sec:org62d77ae}]{Motivation}
+\begin{frame}[label={sec:org20ef451}]{Motivation}
 The road map of causal learning tells us to incorporate all the knowledge that we have
   into the statistical model for the distribution of the data
 \vfill
@@ -75,7 +75,7 @@ Examples of biologically motivated shapes are
 \end{itemize}
 \end{frame}
 
-\begin{frame}[label={sec:org931cbd4}]{Target and nuisance parameters}
+\begin{frame}[label={sec:org7a57632}]{Target and nuisance parameters}
 Consider a real-valued target parameter \(\psi: \mathcal P\to\R\) 
 
 \begin{equation*}
@@ -95,7 +95,7 @@ Today, we will mostly discuss imposing shape-constraints on nuisance
 parameters.
 \end{frame}
 
-\begin{frame}[label={sec:orge8d0445}]{}
+\begin{frame}[label={sec:orgbc0ca9d}]{}
 \begin{block}{Working hypotheses}
 \begin{itemize}
 \item Shape constraints can be incorporated into machine learning for nuisance parameters
@@ -114,7 +114,7 @@ may lead to improved estimators
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org991779c}]{Multivariate shape constraints}
+\begin{frame}[label={sec:org2df52a4}]{Multivariate shape constraints}
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.7\textwidth]{./a.pdf}
@@ -122,14 +122,14 @@ may lead to improved estimators
 \end{figure}
 \end{frame}
 
-\begin{frame}[label={sec:org97595e9}]{Machine learning (from the shelf)}
+\begin{frame}[label={sec:org21dcf35}]{Machine learning (from the shelf)}
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.7\textwidth]{./b.pdf}
 \label{fig:1}
 \end{figure}
 \end{frame}
-\begin{frame}[label={sec:org294faa3}]{Shape constraints}
+\begin{frame}[label={sec:org8ef1209}]{Shape constraints}
 \begin{block}{Examples}
 \begin{itemize}
 \item Monotonicity
@@ -151,7 +151,7 @@ may lead to improved estimators
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org1c8c8ad}]{Information bounds}
+\begin{frame}[label={sec:orgb9ccb59}]{Information bounds}
 \begin{alertblock}{Conjecture 1}
 Some shape constraints will not restrict the tangent space, and hence
 imposing such shape constraints does not change the information bound
@@ -165,9 +165,9 @@ imposing such shape constraints on the nuisance parameters?
 \end{alertblock}
 
 \begin{alertblock}{Conjecture 2}
-Constructing a TMLE under a shape constrained model will typically
-result in a sub-model that is not contained in the shape constrained
-model. 
+Constructing a TMLE under a shape constrained model will typically result in a
+sub-model that is not contained in the shape constrained model (c.f.,
+\cite{van1989asymptotic}).
 \end{alertblock}
 
 \begin{alertblock}{Conjecture 3}
@@ -176,7 +176,7 @@ machine learning.
 \end{alertblock}
 \end{frame}
 
-\begin{frame}[label={sec:orgda24546}]{(Un)necessary restrictions on nuisance parameters?}
+\begin{frame}[label={sec:orgb1b9ec5}]{(Un)necessary restrictions on nuisance parameters?}
 \begin{block}{Undersmoothing}
 It has been shown that undersmoothing of the estimators of the
 nuisance parameters is needed when they are 'plugged-in' to estimate a
@@ -198,7 +198,7 @@ as long as it provides a good estimator of the target parameter?
 \end{frame}
 
 
-\begin{frame}[label={sec:orgcb572f4}]{Estimating a cumulative distribution function}
+\begin{frame}[label={sec:org0b2146b}]{Estimating a cumulative distribution function}
 \small
 
 \begin{description}
@@ -212,7 +212,7 @@ as long as it provides a good estimator of the target parameter?
 \end{frame}
 
 
-\begin{frame}[label={sec:org5487750}]{Challenges for future research}
+\begin{frame}[label={sec:orga8e14be}]{Challenges for future research}
 \begin{itemize}
 \item Should we distinguish between learning Q vs G parts of a causal
 model/information loss model?
@@ -227,7 +227,7 @@ variable.
 \end{itemize}
 \end{frame}
 
-\begin{frame}[label={sec:org4dc7852}]{References}
+\begin{frame}[label={sec:org619d706}]{References}
 \footnotesize \bibliography{./latex-settings/default-bib.bib}
 \end{frame}
 \end{document}
