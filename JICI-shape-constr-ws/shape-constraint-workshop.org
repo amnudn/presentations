@@ -170,8 +170,8 @@ sub-model that is not contained in the shape constrained model (c.f.,
 :PROPERTIES:
 :BEAMER_env: alertblock
 :END:
-Imposing shape constraints can improve the convergence rates of
-machine learning.
+Imposing shape constraints can improve the convergence rates of machine learning
+\cite[e.g.,][]{fang2021multivariate}.
 
 * (Un)necessary restrictions on nuisance parameters?
 
@@ -197,7 +197,7 @@ as long as it provides a good estimator of the target parameter?
 * Estimating a cumulative distribution function
 \small
 
-- \color{red}ECDF :: Empirical distribution function
+- \color{red}ECDF :: Empirical cumulative distribution function
 - \color{orange}kernCDF :: Estimator based on smoothed kernel density estimator
 - \color{blue}logConCDF :: Estimator based on log-concave density estimator
   \citep{dumbgen2009maximum,Rufibach_Duembgen_2023}
