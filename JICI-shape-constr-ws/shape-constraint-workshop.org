@@ -15,6 +15,28 @@ Examples of biologically motivated shapes are
   - The number of comorbidities increases the risk of disease
   - the effect of a biomarker on the risk of disease is an unimodal function (given other covariates)
 
+* Target and nuisance parameters
+
+Consider a real-valued target parameter \(\psi: \mathcal P\to\R\) 
+
+#+begin_export latex
+\begin{equation*}
+\psi(\mathrm P_{Q,G}) = \nu(Q)
+\end{equation*}
+#+end_export
+
+for some functional \(\nu:\mathcal Q\to\R\) such that \(G\) and 'all
+other parts' of \(Q\) are nuisance parameters.
+\vfill
+
+Shape constraints on a function-valued target parameter have been
+considered by many, e.g.,
+\citet[][]{groeneboom2014nonparametric,westling2020unified,wu2022nonparametric}. 
+\vfill
+
+Today, we will mostly discuss imposing shape-constraints on nuisance
+parameters.
+
 * 
 
 ** Working hypotheses
@@ -111,53 +133,62 @@ ggplot(grid, aes(x = Age, y = Parasites, fill = rf)) +
 - Monotonicity
 - Unimodality
 - Convexity
-- Log-concave densities
+- Log-concave density
 
-** Constraints imposed on target or nuisance parameter
+** Tools to incorporate shape constraints into machine learning
 
-Shape constraint on a function-valued target parameter has been
-considered
-\citep[e.g.,][]{groeneboom2014nonparametric,westling2020unified,wu2022nonparametric}. We
-will mostly discuss imposing shape-constraints on nuisance parameters.
-
+- Model specification/architecture
+- Internal parameter tuning
+- External penalty/loss function
+- Smoothing applied to the fitted object
+- Log-concave sampling
+- what else?
+  
 * Information bounds
-** Claim 1                                                     :B_alertblock:
+** Conjecture 1                                                :B_alertblock:
 :PROPERTIES:
 :BEAMER_env: alertblock
 :END:
-Most shape constraints will not restrict the tangent space, and hence imposing
-shape constraints does not change the information bound for a statistical
-estimation problem.
 
-- Which shape constraints (if any) is this true for?
-- Can we still expect to improve a TMLE by imposing shape constraints on the
-  nuisance parameters?
+Some shape constraints will not restrict the tangent space, and hence
+imposing such shape constraints does not change the information bound
+for the statistical estimation problem.
 
+- Which shape constraints satisfy this when imposed on G and/or Q?
+- Can we still improve a targeted minimum loss estimator (TMLE) by
+  imposing such shape constraints on the nuisance parameters?
 \pause
 
-** Claim 2                                                     :B_alertblock:
+** Conjecture 2                                                       :B_alertblock:
 :PROPERTIES:
 :BEAMER_env: alertblock
 :END:
-Constructing a TMLE under a shape constrained model will typically result in a
-sub-model that is not contained in the shape constrained model.
+Constructing a TMLE under a shape constrained model will typically
+result in a sub-model that is not contained in the shape constrained
+model.
 
-- Is this a problem?
+** Conjecture 3                                                :B_alertblock:
+:PROPERTIES:
+:BEAMER_env: alertblock
+:END:
+Imposing shape constraints can improve the convergence rates of
+machine learning.
 
 * (Un)necessary restrictions on nuisance parameters?
 
 ** Undersmoothing
-It has been argued that undersmoothing estimators of nuisance parameters can
-provide better estimators of a low-dimensional target parameter
-\citep[e.g.,][]{goldstein1996efficient,hjort2001note,van2022efficient}. Could
-shape constrained estimators provide unnecessary smoothing of nuisance parameter
-estimators, which might in fact be damaging? \pause
+It has been shown that undersmoothing of the estimators of the
+nuisance parameters is needed when they are 'plugged-in' to estimate a
+low-dimensional target parameter
+\citep[e.g.,][]{goldstein1996efficient,hjort2001note,van2022efficient}.
+\vspace{1em}
+
+*Could shape constraints induce unnecessary/unfortunate smoothing?*
 
 ** Biologically reasonable nuisance parameter estimators?
-Should we pay attention to whether nuisance parameters are estimated by
-biologically meaningful estimators?
 
-\hfill
+Should we pay attention to whether nuisance parameters are estimated
+by biologically meaningful estimators? \vspace{1em}
 
 Should we accept a biologically unreasonable estimator of a nuisance parameter
 as long as it provides a good estimator of the target parameter?
@@ -183,9 +214,10 @@ as long as it provides a good estimator of the target parameter?
 - How do we translate "marginal" smoothness constraints into 
   constraints on a multivariate function?
   
-- In longitudinal settings: need to discuss shape-constraints on the
-  history (filtration)
-
+- In longitudinal settings, need to discuss shape-constraints on the
+  history (filtration): an older value of a variable (such as A1c in
+  diabetes) should have a lower effect than a newer value of the same
+  variable.
 
 * References
 :PROPERTIES:
