@@ -1,4 +1,4 @@
-% Created 2023-09-08 Fri 09:44
+% Created 2023-09-08 Fri 09:58
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -56,7 +56,7 @@ basewidth={0.5em,0.4em},
 \begin{document}
 
 \maketitle
-\begin{frame}[label={sec:org072dee7}]{Motivation}
+\begin{frame}[label={sec:org62d77ae}]{Motivation}
 The road map of causal learning tells us to incorporate all the knowledge that we have
   into the statistical model for the distribution of the data
 \vfill
@@ -75,7 +75,7 @@ Examples of biologically motivated shapes are
 \end{itemize}
 \end{frame}
 
-\begin{frame}[label={sec:org89e8fb2}]{Target and nuisance parameters}
+\begin{frame}[label={sec:org931cbd4}]{Target and nuisance parameters}
 Consider a real-valued target parameter \(\psi: \mathcal P\to\R\) 
 
 \begin{equation*}
@@ -95,7 +95,7 @@ Today, we will mostly discuss imposing shape-constraints on nuisance
 parameters.
 \end{frame}
 
-\begin{frame}[label={sec:orgca678af}]{}
+\begin{frame}[label={sec:orge8d0445}]{}
 \begin{block}{Working hypotheses}
 \begin{itemize}
 \item Shape constraints can be incorporated into machine learning for nuisance parameters
@@ -114,7 +114,7 @@ may lead to improved estimators
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:orgb22b288}]{Multivariate shape constraints}
+\begin{frame}[label={sec:org991779c}]{Multivariate shape constraints}
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.7\textwidth]{./a.pdf}
@@ -122,14 +122,14 @@ may lead to improved estimators
 \end{figure}
 \end{frame}
 
-\begin{frame}[label={sec:org55b8e5d}]{Machine learning (from the shelf)}
+\begin{frame}[label={sec:org97595e9}]{Machine learning (from the shelf)}
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.7\textwidth]{./b.pdf}
 \label{fig:1}
 \end{figure}
 \end{frame}
-\begin{frame}[label={sec:org3527922}]{Shape constraints}
+\begin{frame}[label={sec:org294faa3}]{Shape constraints}
 \begin{block}{Examples}
 \begin{itemize}
 \item Monotonicity
@@ -151,7 +151,7 @@ may lead to improved estimators
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org87b6ac8}]{Information bounds}
+\begin{frame}[label={sec:org1c8c8ad}]{Information bounds}
 \begin{alertblock}{Conjecture 1}
 Some shape constraints will not restrict the tangent space, and hence
 imposing such shape constraints does not change the information bound
@@ -162,13 +162,12 @@ for the statistical estimation problem.
 \item Can we still improve a targeted minimum loss estimator (TMLE) by
 imposing such shape constraints on the nuisance parameters?
 \end{itemize}
-\pause
 \end{alertblock}
 
 \begin{alertblock}{Conjecture 2}
 Constructing a TMLE under a shape constrained model will typically
 result in a sub-model that is not contained in the shape constrained
-model.
+model. 
 \end{alertblock}
 
 \begin{alertblock}{Conjecture 3}
@@ -177,7 +176,7 @@ machine learning.
 \end{alertblock}
 \end{frame}
 
-\begin{frame}[label={sec:orgb5c93e0}]{(Un)necessary restrictions on nuisance parameters?}
+\begin{frame}[label={sec:orgda24546}]{(Un)necessary restrictions on nuisance parameters?}
 \begin{block}{Undersmoothing}
 It has been shown that undersmoothing of the estimators of the
 nuisance parameters is needed when they are 'plugged-in' to estimate a
@@ -187,6 +186,7 @@ low-dimensional target parameter
 
 \alert{Could shape constraints induce unnecessary/unfortunate smoothing?}
 \end{block}
+
 
 \begin{block}{Biologically reasonable nuisance parameter estimators?}
 Should we pay attention to whether nuisance parameters are estimated
@@ -198,7 +198,7 @@ as long as it provides a good estimator of the target parameter?
 \end{frame}
 
 
-\begin{frame}[label={sec:org490379c}]{Estimating a cumulative distribution function}
+\begin{frame}[label={sec:orgcb572f4}]{Estimating a cumulative distribution function}
 \small
 
 \begin{description}
@@ -212,7 +212,7 @@ as long as it provides a good estimator of the target parameter?
 \end{frame}
 
 
-\begin{frame}[label={sec:org4090a25}]{Challenges for future research}
+\begin{frame}[label={sec:org5487750}]{Challenges for future research}
 \begin{itemize}
 \item Should we distinguish between learning Q vs G parts of a causal
 model/information loss model?
@@ -227,7 +227,7 @@ variable.
 \end{itemize}
 \end{frame}
 
-\begin{frame}[label={sec:org963708c}]{References}
+\begin{frame}[label={sec:org4dc7852}]{References}
 \footnotesize \bibliography{./latex-settings/default-bib.bib}
 \end{frame}
 \end{document}

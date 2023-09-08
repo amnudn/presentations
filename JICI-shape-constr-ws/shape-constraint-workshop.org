@@ -157,7 +157,6 @@ for the statistical estimation problem.
 - Which shape constraints satisfy this when imposed on G and/or Q?
 - Can we still improve a targeted minimum loss estimator (TMLE) by
   imposing such shape constraints on the nuisance parameters?
-\pause
 
 ** Conjecture 2                                                       :B_alertblock:
 :PROPERTIES:
@@ -165,7 +164,7 @@ for the statistical estimation problem.
 :END:
 Constructing a TMLE under a shape constrained model will typically
 result in a sub-model that is not contained in the shape constrained
-model.
+model. 
 
 ** Conjecture 3                                                :B_alertblock:
 :PROPERTIES:
@@ -184,6 +183,7 @@ low-dimensional target parameter
 \vspace{1em}
 
 *Could shape constraints induce unnecessary/unfortunate smoothing?*
+
 
 ** Biologically reasonable nuisance parameter estimators?
 
