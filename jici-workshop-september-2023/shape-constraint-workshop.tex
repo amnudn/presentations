@@ -1,4 +1,4 @@
-% Created 2023-09-07 Thu 12:33
+% Created 2023-09-08 Fri 09:42
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -56,7 +56,7 @@ basewidth={0.5em,0.4em},
 \begin{document}
 
 \maketitle
-\begin{frame}[label={sec:org76a57e4}]{Motivation}
+\begin{frame}[label={sec:orgd0175ea}]{Motivation}
 The road map of causal learning tells us to incorporate all the knowledge that we have
   into the statistical model for the distribution of the data
 \vfill
@@ -75,7 +75,27 @@ Examples of biologically motivated shapes are
 \end{itemize}
 \end{frame}
 
-\begin{frame}[label={sec:org154eb3c}]{}
+\begin{frame}[label={sec:orgc3ae167}]{Target and nuisance parameters}
+Consider a real-valued target parameter \(\psi: \mathcal P\to\R\) 
+
+\begin{equation*}
+\psi(\mathrm P_{Q,G}) = \nu(Q)
+\end{equation*}
+
+for some functional \(\nu:\mathcal Q\to\R\) such that \(G\) and 'all
+other parts' of \(Q\) are nuisance parameters.
+\vfill
+
+Shape constraints on a function-valued target parameter have been
+considered by many, e.g.,
+\citet[][]{groeneboom2014nonparametric,westling2020unified,wu2022nonparametric}. 
+\vfill
+
+Today, we will mostly discuss imposing shape-constraints on nuisance
+parameters.
+\end{frame}
+
+\begin{frame}[label={sec:orga712c78}]{}
 \begin{block}{Working hypotheses}
 \begin{itemize}
 \item Shape constraints can be incorporated into machine learning for nuisance parameters
@@ -94,7 +114,7 @@ may lead to improved estimators
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:orgaa99eea}]{Multivariate shape constraints}
+\begin{frame}[label={sec:org7fd132f}]{Multivariate shape constraints}
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.7\textwidth]{./a.pdf}
@@ -102,68 +122,74 @@ may lead to improved estimators
 \end{figure}
 \end{frame}
 
-\begin{frame}[label={sec:orga6b9daf}]{Machine learning (from the shelf)}
+\begin{frame}[label={sec:org21a6501}]{Machine learning (from the shelf)}
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.7\textwidth]{./b.pdf}
 \label{fig:1}
 \end{figure}
 \end{frame}
-\begin{frame}[label={sec:org6b9f9c0}]{Shape constraints}
+\begin{frame}[label={sec:org2448f96}]{Shape constraints}
 \begin{block}{Examples}
 \begin{itemize}
 \item Monotonicity
 \item Unimodality
 \item Convexity
-\item Log-concave densities
+\item Log-concave density
 \end{itemize}
 \end{block}
 
-\begin{block}{Constraints imposed on target or nuisance parameter}
-Shape constraint on a function-valued target parameter has been
-considered
-\citep[e.g.,][]{groeneboom2014nonparametric,westling2020unified,wu2022nonparametric}. We
-will mostly discuss imposing shape-constraints on nuisance parameters.
+\begin{block}{Tools to incorporate shape constraints into machine learning}
+\begin{itemize}
+\item Model specification/architecture
+\item Internal parameter tuning
+\item External penalty/loss function
+\item Smoothing applied to the fitted object
+\item Log-concave sampling
+\item what else?
+\end{itemize}
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:orgb47adce}]{Information bounds}
-\begin{alertblock}{Claim 1}
-Most shape constraints will not restrict the tangent space, and hence imposing
-shape constraints does not change the information bound for a statistical
-estimation problem.
+\begin{frame}[label={sec:orgced7abd}]{Information bounds}
+\begin{alertblock}{Conjecture 1}
+Some shape constraints will not restrict the tangent space, and hence
+imposing such shape constraints does not change the information bound
+for the statistical estimation problem.
 
 \begin{itemize}
-\item Which shape constraints (if any) is this true for?
-\item Can we still expect to improve a TMLE by imposing shape constraints on the
-nuisance parameters?
+\item Which shape constraints satisfy this when imposed on G and/or Q?
+\item Can we still improve a targeted minimum loss estimator (TMLE) by
+imposing such shape constraints on the nuisance parameters?
 \end{itemize}
 \end{alertblock}
 
-\begin{alertblock}{Claim 2}
-Constructing a TMLE under a shape constrained model will typically result in a
-sub-model that is not contained in the shape constrained model.
+\begin{alertblock}{Conjecture 2}
+Constructing a TMLE under a shape constrained model will typically
+result in a sub-model that is not contained in the shape constrained
+model.
+\end{alertblock}
 
-\begin{itemize}
-\item Is this a problem?
-\end{itemize}
+\begin{alertblock}{Conjecture 3}
+Imposing shape constraints can improve the convergence rates of
+machine learning.
 \end{alertblock}
 \end{frame}
 
-\begin{frame}[label={sec:orgcdca8b9}]{(Un)necessary restrictions on nuisance parameters?}
+\begin{frame}[label={sec:org4ea5dc6}]{(Un)necessary restrictions on nuisance parameters?}
 \begin{block}{Undersmoothing}
-It has been argued that undersmoothing estimators of nuisance parameters can
-provide better estimators of a low-dimensional target parameter
-\citep[e.g.,][]{goldstein1996efficient,hjort2001note,van2022efficient}. Could shape constrained estimators provide
-unnecessary smoothing of nuisance parameter estimators, which might in fact be
-damaging?
+It has been shown that undersmoothing of the estimators of the
+nuisance parameters is needed when they are 'plugged-in' to estimate a
+low-dimensional target parameter
+\citep[e.g.,][]{goldstein1996efficient,hjort2001note,van2022efficient}.
+\vspace{1em}
+
+\alert{Could shape constraints induce unnecessary/unfortunate smoothing?}
 \end{block}
 
 \begin{block}{Biologically reasonable nuisance parameter estimators?}
-Should we pay attention to whether nuisance parameters are estimated by
-biologically meaningful estimators?
-
-\hfill
+Should we pay attention to whether nuisance parameters are estimated
+by biologically meaningful estimators? \vspace{1em}
 
 Should we accept a biologically unreasonable estimator of a nuisance parameter
 as long as it provides a good estimator of the target parameter?
@@ -171,7 +197,7 @@ as long as it provides a good estimator of the target parameter?
 \end{frame}
 
 
-\begin{frame}[label={sec:org6f81043}]{Challenges for future research}
+\begin{frame}[label={sec:org0c087bd}]{Challenges for future research}
 \begin{itemize}
 \item Should we distinguish between learning Q vs G parts of a causal
 model/information loss model?
@@ -179,13 +205,14 @@ model/information loss model?
 \item How do we translate ``marginal'' smoothness constraints into 
 constraints on a multivariate function?
 
-\item In longitudinal settings: need to discuss shape-constraints on the
-history (filtration)
+\item In longitudinal settings, need to discuss shape-constraints on the
+history (filtration): an older value of a variable (such as A1c in
+diabetes) should have a lower effect than a newer value of the same
+variable.
 \end{itemize}
 \end{frame}
 
-
-\begin{frame}[label={sec:org15e6ff6}]{References}
+\begin{frame}[label={sec:org239f481}]{References}
 \footnotesize \bibliography{./latex-settings/default-bib.bib}
 \end{frame}
 \end{document}
