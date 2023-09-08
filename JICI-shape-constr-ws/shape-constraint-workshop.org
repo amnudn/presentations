@@ -133,6 +133,8 @@ estimation problem.
 - Can we still expect to improve a TMLE by imposing shape constraints on the
   nuisance parameters?
 
+\pause
+
 ** Claim 2                                                     :B_alertblock:
 :PROPERTIES:
 :BEAMER_env: alertblock
@@ -147,9 +149,9 @@ sub-model that is not contained in the shape constrained model.
 ** Undersmoothing
 It has been argued that undersmoothing estimators of nuisance parameters can
 provide better estimators of a low-dimensional target parameter
-\citep[e.g.,][]{goldstein1996efficient,hjort2001note,van2022efficient}. Could shape constrained estimators provide
-unnecessary smoothing of nuisance parameter estimators, which might in fact be
-damaging?
+\citep[e.g.,][]{goldstein1996efficient,hjort2001note,van2022efficient}. Could
+shape constrained estimators provide unnecessary smoothing of nuisance parameter
+estimators, which might in fact be damaging? \pause
 
 ** Biologically reasonable nuisance parameter estimators?
 Should we pay attention to whether nuisance parameters are estimated by
@@ -159,6 +161,18 @@ biologically meaningful estimators?
 
 Should we accept a biologically unreasonable estimator of a nuisance parameter
 as long as it provides a good estimator of the target parameter?
+
+
+* Estimating a cumulative distribution function
+\small
+
+- \color{red}ECDF :: Empirical distribution function
+- \color{orange}kernCDF :: Estimator based on smoothed kernel density estimator
+- \color{blue}logConCDF :: Estimator based on log-concave density estimator
+  \citep{dumbgen2009maximum,Rufibach_Duembgen_2023}
+
+#+ATTR_LATEX: :width 1\textwidth :center
+[[./cdf-estimators.pdf]]
 
 
 * Challenges for future research
@@ -182,6 +196,121 @@ as long as it provides a good estimator of the target parameter?
 * R and figures                                                    :noexport:
 Remember to exceture (C-c C-c) the following line:
 #+PROPERTY: header-args:R :async :results output verbatim  :exports results  :session *R* :cache yes
+
+** Simulate
+#+BEGIN_SRC R
+  try(setwd("~/Documents/presentations/JICI-shape-constr-ws/"))
+  library(logcondens)
+  library(data.table)
+  library(parallel)
+  library(ggplot2)
+  library(gridExtra)
+
+  ## Get some test data
+  x <- rgamma(1000, 2, 1)
+
+  ## Fitter
+  dens_est <- function(data, points = 1:4){
+      ## Emp. CDF
+      e_cdf = sapply(points, function(pp) mean(data <= pp))
+      ## Kernel-based (Gaussian)
+      auto_bw = density(data)$bw
+      kern_cdf = sapply(points, function(pp) mean(pnorm((pp-data)/auto_bw)))
+      ## log-concave based
+      log_con_fit = logConDens(data, smoothed = FALSE)
+      log_con_cdf = as.numeric(evaluateLogConDens(points, log_con_fit)[, "CDF"])
+      est_list = list(ECDF = e_cdf, kernCDF = kern_cdf, logConCDF = log_con_cdf)
+      out = do.call(rbind, lapply(seq_along(est_list), function(ii){
+	  data.table(type = names(est_list)[ii],
+		     point = points,
+		     estimate = est_list[[ii]])
+      }))
+      ## out = data.table(type = c("ECDF", "kernCDF", "logConCDF"),
+      ##                  estimate = c(e_cdf, kern_cdf, log_con_cdf))
+      return(out[])    
+  }
+
+  sim_est <- function(ns, simulator, nsim = 200, points = 1:4,ncores = 6){
+      out = do.call(rbind, mclapply(X = 1:nsim, mc.cores = ncores, FUN = function(mm){
+	  sim0 = do.call(rbind, lapply(ns, function(nn){
+	      dat0 = simulator(n = nn)
+	      set0 = dens_est(data = dat0, points = points)
+	      set0[, n := nn]
+	  }))
+	  sim0[, sim_id := mm]
+	  return(sim0)
+      }))
+      return(out)
+  }
+
+  sim1 <- sim_est(ns = round(10^(seq(log10(100), log10(2000), length.out = 4))),
+		  nsim = 1000,
+		  points=2:3,
+		  simulator = function(n) rgamma(n, 2,1))
+
+  true_vals <- data.table(point = 2:3)
+  true_vals[, target := pgamma(point, 2,1)]
+
+  sim1_scaled <- merge(sim1, true_vals, by = "point", all.x = TRUE)
+  sim1_scaled[, stand_est := (estimate-target)*sqrt(n)]
+
+    mse1 <- sim1_scaled[, .(bias = mean(estimate-target),
+			  abs_bias = abs(mean(estimate-target)),
+			  sd = sd(estimate),
+			  MSE = mean((estimate-target)^2)),
+		      .(type, point, n)]
+
+#+END_SRC
+
+#+RESULTS[(2023-09-08 09:00:14) 6e21a975093932b5a19fc25f33bedcd530a37572]:
+#+begin_example
+   point    target
+1:     2 0.5939942
+2:     3 0.8008517
+       point      type  estimate    n sim_id    target   stand_est
+    1:     2      ECDF 0.6400000  100      1 0.5939942  0.46005850
+    2:     2   kernCDF 0.6170187  100      1 0.5939942  0.23024555
+    3:     2 logConCDF 0.5995028  100      1 0.5939942  0.05508646
+    4:     2      ECDF 0.5977860  271      1 0.5939942  0.06242136
+    5:     2   kernCDF 0.5792081  271      1 0.5939942 -0.24340915
+   ---                                                            
+23996:     3   kernCDF 0.7879053  737   1000 0.8008517 -0.35146561
+23997:     3 logConCDF 0.7934478  737   1000 0.8008517 -0.20100086
+23998:     3      ECDF 0.7970000 2000   1000 0.8008517 -0.17225445
+23999:     3   kernCDF 0.7962275 2000   1000 0.8008517 -0.20679967
+24000:     3 logConCDF 0.8005211 2000   1000 0.8008517 -0.01478776
+#+end_example
+
+** Make figure
+#+BEGIN_SRC R :results graphics file :exports results :file cdf-estimators.pdf  :width 8 :height 4
+  grid.arrange(
+    ggplot(mse1[point == 2], aes(x = n, y = sd^2*n, col = type)) +
+    geom_line(linewidth=1) + geom_point(size=2) +
+    ylab("Var * n") +
+    theme_bw() +
+    theme(legend.position = "top") +
+    scale_color_manual(values=c("red", "orange", "blue")) + 
+    scale_x_continuous(trans='log10'),
+    ggplot(mse1[point == 2], aes(x = n, y = bias^2*n, col = type)) +
+  geom_line(linewidth=1) + geom_point(size=2) +
+  theme_bw() +
+  theme(legend.position = "top") +
+  scale_color_manual(values=c("red", "orange", "blue")) + 
+  scale_x_continuous(trans='log10'),    
+    ## ggplot(mse1[point == 2], aes(x = n, y = MSE*n, col = type)) +
+    ## geom_line() + geom_point() +
+    ## theme_bw() +
+    ## theme(legend.position = "top") + 
+    ## scale_x_continuous(trans='log10'),
+    nrow = 1
+  )
+#+END_SRC
+
+#+RESULTS[(2023-09-08 09:16:45) d9ca62d62d624424aee730f5648b774d63b43e42]:
+[[file:cdf-estimators.pdf]]
+
+
+
 
 * HEADER                                                           :noexport:
 #+TITLE: Targeted learning under shape constraints

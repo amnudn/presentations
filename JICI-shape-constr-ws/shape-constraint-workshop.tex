@@ -1,4 +1,4 @@
-% Created 2023-09-07 Thu 13:05
+% Created 2023-09-08 Fri 09:19
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -56,7 +56,7 @@ basewidth={0.5em,0.4em},
 \begin{document}
 
 \maketitle
-\begin{frame}[label={sec:org5852d92}]{Motivation}
+\begin{frame}[label={sec:org49c2258}]{Motivation}
 The road map of causal learning tells us to incorporate all the knowledge that we have
   into the statistical model for the distribution of the data
 \vfill
@@ -75,7 +75,7 @@ Examples of biologically motivated shapes are
 \end{itemize}
 \end{frame}
 
-\begin{frame}[label={sec:orgfa6f328}]{}
+\begin{frame}[label={sec:org4f80621}]{}
 \begin{block}{Working hypotheses}
 \begin{itemize}
 \item Shape constraints can be incorporated into machine learning for nuisance parameters
@@ -94,7 +94,7 @@ may lead to improved estimators
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org12aae74}]{Multivariate shape constraints}
+\begin{frame}[label={sec:orgf6efc36}]{Multivariate shape constraints}
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.7\textwidth]{./a.pdf}
@@ -102,14 +102,14 @@ may lead to improved estimators
 \end{figure}
 \end{frame}
 
-\begin{frame}[label={sec:org5ca159e}]{Machine learning (from the shelf)}
+\begin{frame}[label={sec:org95b485a}]{Machine learning (from the shelf)}
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.7\textwidth]{./b.pdf}
 \label{fig:1}
 \end{figure}
 \end{frame}
-\begin{frame}[label={sec:org7d666ee}]{Shape constraints}
+\begin{frame}[label={sec:org5a17eb4}]{Shape constraints}
 \begin{block}{Examples}
 \begin{itemize}
 \item Monotonicity
@@ -127,7 +127,7 @@ will mostly discuss imposing shape-constraints on nuisance parameters.
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:orgd8bf389}]{Information bounds}
+\begin{frame}[label={sec:org4e28a00}]{Information bounds}
 \begin{alertblock}{Claim 1}
 Most shape constraints will not restrict the tangent space, and hence imposing
 shape constraints does not change the information bound for a statistical
@@ -138,6 +138,8 @@ estimation problem.
 \item Can we still expect to improve a TMLE by imposing shape constraints on the
 nuisance parameters?
 \end{itemize}
+
+\pause
 \end{alertblock}
 
 \begin{alertblock}{Claim 2}
@@ -150,13 +152,13 @@ sub-model that is not contained in the shape constrained model.
 \end{alertblock}
 \end{frame}
 
-\begin{frame}[label={sec:org7d82c30}]{(Un)necessary restrictions on nuisance parameters?}
+\begin{frame}[label={sec:org5fa90df}]{(Un)necessary restrictions on nuisance parameters?}
 \begin{block}{Undersmoothing}
 It has been argued that undersmoothing estimators of nuisance parameters can
 provide better estimators of a low-dimensional target parameter
-\citep[e.g.,][]{goldstein1996efficient,hjort2001note,van2022efficient}. Could shape constrained estimators provide
-unnecessary smoothing of nuisance parameter estimators, which might in fact be
-damaging?
+\citep[e.g.,][]{goldstein1996efficient,hjort2001note,van2022efficient}. Could
+shape constrained estimators provide unnecessary smoothing of nuisance parameter
+estimators, which might in fact be damaging? \pause
 \end{block}
 
 \begin{block}{Biologically reasonable nuisance parameter estimators?}
@@ -171,7 +173,21 @@ as long as it provides a good estimator of the target parameter?
 \end{frame}
 
 
-\begin{frame}[label={sec:org4c44df0}]{Challenges for future research}
+\begin{frame}[label={sec:orgfb1215a}]{Estimating a cumulative distribution function}
+\small
+
+\begin{description}
+\item[{\color{red}ECDF}] Empirical distribution function
+\item[{\color{orange}kernCDF}] Estimator based on smoothed kernel density estimator
+\item[{\color{blue}logConCDF}] Estimator based on log-concave density estimator
+\citep{dumbgen2009maximum,Rufibach_Duembgen_2023}
+\end{description}
+
+\includegraphics[width=1\textwidth]{./cdf-estimators.pdf}
+\end{frame}
+
+
+\begin{frame}[label={sec:org7d5017a}]{Challenges for future research}
 \begin{itemize}
 \item Should we distinguish between learning Q vs G parts of a causal
 model/information loss model?
@@ -185,7 +201,7 @@ history (filtration)
 \end{frame}
 
 
-\begin{frame}[label={sec:org8ce415e}]{References}
+\begin{frame}[label={sec:orgf5e37e8}]{References}
 \footnotesize \bibliography{./latex-settings/default-bib.bib}
 \end{frame}
 \end{document}
