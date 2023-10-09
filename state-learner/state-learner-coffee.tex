@@ -1,0 +1,183 @@
+% Created 2023-10-09 Mon 19:11
+% Intended LaTeX compiler: pdflatex
+\documentclass[smaller]{beamer}\usepackage{listings}
+\usepackage{color}
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage[T1]{fontenc}
+\usepackage{natbib}
+\lstset{
+keywordstyle=\color{blue},
+commentstyle=\color{red},stringstyle=\color[rgb]{0,.5,0},
+literate={~}{$\sim$}{1},
+basicstyle=\ttfamily\small,
+columns=fullflexible,
+breaklines=true,
+breakatwhitespace=false,
+numbers=left,
+numberstyle=\ttfamily\tiny\color{gray},
+stepnumber=1,
+numbersep=10pt,
+backgroundcolor=\color{white},
+tabsize=4,
+keepspaces=true,
+showspaces=false,
+showstringspaces=false,
+xleftmargin=.23in,
+frame=single,
+basewidth={0.5em,0.4em},
+}
+\usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+\bibliographystyle{abbrvnat}
+\input{./latex-settings/standard-commands.tex}
+\definecolor{bblue}{rgb}{0.2,0.2,0.7}
+\setbeamertemplate{footline}[frame number]
+\beamertemplatenavigationsymbolsempty
+\usepackage{appendixnumberbeamer}
+\setbeamercolor{gray}{bg=white!90!black}
+\setbeamertemplate{itemize items}{$\circ$}
+
+\renewcommand*\familydefault{\sfdefault}
+\itemsep2pt
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\usetheme{default}
+\author{Anders Munch \newline \small joint work with Thomas Gerds}
+\date{\today}
+\title{The state learner}
+\begin{document}
+
+\maketitle
+\begin{frame}{Outline}
+\tableofcontents
+\end{frame}
+
+\section{Super learning with right-censored data}
+\label{sec:org2409508}
+\begin{frame}[label={sec:org633a41e}]{Super learning \small (aka cross-validation, stacked regression, \ldots{})}
+Consider estimating a conditional mean \(f(x) = \E[Y \mid X=x]\) based on data
+\(\mathcal{D}_n = \{O_1, \dots, O_n\}\), where \(O_i = (X_i, Y_i)\) are
+iid.~observations.
+
+\begin{description}
+\item[{Learner}] algorithm \(a\) that produces estimates, \(\mathcal{D}_n \mapsto
+  a(\mathcal{D}_n) = \hat f\)
+\item[{Library}] collection of learners, \(\mathcal{A} = \{a_1, a_2, \dots, a_M \}\)
+\item[{Loss function}] \(L(a, O)\), with \(O = (X,Y)\)
+\end{description}
+
+\vfill
+
+\begin{description}
+\item[{Stand-alone prediction}] E.g., estimating conditional survival probabilities.
+Can be used to select hyperparameters or choose between a collection of
+(parametric) models.
+\item[{Nuisance parameter estimation}] E.g., using TMLE to estimate the average
+treatment effect where the outcome and propensity models are estimated using
+super learners.
+\end{description}
+\end{frame}
+
+\begin{frame}[label={sec:orgb92ad56}]{Right-censored data}
+\begin{description}
+\item[{\(X\)}] vector of baseline covariates
+\item[{\(\tilde T\)}] censored time to event variable, \(\tilde T = \min(T, C)\),
+\(T,C\geq 0\)
+\item[{\(\Delta\)}] binary event indicator, \(\Delta = \1{\{T \leq C\}}\)
+\end{description}
+
+Parameter of interest is a feature of \(Q\) where we use
+
+\begin{description}
+\item[{\((X, T) \sim Q\)}] The distribution of interest
+\item[{\((X, \tilde T, \Delta) \sim P\)}] The observed data distribution
+\end{description}
+
+We use \color{bblue} \(\Lambda\) \color{black} and \color{bblue} \(\Gamma\)
+\color{black}, respectively, to denote the conditional cumulative hazard
+function for \(T\) and \(C\), i.e.,
+\begin{equation*}
+  \Lambda(\diff t \mid x) = Q(T \in \diff t \mid T \geq t, X=x).
+\end{equation*}
+
+We assume \(T \independent C \mid X\). Implies that \(\Lambda\) and \(\Gamma\) are
+identifiable from \(P\).
+\end{frame}
+
+
+\begin{frame}[label={sec:org8cfe546}]{Super learning with right-censored data}
+Use super learning to estimate \(\Lambda\) or \(S(t \mid X=x) = Q(T > t \mid
+X=x)\).
+
+Challenge is to handle censoring. 
+\end{frame}
+
+\section{Existing approaches}
+\label{sec:org6a03184}
+\begin{frame}[label={sec:org405e76c}]{Existing approaches}
+\begin{block}{Negative log-likelihood loss function}
+Requires modeling a Lebesgue hazard function which is incompatible with many
+common estimator in survival analysis (e.g., Kaplan-Meier, semi-parametric Cox
+models, random survival forests).
+\end{block}
+
+\begin{block}{Pseudo-observations}
+Require pre-specification of the censoring estimator.
+\end{block}
+
+\begin{block}{Inverse probability of censoring weighting}
+Require pre-specification of the censoring estimator.
+
+To avoid this, it has recently been suggested to iterate between estimation of
+\(\Lambda\) and \(\Gamma\). No theoretical guarantees for this procedure.
+\end{block}
+\end{frame}
+
+
+\section{Proposal: The state learner}
+\label{sec:orgfd72fe9}
+\begin{frame}[label={sec:orgfe13738}]{Idea: An observed multi-state system}
+Modeling the conditional state-occupation probabilities of the \emph{observed} data
+\end{frame}
+
+\begin{frame}[label={sec:orgabc632c}]{Learners for the conditional state-occupation probabilities}
+Build library of learner of \(F\) using learner of \(\Lambda\) and \(\Gamma\).
+\end{frame}
+
+\begin{frame}[label={sec:org06d07e2}]{Some theoretical results}
+\begin{block}{Unique minimizer}
+\end{block}
+
+\begin{block}{Oracle inequality}
+\end{block}
+\end{frame}
+
+\begin{frame}[label={sec:orgd85663d}]{Some simulations}
+\end{frame}
+
+
+\section{Discussion}
+\label{sec:org3572dc2}
+\begin{frame}[label={sec:orgb38e4cf}]{Competing events}
+\end{frame}
+\begin{frame}[label={sec:orgc78b2a7}]{Some limitations}
+\end{frame}
+\begin{frame}[label={sec:org69efebe}]{Target parameters}
+\end{frame}
+
+
+\section*{References}
+\label{sec:orgb86e91c}
+\begin{frame}[label={sec:org51fde96}]{References}
+\footnotesize \bibliography{./latex-settings/default-bib.bib}
+\end{frame}
+\end{document}

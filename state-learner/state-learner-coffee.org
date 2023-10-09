@@ -1,0 +1,145 @@
+* Super learning with right-censored data
+** Super learning \small (aka cross-validation, stacked regression, ...)
+
+Consider estimating a conditional mean \( f(x) = \E[Y \mid X=x] \) based on data
+\( \mathcal{D}_n = \{O_1, \dots, O_n\} \), where \( O_i = (X_i, Y_i) \) are
+iid.\nbsp{}observations.
+
+- Learner :: algorithm \( a \) that produces estimates, \( \mathcal{D}_n \mapsto
+  a(\mathcal{D}_n) = \hat f \)
+- Library :: collection of learners, \( \mathcal{A} = \{a_1, a_2, \dots, a_M \}
+  \)
+- Loss function :: \( L(a, O) \), with \( O = (X,Y) \)
+
+\vfill
+
+- Stand-alone prediction :: E.g., estimating conditional survival probabilities.
+  Can be used to select hyperparameters or choose between a collection of
+  (parametric) models.
+- Nuisance parameter estimation :: E.g., using TMLE to estimate the average
+  treatment effect where the outcome and propensity models are estimated using
+  super learners.
+
+** Right-censored data
+
+- \(X\) :: vector of baseline covariates
+- \(\tilde T \) :: censored time to event variable, \( \tilde T = \min(T, C) \),
+  \(T,C\geq 0\)
+- \( \Delta \) :: binary event indicator, \( \Delta = \1{\{T \leq C\}} \)
+
+Parameter of interest is a feature of \( Q \) where we use
+
+- \( (X, T) \sim Q \) :: The distribution of interest
+- \( (X, \tilde T, \Delta) \sim P \) :: The observed data distribution
+
+We use \color{bblue} $\Lambda$ \color{black} and \color{bblue} $\Gamma$
+\color{black}, respectively, to denote the conditional cumulative hazard
+function for \( T \) and \( C \), i.e.,
+#+begin_export latex
+\begin{equation*}
+  \Lambda(\diff t \mid x) = Q(T \in \diff t \mid T \geq t, X=x).
+\end{equation*}
+#+end_export
+
+We assume \( T \independent C \mid X \). Implies that $\Lambda$ and $\Gamma$ are
+identifiable from \( P \).
+
+
+** Super learning with right-censored data
+
+Use super learning to estimate \( \Lambda \) or \( S(t \mid X=x) = Q(T > t \mid
+X=x) \).
+
+Challenge is to handle censoring. 
+
+* Existing approaches
+** Existing approaches
+*** Negative log-likelihood loss function
+Requires modeling a Lebesgue hazard function which is incompatible with many
+common estimator in survival analysis (e.g., Kaplan-Meier, semi-parametric Cox
+models, random survival forests).
+
+*** Pseudo-observations
+Require pre-specification of the censoring estimator.
+
+*** Inverse probability of censoring weighting
+Require pre-specification of the censoring estimator.
+
+To avoid this, it has recently been suggested to iterate between estimation of
+$\Lambda$ and $\Gamma$. No theoretical guarantees for this procedure.
+
+# ** Existing approaches \qquad \small Negative log-likelihood loss function
+
+
+# ** Existing approaches \qquad \small Inverse probability of censoring weighting
+
+# ** Existing approaches \qquad \small Pseudo-observations
+
+
+* Proposal: The state learner
+** Idea: An observed multi-state system
+Modeling the conditional state-occupation probabilities of the /observed/ data
+
+** Learners for the conditional state-occupation probabilities
+
+Build library of learner of \( F \) using learner of \( \Lambda \) and \( \Gamma
+\).
+
+** Some theoretical results
+
+*** Unique minimizer 
+
+*** Oracle inequality
+
+** Some simulations
+
+
+* Discussion
+** Competing events
+** Some limitations
+** Target parameters
+
+
+* References
+:PROPERTIES:
+:UNNUMBERED: t
+:END:
+** References
+\footnotesize \bibliography{./latex-settings/default-bib.bib}
+
+* HEADER :noexport:
+#+TITLE: The state learner
+#+Author: Anders Munch \newline \small joint work with Thomas Gerds
+#+Date: \today
+
+#+LANGUAGE:  en
+#+OPTIONS:   H:2 num:t toc:t ':t ^:t
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LATEX_CLASS_OPTIONS: [smaller]
+#+LaTeX_HEADER: \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+#+LaTeX_HEADER: \bibliographystyle{abbrvnat}
+#+LaTeX_HEADER: \input{./latex-settings/standard-commands.tex}
+#+BIBLIOGRAPHY: ./latex-settings/default-bib plain
+
+#+LaTeX_HEADER: \definecolor{bblue}{rgb}{0.2,0.2,0.7}
+
+# Beamer settins:
+# #+LaTeX_HEADER: \usefonttheme[onlymath]{serif} 
+#+LaTeX_HEADER: \setbeamertemplate{footline}[frame number]
+#+LaTeX_HEADER: \beamertemplatenavigationsymbolsempty
+#+LaTeX_HEADER: \usepackage{appendixnumberbeamer}
+#+LaTeX_HEADER: \setbeamercolor{gray}{bg=white!90!black}
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+LATEX_HEADER: \setbeamertemplate{itemize items}{$\circ$}
+
+# Check this:
+# #+LaTeX_HEADER: \lstset{basicstyle=\ttfamily\small}
+
+# For handout mode: (check order...)
+# #+LATEX_CLASS_OPTIONS: [handout]
+# #+LaTeX_HEADER: \pgfpagesuselayout{4 on 1}[border shrink=1mm]
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{1}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{2}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{3}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{4}{border code=\pgfusepath{stroke}}
