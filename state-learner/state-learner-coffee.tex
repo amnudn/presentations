@@ -1,4 +1,4 @@
-% Created 2023-10-10 Tue 16:48
+% Created 2023-10-11 Wed 09:44
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -55,7 +55,7 @@ basewidth={0.5em,0.4em},
 \usetheme{default}
 \author{Anders Munch \newline \small joint work with Thomas Gerds}
 \date{\today}
-\title{The state learner}
+\title{The state learner \newline \normalsize a super learner for right-censored data}
 \begin{document}
 
 \maketitle
@@ -64,8 +64,8 @@ basewidth={0.5em,0.4em},
 \end{frame}
 
 \section{Super learning with right-censored data}
-\label{sec:org2992df4}
-\begin{frame}[label={sec:orgf51b327}]{Super learning \small (aka cross-validation, stacked regression, \ldots{}\footnote{\cite{stone1974cross,geisser1975predictive,wolpert1992stacked,breiman1996stacked,van2007super}})}
+\label{sec:org42945cb}
+\begin{frame}[label={sec:orga8c5284}]{Super learning \small (aka cross-validation, stacked regression, \ldots{}\footnote{\cite{stone1974cross,geisser1975predictive,wolpert1992stacked,breiman1996stacked,van2007super}})}
 \small
 
 \color{bblue}Example: \color{black} Consider estimating a conditional mean \(f(x) = \E[Y \mid X=x]\) based on data \(\mathcal{D}_n = \{O_1, \dots, O_n\}\), where \(O_i = (X_i, Y_i)\) are iid.~observations.
@@ -108,7 +108,7 @@ A super learner can be used for
 \end{itemize}
 \end{frame}
 
-\begin{frame}[label={sec:org0a7c9cf}]{Right-censored data}
+\begin{frame}[label={sec:org44e2829}]{Right-censored data}
 \small
 
 \begin{block}{Notation}
@@ -133,12 +133,12 @@ cumulative hazard function for \(T\) and \(C\), i.e.,
   \Lambda(\diff t \mid x) = Q(T \in \diff t \mid T \geq t, X=x).
 \end{equation*}
 
-We assume \(T \independent C \mid X\), which implies that \(\Lambda\) and
-\(\Gamma\) are identifiable from \(P\).
+We assume \(T \independent C \mid X\) and positivity, which implies that
+\(\Lambda\) and \(\Gamma\) are identifiable from \(P\) on some time interval \([0,\tau]\).
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:orgd5ca098}]{Super learning with right-censored data}
+\begin{frame}[label={sec:org15dd7f4}]{Super learning with right-censored data}
 \small
 
 \begin{description}
@@ -149,7 +149,7 @@ We assume \(T \independent C \mid X\), which implies that \(\Lambda\) and
 
 \hfill
 
-In a survival context, we have data \(\mathcal{D}_n = \{O_1, \dots, O_n\}\),
+In a survival context, we have data \(\mathcal{D}_n = \{O_1, \dots, O_n\}\)
 from \(P\), but we are interested in (a feature of) \(Q\), such as
 \(\Lambda\).
 \begin{equation*}
@@ -175,14 +175,14 @@ from \(P\), but we are interested in (a feature of) \(Q\), such as
 data (e.g., semi-parametric Cox models, parametric survival models,
 (stratified) Kaplan-Meier estimators, random survival forest) \(\checkmark\)
 \item[{\(L(a{ (\mathcal{D}_n^{-k})} , O_i)\)}] How to evaluate the performance of
-a learner trained in \(\mathcal{D}_n^{-k}\) in the hold-out data \(\mathcal{D}_n^{-k}\)?
+a learner trained in \(\mathcal{D}_n^{-k}\) in the hold-out data \(\mathcal{D}_n^{k}\)?
 \end{description}
 \end{block}
 \end{frame}
 
 \section{Existing approaches}
-\label{sec:org12fea48}
-\begin{frame}[label={sec:orge2c4cdc}]{Existing approaches}
+\label{sec:orge484da6}
+\begin{frame}[label={sec:orgd032728}]{Existing approaches}
 \small
 \begin{block}{\normalsize Negative log-likelihood loss function \footnotesize (e.g., \cite{polley2011-sl-cens})}
 Requires discrete time or modeling a Lebesgue hazard function which is
@@ -206,8 +206,8 @@ and \(\Gamma\). No theoretical guarantees for this procedure.
 \end{frame}
 
 \section{Proposal: The state learner}
-\label{sec:org07d093e}
-\begin{frame}[label={sec:orgece9732}]{The observed multi-state system}
+\label{sec:orgc39f725}
+\begin{frame}[label={sec:org7f82c91}]{The observed multi-state system}
 Modeling the conditional state-occupation probabilities of the \emph{observed} data.
 
 \hfill
@@ -238,7 +238,7 @@ Modeling the conditional state-occupation probabilities of the \emph{observed} d
 \end{frame}
 
 
-\begin{frame}[label={sec:org1b9c634}]{Conditional state-occupation probabilities for observed data}
+\begin{frame}[label={sec:org7c21fec}]{Conditional state-occupation probabilities for observed data}
 \small
 
 Record the observed data as \( O = (X, \{\eta(t) : t \geq 0\}) \), where
@@ -276,7 +276,7 @@ the conditional state-occupation probabilities for the observed data.
 \end{columns}
 \end{frame}
 
-\begin{frame}[label={sec:orgdde6f8e}]{The state learner}
+\begin{frame}[label={sec:org3b02a1b}]{The state learner}
 \small
 
 The state learner builds a super learner for the conditional state-occupation
@@ -301,7 +301,7 @@ With this choice of loss function no modeling of Lebesgue hazards or densities
 is required.
 \end{frame}
 
-\begin{frame}[label={sec:org662c453}]{Expressing \(F\) using \(\Lambda\) and \(\Gamma\)}
+\begin{frame}[label={sec:org57f8c50}]{Expressing \(F\) using \(\Lambda\) and \(\Gamma\)}
 \small
 
 \begin{equation*}
@@ -333,7 +333,7 @@ F(t, 0, x)
 \end{center}
 \end{frame}
 
-\begin{frame}[label={sec:orgf3d978b}]{Constructing a library for learning \(F\)}
+\begin{frame}[label={sec:org9195dc2}]{Constructing a library for learning \(F\)}
 \small
 
 Many learners for \(\Lambda\) (and \(\Gamma\)) are avalaible (Cox models, random
@@ -370,7 +370,7 @@ We evaluate performance of every
 \end{frame}
 
 
-\begin{frame}[label={sec:orgad5e043}]{Some theoretical results}
+\begin{frame}[label={sec:org78c70b6}]{Some theoretical results}
 \small
 
 \begin{block}{Finite sample guarantee}
@@ -401,7 +401,7 @@ then the state learner converges to \(F_0\) at the same rate or at rate \(\log(n
 \end{frame}
 
 
-\begin{frame}[label={sec:org781cf60},fragile]{Almost minimum viable product}
+\begin{frame}[label={sec:org9906459},fragile]{Almost minimum viable product}
  \footnotesize
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -441,7 +441,7 @@ head(fit_sl, n=4)
 
 
 
-\begin{frame}[label={sec:orgab42a79}]{Proof of concept -- simulation I}
+\begin{frame}[label={sec:org1447ea9}]{Proof of concept -- simulation I}
 \small
 
 \begin{itemize}
@@ -457,7 +457,7 @@ head(fit_sl, n=4)
 \end{center}
 \end{frame}
 
-\begin{frame}[label={sec:org486e421}]{Proof of concept -- simulation II}
+\begin{frame}[label={sec:org531a91d}]{Proof of concept -- simulation II}
 \small
 
 \begin{itemize}
@@ -473,7 +473,7 @@ penalized Cox models (lasso, ridge, elastic), random survival forest
 \end{center}
 \end{frame}
 
-\begin{frame}[label={sec:org23c9e3b}]{Competing risks}
+\begin{frame}[label={sec:orge134f36}]{Competing risks}
 \small
 
 \begin{center}
@@ -499,7 +499,7 @@ penalized Cox models (lasso, ridge, elastic), random survival forest
 \end{equation*}
 \end{frame}
 
-\begin{frame}[label={sec:org0d0c7dc}]{Proof of concept -- some real data}
+\begin{frame}[label={sec:org27a14ae}]{Proof of concept -- some real data}
 \small The real data considered in \citep{kattan2000pretreatment} included the
 competing risk of death.
 
@@ -509,8 +509,8 @@ competing risk of death.
 \end{frame}
 
 \section{Discussion}
-\label{sec:orgf5a60aa}
-\begin{frame}[label={sec:org7553441}]{Discussion}
+\label{sec:org8b38693}
+\begin{frame}[label={sec:org92a75dd}]{Discussion}
 \small
 
 A clear limitation is that the function \(F\) is typically not a parameter of
@@ -520,7 +520,7 @@ interest.
 
 We can obtain a risk prediction model from the state learner using that
 \begin{equation*}
-  \Lambda(t \mid x) = \int_0^t \frac{F(\diff s, 1, x)}{F(s-, 0, x)}  \diff s,
+  \Lambda(t \mid x) = \int_0^t \frac{F(\diff s, 1, x)}{F(s-, 0, x)} ,
   \quad \text{and} \quad
   S(t \mid x)
   % = Q(T > t \mid X=x)
@@ -542,7 +542,7 @@ to estimate the nuisance parameters, this is probably less of a concern.
 Unclear if the state learner will respond well to positivity violations or not.
 \end{frame}
 
-\begin{frame}[label={sec:org419716e}]{Conclusion}
+\begin{frame}[label={sec:org5faf490}]{Conclusion}
 \small
 
 \begin{itemize}
@@ -555,7 +555,7 @@ baseline covariates.
 respect to the observed data distribution.
 \item No need to model additional nuisance parameters to estimate performance in
 hold-out samples.
-\item No need to estimate a Lebesgue densities or hazards.
+\item No need to estimate Lebesgue densities or hazards.
 \item Drawback is that the SL is tuned for the a feature of the observed
 distribution \(P\) and not for a feature of \(Q\).
 \end{itemize}
@@ -571,8 +571,8 @@ distribution \(P\) and not for a feature of \(Q\).
 \end{frame}
 
 \section*{References}
-\label{sec:orgdbb741e}
-\begin{frame}[label={sec:orgeea7d05}]{References}
+\label{sec:orgecdcc08}
+\begin{frame}[label={sec:org8c9e969}]{References}
 \tiny \bibliography{./latex-settings/default-bib.bib}
 \end{frame}
 \end{document}

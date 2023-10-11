@@ -4,7 +4,7 @@
 - [ ] CV figure
 - [X] Definition of super learner -- train and test data
 - [ ] Double check product limit definition
-- [ ] Pauses
+- [X] Pauses
   
 * Super learning with right-censored data
 ** Super learning \small (aka cross-validation, stacked regression, ...[fn:1])
@@ -80,8 +80,9 @@ cumulative hazard function for \( T \) and \( C \), i.e.,
 \end{equation*}
 #+end_export
 
-We assume \( T \independent C \mid X \), which implies that $\Lambda$ and
-$\Gamma$ are identifiable from \( P \).
+We assume \( T \independent C \mid X \) and positivity, which implies that
+$\Lambda$ and $\Gamma$ are identifiable from \( P \) on some time interval \(
+[0,\tau] \).
 
 ** Super learning with right-censored data
 
@@ -93,7 +94,7 @@ $\Gamma$ are identifiable from \( P \).
 
 \hfill
 
-In a survival context, we have data \( \mathcal{D}_n = \{O_1, \dots, O_n\} \),
+In a survival context, we have data \( \mathcal{D}_n = \{O_1, \dots, O_n\} \)
 from \( P \), but we are interested in (a feature of) \( Q \), such as
 $\Lambda$.
 #+begin_export latex
@@ -122,7 +123,7 @@ $\Lambda$.
   (stratified) Kaplan-Meier estimators, random survival forest) \checkmark
 - \( L(a{ (\mathcal{D}_n^{-k})} , O_i) \) :: How to evaluate the performance of
   a learner trained in \( \mathcal{D}_n^{-k} \) in the hold-out data \(
-  \mathcal{D}_n^{-k} \)?
+  \mathcal{D}_n^{k} \)?
 
 * Existing approaches
 ** Existing approaches
@@ -556,7 +557,7 @@ interest.
 We can obtain a risk prediction model from the state learner using that
 #+begin_export latex
 \begin{equation*}
-  \Lambda(t \mid x) = \int_0^t \frac{F(\diff s, 1, x)}{F(s-, 0, x)}  \diff s,
+  \Lambda(t \mid x) = \int_0^t \frac{F(\diff s, 1, x)}{F(s-, 0, x)} ,
   \quad \text{and} \quad
   S(t \mid x)
   % = Q(T > t \mid X=x)
@@ -591,7 +592,7 @@ Unclear if the state learner will respond well to positivity violations or not.
   respect to the observed data distribution.
 - No need to model additional nuisance parameters to estimate performance in
   hold-out samples.
-- No need to estimate a Lebesgue densities or hazards.
+- No need to estimate Lebesgue densities or hazards.
 - Drawback is that the SL is tuned for the a feature of the observed
   distribution \( P \) and not for a feature of \( Q \).
 
@@ -616,7 +617,7 @@ Remember to exceture (C-c C-c) the following line:
 #+PROPERTY: header-args:R :async :results output verbatim  :exports results  :session *R* :cache yes
 
 * HEADER :noexport:
-#+TITLE: The state learner
+#+TITLE: The state learner \newline \normalsize a super learner for right-censored data
 #+Author: Anders Munch \newline \small joint work with Thomas Gerds
 #+Date: \today
 
