@@ -1,4 +1,4 @@
-% Created 2023-10-11 Wed 09:44
+% Created 2023-10-11 Wed 09:53
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -64,8 +64,8 @@ basewidth={0.5em,0.4em},
 \end{frame}
 
 \section{Super learning with right-censored data}
-\label{sec:org42945cb}
-\begin{frame}[label={sec:orga8c5284}]{Super learning \small (aka cross-validation, stacked regression, \ldots{}\footnote{\cite{stone1974cross,geisser1975predictive,wolpert1992stacked,breiman1996stacked,van2007super}})}
+\label{sec:org1a3ec28}
+\begin{frame}[label={sec:org20c23bb}]{Super learning \small (aka cross-validation, stacked regression, \ldots{}\footnote{\cite{stone1974cross,geisser1975predictive,wolpert1992stacked,breiman1996stacked,van2007super}})}
 \small
 
 \color{bblue}Example: \color{black} Consider estimating a conditional mean \(f(x) = \E[Y \mid X=x]\) based on data \(\mathcal{D}_n = \{O_1, \dots, O_n\}\), where \(O_i = (X_i, Y_i)\) are iid.~observations.
@@ -108,7 +108,7 @@ A super learner can be used for
 \end{itemize}
 \end{frame}
 
-\begin{frame}[label={sec:org44e2829}]{Right-censored data}
+\begin{frame}[label={sec:orgd57a8e1}]{Right-censored data}
 \small
 
 \begin{block}{Notation}
@@ -138,7 +138,7 @@ We assume \(T \independent C \mid X\) and positivity, which implies that
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org15dd7f4}]{Super learning with right-censored data}
+\begin{frame}[label={sec:org54705f8}]{Super learning with right-censored data}
 \small
 
 \begin{description}
@@ -181,8 +181,8 @@ a learner trained in \(\mathcal{D}_n^{-k}\) in the hold-out data \(\mathcal{D}_n
 \end{frame}
 
 \section{Existing approaches}
-\label{sec:orge484da6}
-\begin{frame}[label={sec:orgd032728}]{Existing approaches}
+\label{sec:org053aec7}
+\begin{frame}[label={sec:org5a1b02c}]{Existing approaches}
 \small
 \begin{block}{\normalsize Negative log-likelihood loss function \footnotesize (e.g., \cite{polley2011-sl-cens})}
 Requires discrete time or modeling a Lebesgue hazard function which is
@@ -206,8 +206,8 @@ and \(\Gamma\). No theoretical guarantees for this procedure.
 \end{frame}
 
 \section{Proposal: The state learner}
-\label{sec:orgc39f725}
-\begin{frame}[label={sec:org7f82c91}]{The observed multi-state system}
+\label{sec:org6b17437}
+\begin{frame}[label={sec:orgee75781}]{The observed multi-state system}
 Modeling the conditional state-occupation probabilities of the \emph{observed} data.
 
 \hfill
@@ -238,7 +238,7 @@ Modeling the conditional state-occupation probabilities of the \emph{observed} d
 \end{frame}
 
 
-\begin{frame}[label={sec:org7c21fec}]{Conditional state-occupation probabilities for observed data}
+\begin{frame}[label={sec:org2b3c282}]{Conditional state-occupation probabilities for observed data}
 \small
 
 Record the observed data as \( O = (X, \{\eta(t) : t \geq 0\}) \), where
@@ -276,7 +276,7 @@ the conditional state-occupation probabilities for the observed data.
 \end{columns}
 \end{frame}
 
-\begin{frame}[label={sec:org3b02a1b}]{The state learner}
+\begin{frame}[label={sec:orga9d6183}]{The state learner}
 \small
 
 The state learner builds a super learner for the conditional state-occupation
@@ -301,7 +301,7 @@ With this choice of loss function no modeling of Lebesgue hazards or densities
 is required.
 \end{frame}
 
-\begin{frame}[label={sec:org57f8c50}]{Expressing \(F\) using \(\Lambda\) and \(\Gamma\)}
+\begin{frame}[label={sec:org3d578a4}]{Expressing \(F\) using \(\Lambda\) and \(\Gamma\)}
 \small
 
 \begin{equation*}
@@ -333,7 +333,7 @@ F(t, 0, x)
 \end{center}
 \end{frame}
 
-\begin{frame}[label={sec:org9195dc2}]{Constructing a library for learning \(F\)}
+\begin{frame}[label={sec:org339aacc}]{Constructing a library for learning \(F\)}
 \small
 
 Many learners for \(\Lambda\) (and \(\Gamma\)) are avalaible (Cox models, random
@@ -370,38 +370,7 @@ We evaluate performance of every
 \end{frame}
 
 
-\begin{frame}[label={sec:org78c70b6}]{Some theoretical results}
-\small
-
-\begin{block}{Finite sample guarantee}
-Using results from \citep{van2003unicv,van2006oracle} we can establish a finite
-sample oracle inequality for the state learner.
-
-\hfill
-
-This means that the state learner will perform almost as well as a so-called
-``oracle'' which uses the unknown data-generating distribution to evaluate
-performance of the learners.
-
-\hfill
-\end{block}
-
-\begin{block}{Asymptotic consequence}
-Let \(F_0\) denote the conditional state-occupation probability function
-corresponding to the underlying data-generating distribution \(P_0\). If
-
-\begin{itemize}
-\item \(|\mathcal{F}(\mathcal{A}_n,\mathcal{B}_n)| = O(n^q)\), for some \(q \in
-  \N\), and
-\item the library contains a learner that converges to \(F_0\) at rate \(r_n\),
-\end{itemize}
-
-then the state learner converges to \(F_0\) at the same rate or at rate \(\log(n) r_n\).
-\end{block}
-\end{frame}
-
-
-\begin{frame}[label={sec:org9906459},fragile]{Almost minimum viable product}
+\begin{frame}[label={sec:orgbcfc83e},fragile]{Almost minimum viable product}
  \footnotesize
 
 \lstset{language=r,label= ,caption= ,captionpos=b,numbers=none}
@@ -441,7 +410,38 @@ head(fit_sl, n=4)
 
 
 
-\begin{frame}[label={sec:org1447ea9}]{Proof of concept -- simulation I}
+\begin{frame}[label={sec:orgbb63e1a}]{Some theoretical results}
+\small
+
+\begin{block}{Finite sample guarantee}
+Using results from \citep{van2003unicv,van2006oracle} we can establish a finite
+sample oracle inequality for the state learner.
+
+\hfill
+
+This means that the state learner will perform almost as well as a so-called
+``oracle'' which uses the unknown data-generating distribution to evaluate
+performance of the learners.
+
+\hfill
+\end{block}
+
+\begin{block}{Asymptotic consequence}
+Let \(F_0\) denote the conditional state-occupation probability function
+corresponding to the underlying data-generating distribution \(P_0\). If
+
+\begin{itemize}
+\item \(|\mathcal{F}(\mathcal{A}_n,\mathcal{B}_n)| = O(n^q)\), for some \(q \in
+  \N\), and
+\item the library contains a learner that converges to \(F_0\) at rate \(r_n\),
+\end{itemize}
+
+then the state learner converges to \(F_0\) at the same rate or at rate \(\log(n) r_n\).
+\end{block}
+\end{frame}
+
+
+\begin{frame}[label={sec:orgecc1b39}]{Proof of concept -- simulation I}
 \small
 
 \begin{itemize}
@@ -457,7 +457,7 @@ head(fit_sl, n=4)
 \end{center}
 \end{frame}
 
-\begin{frame}[label={sec:org531a91d}]{Proof of concept -- simulation II}
+\begin{frame}[label={sec:org5bd879d}]{Proof of concept -- simulation II}
 \small
 
 \begin{itemize}
@@ -473,7 +473,7 @@ penalized Cox models (lasso, ridge, elastic), random survival forest
 \end{center}
 \end{frame}
 
-\begin{frame}[label={sec:orge134f36}]{Competing risks}
+\begin{frame}[label={sec:orgc78d9f5}]{Competing risks}
 \small
 
 \begin{center}
@@ -499,7 +499,7 @@ penalized Cox models (lasso, ridge, elastic), random survival forest
 \end{equation*}
 \end{frame}
 
-\begin{frame}[label={sec:org27a14ae}]{Proof of concept -- some real data}
+\begin{frame}[label={sec:org611f31a}]{Proof of concept -- some real data}
 \small The real data considered in \citep{kattan2000pretreatment} included the
 competing risk of death.
 
@@ -509,8 +509,8 @@ competing risk of death.
 \end{frame}
 
 \section{Discussion}
-\label{sec:org8b38693}
-\begin{frame}[label={sec:org92a75dd}]{Discussion}
+\label{sec:orgc46137f}
+\begin{frame}[label={sec:org169996b}]{Discussion}
 \small
 
 A clear limitation is that the function \(F\) is typically not a parameter of
@@ -542,7 +542,7 @@ to estimate the nuisance parameters, this is probably less of a concern.
 Unclear if the state learner will respond well to positivity violations or not.
 \end{frame}
 
-\begin{frame}[label={sec:org5faf490}]{Conclusion}
+\begin{frame}[label={sec:org2a83a90}]{Conclusion}
 \small
 
 \begin{itemize}
@@ -571,8 +571,8 @@ distribution \(P\) and not for a feature of \(Q\).
 \end{frame}
 
 \section*{References}
-\label{sec:orgecdcc08}
-\begin{frame}[label={sec:org8c9e969}]{References}
+\label{sec:org1cf7bec}
+\begin{frame}[label={sec:org8067f91}]{References}
 \tiny \bibliography{./latex-settings/default-bib.bib}
 \end{frame}
 \end{document}

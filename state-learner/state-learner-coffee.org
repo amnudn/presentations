@@ -391,35 +391,6 @@ O(n^q) \), for some \( q \in \N \), and the library contains a learner that
 converges to \( F_0 \) at rate \( r_n \), then the state learner converges to
 \(F_0 \) at the same rate or at rate \( \log(n) r_n \).
 
-** Some theoretical results
-
-\small
-
-*** Finite sample guarantee
-
-Using results from \citep{van2003unicv,van2006oracle} we can establish a finite
-sample oracle inequality for the state learner.
-
-\hfill
-
-This means that the state learner will perform almost as well as a so-called
-"oracle" which uses the unknown data-generating distribution to evaluate
-performance of the learners.
-
-\hfill
-
-*** Asymptotic consequence
-Let \( F_0 \) denote the conditional state-occupation probability function
-corresponding to the underlying data-generating distribution \( P_0 \). If
-
-- \( |\mathcal{F}(\mathcal{A}_n,\mathcal{B}_n)| = O(n^q) \), for some \( q \in
-  \N \), and
-- the library contains a learner that converges to \( F_0 \) at rate \( r_n \),
-
-then the state learner converges to \(F_0 \) at the same rate or at rate \(
-\log(n) r_n \).
-
-
 ** Almost minimum viable product
 
 \footnotesize
@@ -472,6 +443,35 @@ head(fit_sl, n=4)
 : 3:   cox_lasso     rf 7.035051 0.02142064
 : 4:   cox_lasso     rf 7.035231 0.02266556
 
+
+
+** Some theoretical results
+
+\small
+
+*** Finite sample guarantee
+
+Using results from \citep{van2003unicv,van2006oracle} we can establish a finite
+sample oracle inequality for the state learner.
+
+\hfill
+
+This means that the state learner will perform almost as well as a so-called
+"oracle" which uses the unknown data-generating distribution to evaluate
+performance of the learners.
+
+\hfill
+
+*** Asymptotic consequence
+Let \( F_0 \) denote the conditional state-occupation probability function
+corresponding to the underlying data-generating distribution \( P_0 \). If
+
+- \( |\mathcal{F}(\mathcal{A}_n,\mathcal{B}_n)| = O(n^q) \), for some \( q \in
+  \N \), and
+- the library contains a learner that converges to \( F_0 \) at rate \( r_n \),
+
+then the state learner converges to \(F_0 \) at the same rate or at rate \(
+\log(n) r_n \).
 
 
 ** Proof of concept -- simulation I
