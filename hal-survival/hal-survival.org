@@ -3,92 +3,92 @@ Remember to exceture (C-c C-c) the following line:
 #+PROPERTY: header-args:R :async :results output verbatim  :exports results  :session *R* :cache yes
 
 #+BEGIN_SRC R
-  library(ggplot2)
-  library(data.table)
-  library(latex2exp)
-  library(gridExtra)
-  set.seed(3249)
-  data_points <- data.table(x1 = c(0,1.5, 8, 5,2, 3,4),
-			    x2 = c(0,1.5, 1, 6, 8, 9,2),
-			    x1_par = c(0,runif(6, -1,1)),
-			    x2_par = c(0,runif(6, -1,1)),
-			    x1x2_par = c(0, runif(6, -1,1)))
-  hal_vals <- do.call(rbind, lapply(1:(data_points[, .N]), function(ii){
-    xx1 = c(sort(data_points$x1), 10)
-    xx2 = c(sort(data_points$x2), 10)
-    out = data.table(x1_start = xx1[ii], x1_end = xx1[ii+1],
-		     x2_start = xx2[-length(xx2)], x2_end = xx2[-1],
-		     x1_eff = as.numeric(NA),
-		     x2_eff = as.numeric(NA),
-		     x1x2_eff = as.numeric(NA),
-		     total_eff = as.numeric(NA))
-    return(out)
-  }))
-  for(jj in 1:hal_vals[, .N]){
-    xx1_c = hal_vals[jj, x1_start]
-    xx2_c = hal_vals[jj, x2_start]
-    xx1_main = data_points[x1 <= xx1_c, sum(x1_par)]
-    xx2_main = data_points[x2 <= xx2_c, sum(x2_par)]
-    x1x2_inter = data_points[x1 <= xx1_c & x2 <= xx2_c, sum(x1x2_par)]
-    hal_vals[jj, ":="(x1_eff = xx1_main, x2_eff = xx2_main, x1x2_eff = x1x2_inter)]
-    hal_vals[jj, total_eff := x1_eff+x2_eff+x1x2_eff]
-  }
-  hal_vals[, c("x1_eff", "x2_eff", "x1x2_eff", "total_eff") := {
-    vv0 = list(x1_eff, x2_eff, x1x2_eff, total_eff)
-    min_val = min(unlist(vv0))
-    max_val = max(unlist(vv0))
-    lapply(vv0, function(x) (x-min_val)/(max_val-min_val))
-  }]
-  base_plot <- ggplot(hal_vals) +
-    theme_classic() +
-    theme(panel.border = element_blank(),
-	  panel.grid = element_blank(),
-	  axis.text.x=element_blank(),
-	  axis.ticks.x=element_blank(),
-	  axis.text.y=element_blank(),
-	  axis.ticks.y=element_blank()) +
-    scale_x_continuous(expand = c(0, 0), lim = c(0,10)) +
-    scale_y_continuous(expand = c(0, 0), lim = c(0,10)) +
-    ylab("") +  xlab("") + labs(fill = TeX(r'($f(x)$)')) +
-    theme(legend.position = "none") +
-    ## scale_fill_gradient(low = "gray90", high = "gray10")
-    scale_fill_gradient(low = "yellow", high = "red", limits = c(0,1), breaks = c(0,1)) +
-    scale_color_gradient(low = "yellow", high = "red", limits = c(0,1), breaks = c(0,1))
-  plot_fun <- function(value, draw_fill = TRUE, draw_line = FALSE, point_size = 3){
-    out_plot = base_plot
-    if(draw_fill)
-      out_plot = out_plot + geom_rect(aes(xmin = x1_start,
-					  xmax = x1_end,
-					  ymin = x2_start,
-					  ymax = x2_end,
-					  fill = get(value),
-					  col = get(value)))
-    out_plot = out_plot + geom_point(data = data_points[x1>0&x2>0], aes(x = x1, y = x2), size = point_size)
-    if(!draw_line)
-      return(out_plot)
-    if(value == "x1_eff")
-      out_plot = out_plot + geom_segment(data = data_points[x1>0&x2>0], aes(x = x1, xend = x1, y = 0, yend = 10))
-    if(value == "x2_eff")
-      out_plot = out_plot + geom_segment(data = data_points[x1>0&x2>0], aes(x = 0, xend = 10, y = x2, yend = x2))
-    if(value == "x1x2_eff"){
-      out_plot = out_plot +
-	geom_segment(data = data_points[x1>0&x2>0], aes(x = x1, xend = 10, y = x2, yend = x2))  +
-	geom_segment(data = data_points[x1>0&x2>0], aes(x = x1, xend = x1, y = x2, yend = 10)) 
-    }
-    if(value == "total_eff"){
-      out_plot = out_plot +
-	geom_segment(data = data_points[x1>0&x2>0], aes(x = 0, xend = 10, y = x2, yend = x2))  +
-	geom_segment(data = data_points[x1>0&x2>0], aes(x = x1, xend = x1, y = 0, yend = 10)) 
-    }  
+library(ggplot2)
+library(data.table)
+library(latex2exp)
+library(gridExtra)
+set.seed(3249)
+data_points <- data.table(x1 = c(0,1.5, 8, 5,2, 3,4),
+                          x2 = c(0,1.5, 1, 6, 8, 9,2),
+                          x1_par = c(0,runif(6, -1,1)),
+                          x2_par = c(0,runif(6, -1,1)),
+                          x1x2_par = c(0, runif(6, -1,1)))
+hal_vals <- do.call(rbind, lapply(1:(data_points[, .N]), function(ii){
+  xx1 = c(sort(data_points$x1), 10)
+  xx2 = c(sort(data_points$x2), 10)
+  out = data.table(x1_start = xx1[ii], x1_end = xx1[ii+1],
+                   x2_start = xx2[-length(xx2)], x2_end = xx2[-1],
+                   x1_eff = as.numeric(NA),
+                   x2_eff = as.numeric(NA),
+                   x1x2_eff = as.numeric(NA),
+                   total_eff = as.numeric(NA))
+  return(out)
+}))
+for(jj in 1:hal_vals[, .N]){
+  xx1_c = hal_vals[jj, x1_start]
+  xx2_c = hal_vals[jj, x2_start]
+  xx1_main = data_points[x1 <= xx1_c, sum(x1_par)]
+  xx2_main = data_points[x2 <= xx2_c, sum(x2_par)]
+  x1x2_inter = data_points[x1 <= xx1_c & x2 <= xx2_c, sum(x1x2_par)]
+  hal_vals[jj, ":="(x1_eff = xx1_main, x2_eff = xx2_main, x1x2_eff = x1x2_inter)]
+  hal_vals[jj, total_eff := x1_eff+x2_eff+x1x2_eff]
+}
+hal_vals[, c("x1_eff", "x2_eff", "x1x2_eff", "total_eff") := {
+  vv0 = list(x1_eff, x2_eff, x1x2_eff, total_eff)
+  min_val = min(unlist(vv0))
+  max_val = max(unlist(vv0))
+  lapply(vv0, function(x) (x-min_val)/(max_val-min_val))
+}]
+base_plot <- ggplot(hal_vals) +
+  theme_classic() +
+  theme(panel.border = element_blank(),
+        panel.grid = element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) +
+  scale_x_continuous(expand = c(0, 0), lim = c(0,10)) +
+  scale_y_continuous(expand = c(0, 0), lim = c(0,10)) +
+  ylab("") +  xlab("") + labs(fill = TeX(r'($f(x)$)')) +
+  theme(legend.position = "none") +
+  ## scale_fill_gradient(low = "gray90", high = "gray10")
+  scale_fill_gradient(low = "yellow", high = "red", limits = c(0,1), breaks = c(0,1)) +
+  scale_color_gradient(low = "yellow", high = "red", limits = c(0,1), breaks = c(0,1))
+plot_fun <- function(value, draw_fill = TRUE, draw_line = FALSE, point_size = 3){
+  out_plot = base_plot
+  if(draw_fill)
+    out_plot = out_plot + geom_rect(aes(xmin = x1_start,
+                                        xmax = x1_end,
+                                        ymin = x2_start,
+                                        ymax = x2_end,
+                                        fill = get(value),
+                                        col = get(value)))
+  out_plot = out_plot + geom_point(data = data_points[x1>0&x2>0], aes(x = x1, y = x2), size = point_size)
+  if(!draw_line)
     return(out_plot)
+  if(value == "x1_eff")
+    out_plot = out_plot + geom_segment(data = data_points[x1>0&x2>0], aes(x = x1, xend = x1, y = 0, yend = 10))
+  if(value == "x2_eff")
+    out_plot = out_plot + geom_segment(data = data_points[x1>0&x2>0], aes(x = 0, xend = 10, y = x2, yend = x2))
+  if(value == "x1x2_eff"){
+    out_plot = out_plot +
+      geom_segment(data = data_points[x1>0&x2>0], aes(x = x1, xend = 10, y = x2, yend = x2))  +
+      geom_segment(data = data_points[x1>0&x2>0], aes(x = x1, xend = x1, y = x2, yend = 10)) 
   }
-  draw_shape <- function(x = c(0.5, 0.5, 1.5, 1.5),
-			 y = c(0.5, 1.5, 1.5, 0.5),
-			 fill = "white",
-			 col = "black",
-			 ...){
-    geom_polygon(data = data.table(x = x, y = y), aes(x = x, y = y), fill = fill, col = col, ...)
-  }
+  if(value == "total_eff"){
+    out_plot = out_plot +
+      geom_segment(data = data_points[x1>0&x2>0], aes(x = 0, xend = 10, y = x2, yend = x2))  +
+      geom_segment(data = data_points[x1>0&x2>0], aes(x = x1, xend = x1, y = 0, yend = 10)) 
+  }  
+  return(out_plot)
+}
+draw_shape <- function(x = c(0.5, 0.5, 1.5, 1.5),
+                       y = c(0.5, 1.5, 1.5, 0.5),
+                       fill = "white",
+                       col = "black",
+                       ...){
+  geom_polygon(data = data.table(x = x, y = y), aes(x = x, y = y), fill = fill, col = col, ...)
+}
 #+END_SRC
 
 #+RESULTS[(2023-02-14 14:24:07) d32029a8929d6687591958fdccef7f1d5b90c09d]:

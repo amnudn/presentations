@@ -1,0 +1,52 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file /home/amnudn/Documents/presentations/state-learner/poster-eurocim2024/figures/make-figs.org
+
+
+* Motivation
+:PROPERTIES:
+:ARCHIVE_TIME: 2024-04-07 Sun 23:46
+:ARCHIVE_FILE: ~/Documents/presentations/state-learner/poster-eurocim2024/figures/make-figs.org
+:ARCHIVE_CATEGORY: make-figs
+:END:
+#+HEADER: :results graphics file :file motivation.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")
+#+BEGIN_src latex
+    \definecolor{ku}{RGB}{144,26,30}
+      \begin{tikzpicture} \draw (0,0) rectangle (2,2);
+
+	\node[align=center] (A) at (1, 1) {Cox, KM, RF?... \\ newline};
+
+	\node[draw] (B) at (8,1) {SL};
+
+	    \node[draw] (C) at (14,1) {TL};
+
+  \draw[->, thick , gray] (A) -- (B);
+  \draw[->, thick , gray] (9,1) -- (13,1) ;
+      \end{tikzpicture}
+#+END_src
+
+#+RESULTS:
+[[file:motivation.pdf]]
+
+#+HEADER: :results graphics file :file motivation.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")
+#+HEADER: :headers '("\\usetikzlibrary{shapes,arrows,chains}")
+#+BEGIN_src latex
+  \tikzstyle{block} = [rectangle, draw, text width=7em, text centered, rounded corners, minimum height=6em]
+  \tikzstyle{line} = [draw, -latex']
+
+  \begin{tikzpicture}[node distance=10em, auto]
+  \node [block,gray] (A) at (0,0) {\footnotesize Cox model? Proportional hazards? Interactions terms? Independent censoring?};
+  \node [block,gray] (B) at (6, 0) {Nuisance parameter \\ estimation};
+  \node [block,gray] (C) at (12, 0) {Valid inference for causal parameter};
+
+  \path [line,->,thick] (A) -- node [midway] {Super learning} (B);
+  \path [line,->, thick] (B) -- node [midway] {Targeted learning} (C);
+  \end{tikzpicture}
+#+END_src
+
+#+RESULTS:
+[[file:motivation.pdf]]
+

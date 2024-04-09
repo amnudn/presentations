@@ -154,8 +154,8 @@ You have the opportunity to influence the project!
 p.weights(dd)
 #+END_SRC     
 
-#+RESULTS[(2021-09-20 09:09:53) 13cedee4381bd58b77c89e31a052ff264e30cf9f]:
-[[file:/tmp/babel-uSK2rt/figure-63LY1z.pdf]]
+#+RESULTS[(2024-01-12 13:35:03) 2f11acdca74486f9611985596a3648e14e1e98e8]:
+[[file:/tmp/babel-q4X6IR/figure-1wss3G.pdf]]
      
 
 *** missing data
@@ -168,8 +168,8 @@ p.weights(dd)
 p.weights(dd1)
 #+END_SRC     
 
-#+RESULTS[(2021-09-20 09:09:53) e294c53872dd9a38fa522c4eba07d5971da8abe0]:
-[[file:/tmp/babel-uSK2rt/figure-hngddQ.pdf]]
+#+RESULTS[(2024-01-12 13:35:11) 458101e0477d4b74bdb3ccb96fac6cf4c03d7946]:
+[[file:/tmp/babel-q4X6IR/figure-OmEFyQ.pdf]]
      
 
 *** reweighted data
@@ -182,8 +182,8 @@ p.weights(dd1)
 p.weights(dd2)
 #+END_SRC     
 
-#+RESULTS[(2021-09-20 09:09:53) c56f8daa2614b06f40fe0b039bdb426d9e9632b7]:
-[[file:/tmp/babel-uSK2rt/figure-Jnvx9e.pdf]]
+#+RESULTS[(2024-01-12 13:35:24) 4392b47bb1ab60c604d6c84187f34fa6a600273f]:
+[[file:/tmp/babel-q4X6IR/figure-AgOeSE.pdf]]
      
 ** Estimating the Brier score from censored data
    \small

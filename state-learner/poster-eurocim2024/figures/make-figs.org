@@ -1,0 +1,545 @@
+Remember to exceture (C-c C-c) the following line:
+#+PROPERTY: header-args:R :async :results output verbatim  :exports results  :session *R* :cache yes
+
+
+* Packages and setup 
+#+BEGIN_SRC R
+  library(survival)
+  library(prodlim)
+  library(riskRegression)
+  library(randomForestSRC)
+  library(data.table)
+  library(ggplot2)
+  library(gridExtra)
+  library(latex2exp)
+  library(MetBrewer)
+  library(targets)
+
+  ## Load results from zelefsky study
+  tar_load(c("zelefsky_statelearner", "ate_est_inter_eff"), store = "~/Documents/phd/statelearner/zelefsky-case-study/_targets/")
+
+  ## Load results from simulation study
+  tar_load(names = c("ipcw_fail_sim0", "zel_sim2_1"), store = "~/Documents/phd/statelearner/experiments/_targets/")
+
+  ## Put figures the right place
+  setwd("~/Documents/presentations/state-learner/poster-eurocim2024/figures/")
+
+  ku_red <- rgb(144/255,26/255,30/255)
+  nice_blue <- "#006dd8"
+  nice_orange <- "#E69F00"
+#+END_SRC
+
+#+RESULTS[(2023-07-10 09:28:28) a2b10d472d503e2facd58b5fa9ea661e3dc33409]:
+: riskRegression version 2023.12.21
+: 
+:  randomForestSRC 3.2.3 
+:  
+:  Type rfsrc.news() to see new features, changes, and bug fixes. 
+:  
+: 
+: data.table 1.14.10 using 4 threads (see ?getDTthreads).  Latest news: r-datatable.com
+
+
+* sandbox
+#+BEGIN_SRC R
+  ggplot() + geom_blank() +
+    annotate("text", x = 1, y = 1, label = "†", size=10) +
+  theme_bw()
+#+END_SRC
+
+#+RESULTS[(2024-04-03 12:10:39) fee665afcd6283305bb47ea7788468cc4d229ad4]:
+
+* CV
+
+#+HEADER: :results graphics file :file cv-viz.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")
+#+BEGIN_src latex
+  \definecolor{ku}{RGB}{144,26,30}
+    \begin{tikzpicture}
+	% Draw the first box
+	\draw (3.5,0) rectangle (6,1);
+	\node[gray] at (4.75,0.5) {fold 5};
+
+	% \draw (7,0) rectangle (8.5,1);
+
+	% \node[gray] at (7.75,0.5) {\footnotesize
+	%   \(  \left(\tilde Y, \tilde D \right)  \)};
+
+	% \node[gray] at (10.75,0.5) {\footnotesize
+	%   \(  ...  \)};        
+
+	\draw (0,1) rectangle (2.5,2);
+	\node[gray] at (1.25,1.5) {fold 4};
+
+	\draw (0,2) rectangle (2.5,3);
+	\node[gray] at (1.25,2.5) {fold 3};
+
+	\draw (0,3) rectangle (2.5,4);
+	\node[gray] at (1.25,3.5) {fold 2};
+
+	\draw (0,4) rectangle (2.5,5);   
+	\node[gray] at (1.25,4.5) {fold 1};
+
+	\node at (1.2,5.5) {\textbf{Train learners}};
+
+	\node at (4.75,5.5) {\textbf{Predict in test data}};
+
+	\node[align=center] at (4.76,3.25) {\textbf{\color{ku} Evaluate} \\\textbf{\color{ku} performance} \\ \textbf{\color{ku} using} \\ \textbf{\color{ku}censored} \\ \textbf{\color{ku}outcomes}};
+	\end{tikzpicture}
+#+END_src
+
+#+RESULTS:
+[[file:cv-viz.pdf]]
+
+* Motivation
+
+
+#+HEADER: :results graphics file :file motivation.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")
+#+HEADER: :headers '("\\usetikzlibrary{shapes,arrows,chains}")
+#+BEGIN_src latex
+    \tikzstyle{block} = [rectangle, draw=white, text width=7em, text centered, rounded corners, minimum height=6em]
+    \tikzstyle{line} = [draw, -latex', ->,very thick,shorten >=0.2cm, shorten <=0.2cm]
+
+    \begin{tikzpicture}[node distance=10em, auto]
+    \node (A) at (0.4,0) {};
+    \node [block] (B) at (6, 0) {Nuisance parameter \\ estimation};
+    \node [block] (C) at (12, 0) {Valid inference for causal parameters};
+
+  \node at (-.6,.9) {\scriptsize Cox model?};
+  \node at (-1,.6) {\scriptsize Proportional hazard?};
+  \node at (-.25,0.3) {\scriptsize Random forest?};
+  \node at (-1,0) {\scriptsize Penalization?};
+  \node at (-.6,-.3) {\scriptsize Interactions?};
+  \node at (-.7,-.6) {\scriptsize Independent censoring?};
+  \node at (-.7,-.9) {\scriptsize Complex censoring?};
+
+
+    \path [line] (A) -- node [midway] {Super learning} (B);
+    \path [line] (B) -- node [midway] {Targeted learning} (C);
+    \end{tikzpicture}
+#+END_src
+
+#+RESULTS:
+[[file:motivation.pdf]]
+
+* Hold-out sample problem
+#+BEGIN_SRC R :results graphics file :exports results :file "sl-hold-out-sample.pdf" :height 2.2 :width 3.2
+  simd <- function(n = 500, p = 5, q = 2){
+    covars0 = cbind(data.table(matrix(rnorm(n*p), nrow = n)),
+		    data.table(matrix(1*(runif(n*q)<.4), nrow = n)))
+    names(covars0) = c(paste0("X", 1:p), paste0("D", 1:q))
+    out = cbind(covars0,
+		data.table(t = rweibull(n, shape = 2, scale = 1),
+			   c = rweibull(n, shape = 2, scale = 1.7)))
+    out[, ":="(t_obs = pmin(t,c), event = 1*(t < c))]
+    return(out[])
+  }
+  set.seed(41)
+  pp0 <- 7
+  qq0 <- 3
+  nn0 <- 50
+  train_dat <- simd(n = nn0, p = pp0, q = qq0)
+  form0 <- as.formula(paste("Surv(t_obs, event) ~ ", paste(c(paste0("X", 1:pp0), paste0("D", 1:qq0)), collapse = "+")))
+  models <- list(KM = prodlim(Hist(t_obs, event)~1, data = train_dat),               
+		 cox = coxph(form0, data = train_dat,x = TRUE),
+		 cox_strati = coxph(update(form0, ~ . - D1 + strata(D1)), data = train_dat, x = TRUE),
+		 rf = rfsrc(form0, data = train_dat, ntree = 500))
+  test_dat <- simd(n = 1, p = pp0, q = qq0)
+  pred_times <- sort(c(seq(0.1, 2, length.out = 50),train_dat[event == 1, t_obs]))
+  pred_times <- pred_times[0.2 < pred_times & pred_times < 1]
+  model_preds <- do.call(rbind, lapply(seq_along(models), function(m_ind){
+    data.table(Model = names(models)[m_ind],
+	       time = pred_times,
+	       risk = as.numeric(predictRisk(models[[m_ind]], newdata = test_dat, times = pred_times))) 
+  }))
+  model_preds[,Model:=factor(Model,levels=c("cox","cox_strati","KM","rf"),
+			     labels=c("Cox","Stratified Cox","KM","RF"))]
+  ggplot(model_preds, aes(x = time, y = 1-risk)) +
+    geom_step(linewidth=.8, aes(col = Model)) +
+    theme_classic(base_size =10) +
+    ## labs(y = TeX("$P(T > t \\, | \\,  X = X_{new})$"), x = "") +
+    labs(y = "Survival probability", x = "") +
+    theme(legend.position = "top",axis.ticks.x=element_blank()) +
+    geom_rug(data = train_dat[0.2 < t_obs & t_obs<1 & event == 1], aes(x = t_obs, y = 0.5), sides = "b") +
+    scale_y_continuous(expand = c(0.01 , 0),lim = c(0,1)) + 
+    scale_colour_grey("", start = 0, end = 0.8) +
+    geom_point(aes(x = .7, y = 0), col = ku_red, size=1.3, shape=19) +
+    geom_vline(xintercept = .7, linetype=2, col = ku_red)   +
+    theme(axis.text.y=element_blank(),
+	    axis.ticks.y=element_blank(),
+	  axis.text.x=element_blank(),
+	    axis.ticks.x=element_blank()) 
+#+END_SRC
+
+#+RESULTS[(2024-04-07 22:44:47) 35ee63004d417f63675ba2e05b11b461fa3736ec]:
+[[file:sl-hold-out-sample.pdf]]
+
+
+
+* IPCW circel
+ 
+#+HEADER: :results graphics file :file ipcw-circle.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")
+#+BEGIN_src latex
+  \def\shift{2.3}
+  \def\ls{}
+  \def\lw{.5mm}
+    \begin{tikzpicture}
+      \node[] (S) at (0,\shift) {$\hat S$};
+      \node[] (WG) at (\shift,\shift) {$\omega_{\hat G}$};
+      \node[] (G) at (\shift,0) {$\hat G$};
+      \node[] (WS) at (0,0) {$\omega_{\hat S}$};
+      \draw[<-, \ls, line width=\lw, gray] (S) to[out=30,in=150] (WG);
+      \draw[<-, \ls, line width=\lw, gray] (WG) to[out=30-90,in=150-90] (G);
+      \draw[<-, \ls, line width=\lw, gray] (G) to[out=30-180,in=150-180] (WS);
+      \draw[<-, \ls, line width=\lw, gray] (WS) to[out=30-270,in=150-270] (S);
+    \end{tikzpicture}
+#+END_src
+
+#+RESULTS:
+[[file:ipcw-circle.pdf]]
+
+#+HEADER: :results graphics file :file ipcw-circle.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")
+#+HEADER: :headers '("\\usetikzlibrary{shapes,arrows,chains}")
+#+BEGIN_src latex
+      \tikzstyle{block} = [rectangle, text width=7em, text centered, rounded corners, minimum height=2em]
+      \tikzstyle{line} = [draw, -latex', ->,thick,shorten >=0.2cm, shorten <=0.2cm]
+
+      \begin{tikzpicture}[node distance=10em, auto]
+      \node [block] (A) at (0,0) {Estimate outcome};
+      \node [block] (B) at (6, 0) {Prespecify censoring};
+      \node [block] (C) at (6,-2) {Estimate censoring};
+      \node [block] (D) at (0, -2) {Prespecify outcome};
+
+      \path [line] (D) -- (C);
+      \path [line] (C) -- (B);
+      \path [line] (B) -- (A);
+      \path [line] (A) -- (D);    
+      \end{tikzpicture}
+#+END_src
+
+#+RESULTS:
+[[file:ipcw-circle.pdf]]
+
+* Censoring and multi-state system
+
+#+BEGIN_SRC R  :results graphics file :exports results :file comp-risk-observed-w-text.pdf :height 3
+  nTrans <- 3
+  stateLabels = c("Initial","Cause 1", "Cause 2", "Censored")
+  crHist <- Hist(time = 1:nTrans, event = list(from = rep("1", nTrans), to = stateLabels[-1]))
+  plot(crHist,
+       stateLabels = stateLabels,
+       arrow1.label=paste(expression(Lambda[1])),
+       arrow2.label=paste(expression(Lambda[2])),
+       arrow3.label=paste(expression(Gamma)),
+       changeArrowLabelSide=c(TRUE,TRUE,TRUE))
+#+END_SRC
+
+#+RESULTS[(2024-04-04 10:26:47) 168bd7c9fbd38e8c812f74a66d011e485c86501e]:
+[[file:comp-risk-observed-w-text.pdf]]
+
+#+HEADER: :results graphics file :file comp-risk-observed-w-text.pdf :fit yes
+#+HEADER: :headers '("\\usepackage{tikz, amssymb, amsmath,xcolor}")
+#+HEADER: :headers '("\\usetikzlibrary{shapes,arrows,chains}")
+#+BEGIN_src latex
+    \tikzstyle{block} = [rectangle, draw=gray, text width=4em, text centered]
+    \tikzstyle{line} = [draw, -latex', ->,shorten >=0.2cm, shorten <=0.2cm]
+
+    \begin{tikzpicture}[node distance=10em, auto]
+    \node [block] (0) at (0,0) {Initial};
+    \node [block] (1) at (4, 1) {Cause 1};
+    \node [block] (2) at (4, 0) {Cause 2};
+    \node [block] (C) at (4, -1) {Censored};
+
+    \path [line] (0) -- node [midway] {\footnotesize $\Lambda_1$} (1);
+      \path [line] (0) -- node [midway] {\footnotesize $\Lambda_2$}  (2);
+  \path [line] (0) -- node [midway] {\footnotesize $\Gamma$} (C);
+    \end{tikzpicture}
+#+END_src
+
+#+RESULTS:
+[[file:comp-risk-observed-w-text.pdf]]
+
+
+#+BEGIN_SRC R  :results graphics file :exports results :file "./multi-state-data-1.pdf" :height 3 :width 5
+    set.seed(2)
+    obs_dat <- data.table(subject=1:5,
+			  last_time=runif(5, min=.1, max=1.9),
+			  event=TRUE)
+    obs_dat[subject==5, ":="(last_time=0.5, event=FALSE)]
+    obs_dat[subject==3, ":="(last_time=1, event=FALSE)]
+
+    tilde_plot <- ggplot(obs_dat, aes(y=subject)) +
+      theme_classic(base_size =20)  + xlab(TeX("$t$")) + ylab("") +
+      geom_segment(data=obs_dat, aes(yend=subject, x=0, xend=last_time), linewidth=5) + 
+      theme(axis.text.x=element_blank(),
+	    axis.ticks.x=element_blank(),
+	    axis.ticks.y=element_blank(),
+	    axis.text.y=element_blank()) +
+      theme(plot.margin = unit(c(0,0,0,-.8), "cm")) +
+      scale_x_continuous(expand = c(0.0 , 0),lim = c(0,1.5))
+
+    death_dat <- obs_dat[event == TRUE]
+    death_dat[, ":="(start = last_time, end = 1.5)]
+    cens_dat <- obs_dat[event == FALSE]
+    cens_dat[, ":="(start = last_time, end = 1.5)]
+    tilde_plot +
+      geom_point(data=death_dat, aes(x=start), size=5.5, shape=21, stroke=2, fill="black") +
+      geom_point(data=cens_dat, aes(x=start), size=5.5, shape=21, stroke=2, fill="white") 
+#+END_SRC
+
+#+RESULTS[(2023-07-07 11:05:05) 038ef43af33e7c707da39bcb4457ffbd0196ad5e]:
+[[file:./multi-state-data-1.pdf]]
+
+#+BEGIN_SRC R :results graphics file :exports results :file "./multi-state-data-2.pdf" :height 3 :width 5
+  tilde_plot +
+    geom_point(data=death_dat, aes(x=start), size=5.5, shape=21, stroke=2, fill="white") +
+    geom_point(data=cens_dat, aes(x=start), size=5.5, shape=21, stroke=2, fill="black")
+#+END_SRC
+
+#+RESULTS[(2023-07-07 11:05:21) 9ed30ddcd18afb669390fca91e33887a6b46afb9]:
+[[file:./multi-state-data-2.pdf]]
+
+#+BEGIN_SRC R  :results graphics file :exports results :file "./multi-state-data-3.pdf" :height 3 :width 5
+  tilde_plot +
+    geom_segment(data=death_dat[2], aes(yend=subject, x=start, xend=end), col = nice_blue,linewidth=5) +
+    ## geom_point(data=death_dat[2], aes(x=start,y=subject+0.3), size=5.5, shape=3, stroke=4, fill="black") +
+    geom_segment(data=death_dat[2], aes(y=subject+.55, yend=subject-.2, x=start, xend=start),linewidth=3) +
+    geom_segment(data=death_dat[2], aes(y=subject+.35, yend=subject+.35, x=start-.04, xend=start+.04),linewidth=3) + 
+    geom_segment(data=death_dat[c(1,3)], aes(yend=subject, x=start, xend=end), col = ku_red,linewidth=5) +
+    geom_point(data=death_dat[c(1,3)], aes(x=start), size=5.5, shape=21, stroke=2, fill="black") + 
+    geom_segment(data=cens_dat, aes(yend=subject, x=start, xend=end), col = "gray",linewidth=5) +
+    geom_point(data=cens_dat, aes(x=start), size=5.5, shape=21, stroke=2, fill="white") +
+    ylim(c(0.9,5.1))
+#+END_SRC
+
+#+RESULTS[(2024-04-07 23:59:32) a0e75b744a06fe01a433f5cf208cb0cc1562bb0c]:
+[[file:./multi-state-data-3.pdf]]
+
+* Simulation study
+
+#+BEGIN_SRC R
+summ_zel_sim2_1 <- zel_sim2_1[, .(IPA = mean(IPA, na.rm = TRUE), se = sd(IPA, na.rm = TRUE)/sqrt(.N)), .(n_obs, sim_set, type, SL, time, type)]
+summ_zel_sim2_1[,SL:=factor(SL,
+                            levels=c("ipcw_cox","ipcw_km","oracle","statelearner","survSL"),
+                            labels=c("IPCW(Cox)","IPCW(KM)","Oracle","State learner", "survSL"))]
+summ_zel_sim2_1[,sim_set:=factor(sim_set,levels=c("indep_cens","original"),labels=c("Independent censoring","Dependent censoring"))]
+#+END_SRC
+
+#+RESULTS[(2024-04-05 11:45:16) 62efccdfbc99bd26f20c677b915998700827a829]:
+#+begin_example
+     n_obs    sim_set  type            SL time type.1       IPA           se
+  1:   300   original  cens        survSL    6   cens 0.6978450 0.0008305614
+  2:   300   original  cens State learner    6   cens 0.6989384 0.0008192387
+  3:   300   original  cens        Oracle    6   cens 0.6992857 0.0008149009
+  4:   300   original event        survSL    6  event 0.3488385 0.0019823097
+  5:   300   original event State learner    6  event 0.3468667 0.0019972122
+ ---                                                                        
+380:  2400 indep_cens event        survSL   36  event 0.1922440 0.0003727166
+381:  2400 indep_cens event State learner   36  event 0.2005905 0.0002755740
+382:  2400 indep_cens event      IPCW(KM)   36  event 0.2005905 0.0002755740
+383:  2400 indep_cens event     IPCW(Cox)   36  event 0.2005905 0.0002755740
+384:  2400 indep_cens event        Oracle   36  event 0.2005905 0.0002755740
+     n_obs               sim_set  type            SL time type.1       IPA           se
+  1:   300   Dependent censoring  cens        survSL    6   cens 0.6978450 0.0008305614
+  2:   300   Dependent censoring  cens State learner    6   cens 0.6989384 0.0008192387
+  3:   300   Dependent censoring  cens        Oracle    6   cens 0.6992857 0.0008149009
+  4:   300   Dependent censoring event        survSL    6  event 0.3488385 0.0019823097
+  5:   300   Dependent censoring event State learner    6  event 0.3468667 0.0019972122
+ ---                                                                                   
+380:  2400 Independent censoring event        survSL   36  event 0.1922440 0.0003727166
+381:  2400 Independent censoring event State learner   36  event 0.2005905 0.0002755740
+382:  2400 Independent censoring event      IPCW(KM)   36  event 0.2005905 0.0002755740
+383:  2400 Independent censoring event     IPCW(Cox)   36  event 0.2005905 0.0002755740
+384:  2400 Independent censoring event        Oracle   36  event 0.2005905 0.0002755740
+#+end_example
+
+# #+BEGIN_SRC R  :results graphics file :exports results :file experiment-fig-sl-ipcw.pdf :width 8 :height 2.5
+#  dd_ww <- 0.1
+#  ggplot(summ_zel_sim2_1[time == 36 & type == "event" & SL != "survSL"],
+#	 aes(x = n_obs, y = IPA, col = SL)) +
+#    theme_bw() +
+#    geom_errorbar(position=position_dodge(width = dd_ww),
+#		  aes(ymin = IPA-1.96*se, ymax = IPA+1.96*se),
+#		  width = .1,
+#		  alpha = .5,
+#		  size = 1) + 
+#    geom_line(position=position_dodge(width = dd_ww), linewidth = 1.5) +
+#    geom_point(position=position_dodge(width = dd_ww), size = 2) +
+#    scale_x_continuous(trans='log2') +
+#    facet_wrap(~sim_set, ncol = 2) +
+#    ylab("Index of prediction accuracy") + # theme(legend.position="top")  +
+#    xlab("Number of observations") +
+#    scale_y_continuous(labels = scales::percent) +
+#    scale_color_manual("Super learner", values=c("#0072B2", "darkred", "gray","#E69F00"))
+# #+END_SRC
+
+#+BEGIN_SRC R  :results graphics file :exports results :file experiment-fig-sl-ipcw.pdf :width 5 :height 3
+  ipcw_fail_sim0[, int_brier_score := scaled_int_brier*20]
+  ## tar_source(here("R-code/functions")) ## Maybe do this
+  ## summ_ipcw_fail <- ipcw_fail_sim0[, .(ave_scaled_int_brier = mean(scaled_int_brier, na.rm = TRUE), se = sd(scaled_int_brier, na.rm = TRUE)/sqrt(.N)), .(n_obs, n_covar, type, SL)]
+  summ_ipcw_fail <- ipcw_fail_sim0[, .(int_brier = mean(int_brier_score, na.rm = TRUE)), .(n_obs, n_covar, type, SL)]
+  summ_ipcw_fail[,SL:=factor(SL,levels=c("ipcw_cox","ipcw_km","oracle","statelearner","survSL"),labels=c("IPCW(Cox)","IPCW(KM)","Oracle","State learner","survSL"))]
+  ggplot(summ_ipcw_fail[n_covar == 1 & type == "event" & SL != "survSL"],
+	 aes(x = n_obs, y = int_brier, col = SL)) +
+    theme_bw() +
+    theme(legend.position="top")+
+    geom_line(linewidth=1.5) +
+    geom_point(size=2) +
+    scale_x_continuous(trans='log2') +
+    xlab("Number of observations")  +
+    ylab("Integrated Brier score")  +  
+    scale_color_manual("", values=c(nice_blue, ku_red, "gray", nice_orange)) +
+    theme(plot.margin = unit(c(-.3,0,0,0), "cm"))
+#+END_SRC
+
+#+RESULTS[(2024-04-08 00:19:55) 29d0314453e5845dd6680ac10066c3f3928298f7]:
+[[file:experiment-fig-sl-ipcw.pdf]]
+
+DRop this
+
+#+BEGIN_SRC R
+## Get (approximate) relative measure (sort of IPA)
+source("~/Documents/phd/statelearner/R-code/functions/ipcw-fail-sim-data.R")
+
+
+time_inc = (20-1)/100
+eval_times = seq(1, 20, time_inc)
+
+tt <- do.call(rbind, lapply(c(300, 600, 1200, 2400), function(n_sample){
+  do.call(rbind, lapply(1:10, function(i){
+    dd0 <- ipcw_fail_sim_data(n = n_sample, p = 1)
+    mc_dd0 <- ipcw_fail_sim_data(n = 3000, p = 1)
+    mc_dd0[, dummy_status := 1]
+    tt <- Score(list(km = prodlim(Hist(time, status)~1, dd0)),
+                formula = Hist(true_time, dummy_status)~1,
+                null.model = FALSE,
+                times = eval_times, data = mc_dd0, summary = "ibs")
+    ## tt$Brier$score$IBS[101]*100
+    data.table(n_obs = n_sample, model = "null_model", raw_int_brier_score =   tt$Brier$score[, sum(Brier)*time_inc]*100)
+  }))[, .(integrated_brier_score = mean(raw_int_brier_score)), .(n_obs, model)][]
+}))
+#+END_SRC
+
+* Illustration zelefsky data
+
+#+BEGIN_SRC R  :results graphics file :exports results :file zelefski-real-data.pdf :width 8 :height 2.8
+zel_real_plot_dt <- copy(zelefsky_statelearner$cv_fit)
+zel_real_plot_dt[,cause1:=factor(cause1,levels=c("cox_lasso","cox_elastic","cox_strata_stage","km","rf"),labels=c("lasso","elastic","strata","KM","RF"))]
+zel_real_plot_dt[,cause2:=factor(cause2,levels=c("cox_lasso","cox_elastic","cox_strata_stage","km","rf"),labels=c("lasso","elastic","strata","KM","RF"))]
+zel_real_plot_dt[,censor:=factor(censor,levels=c("cox_lasso","cox_elastic","cox_strata_stage","km","rf"),labels=paste("Censoring: ", c("lasso","elastic","strata","KM","RF")))]
+
+library(ggplot2)
+ggplot(zel_real_plot_dt, aes(x = cause1, y = loss, col = cause2)) +
+  geom_point(position=position_dodge(width=1), size=.8) +
+  geom_errorbar(aes(ymin = loss-2*sd, ymax = loss+2*sd), width = .4,
+                position=position_dodge(width=1)) +
+  theme_bw() + ylab("Integrated Brier score") +
+  theme(legend.position="top", axis.text.x = element_text(angle = 45, vjust = .8)) +
+  xlab("Tumor learner") +
+  facet_grid(cols = vars(censor)) +
+  ## facet_grid(~censor) +
+  scale_colour_grey("Death learner", start = 0, end = 0.7) 
+#+END_SRC
+
+#+RESULTS[(2024-04-05 11:35:00) c67a443a702a28b17d15ee39f17da0f130d0aac2]:
+[[file:zelefski-real-data.pdf]]
+
+
+#+BEGIN_SRC R  :results graphics file :exports results :file zelefski-real-data-flip.pdf :width 4 :height 7
+zel_real_plot_dt <- copy(zelefsky_statelearner$cv_fit)
+zel_real_plot_dt[,cause1:=factor(cause1,levels=c("cox_lasso","cox_elastic","cox_strata_stage","km","rf"),labels=c("lasso","elastic","strata","KM","RF"))]
+zel_real_plot_dt[,cause2:=factor(cause2,levels=c("cox_lasso","cox_elastic","cox_strata_stage","km","rf"),labels=c("lasso","elastic","strata","KM","RF"))]
+zel_real_plot_dt[,censor:=factor(censor,levels=c("cox_lasso","cox_elastic","cox_strata_stage","km","rf"),labels=paste("Censoring:\n", c("lasso","elastic","strata","KM","RF")))]
+
+library(ggplot2)
+ggplot(zel_real_plot_dt, aes(x = cause1, y = loss, col = cause2)) +
+  geom_point(position=position_dodge(width=1), size=.8) +
+  geom_errorbar(aes(ymin = loss-2*sd, ymax = loss+2*sd), width = .4,
+                position=position_dodge(width=1)) +
+  theme_bw() + ylab("Integrated Brier score") +
+  theme(legend.position="top") +
+  xlab("Tumor") +
+  facet_grid(rows = vars(censor)) +
+  ## facet_grid(~censor) +
+  scale_colour_grey("Death", start = 0, end = 0.7) +
+  coord_flip()
+#+END_SRC
+
+#+RESULTS[(2024-04-04 13:51:01) b47800e1464f7b2212d33f9fee8291728405ea50]:
+[[file:zelefski-real-data-flip.pdf]]
+
+#+BEGIN_SRC R :results silent
+  tab_rank <- cbind(data.table(rank = 1:nrow(zelefsky_statelearner$cv_fit)), copy(zelefsky_statelearner$cv_fit))
+  tab_rank[, sd := NULL]
+  tab_rank[,cause1:=factor(cause1,levels=c("cox_lasso","cox_elastic","cox_strata_stage","km","rf"),labels=c("lasso","elastic","strata","KM","RF"))]
+  tab_rank[,cause2:=factor(cause2,levels=c("cox_lasso","cox_elastic","cox_strata_stage","km","rf"),labels=c("lasso","elastic","strata","KM","RF"))]
+  tab_rank[,censor:=factor(censor,levels=c("cox_lasso","cox_elastic","cox_strata_stage","km","rf"),labels=c("lasso","elastic","strata","KM","RF"))]
+#+END_SRC
+
+#+BEGIN_SRC R
+  tab_rank[, -c("rank")]
+#+END_SRC
+
+#+RESULTS[(2024-04-04 13:32:08) 91654a90e08d7d6fa908a5b9ccaea7a351ace531]:
+#+begin_example
+     cause1  cause2 censor      loss
+  1:     RF      KM     RF  7.022057
+  2: strata elastic     RF  7.025097
+  3:     RF elastic     RF  7.025267
+  4:     RF      RF     RF  7.025504
+  5: strata   lasso     RF  7.025648
+ ---                                
+121:     KM      RF     KM 10.299304
+122:     KM   lasso     KM 10.310004
+123:     KM elastic     KM 10.310062
+124:     KM  strata     KM 10.310763
+125:     KM      KM     KM 10.328653
+#+end_example
+
+
+# #+BEGIN_SRC R :results graphics file :exports results :file zelefsky-data-target-par.pdf  :width 3 :height 3
+#  ate_est_inter_eff[effect == "ATE" & est_type == "one-step" & time %in% c(12,24,36)] |>
+#    (\(plot_data)
+#      {
+#	plot_data[,cause:=factor(cause,levels=c("cause1","cause2"),labels=c("Tumor recurrence","Death"))]
+#	ggplot(plot_data, aes(x = time, y = est)) +
+#	  geom_errorbar(aes(ymin = lower, ymax = upper), width = 1) + 
+#	  geom_point() +
+#	  geom_hline(yintercept = 0, linetype = 2) +
+#	  theme_bw() +
+#	  facet_wrap( ~ cause) +
+#	  xlab("Months after baseline") + ylab("ATE of hormone therapy") +
+#	  scale_x_continuous(breaks = seq(6,36,12)) +
+#	  scale_y_continuous(labels = scales::percent)
+#      })()
+# #+END_SRC
+
+
+#+BEGIN_SRC R :results graphics file :exports results :file zelefsky-data-target-par.pdf  :width 5 :height 3
+  ate_est_inter_eff[effect == "ATE" & est_type == "one-step" & time %in% c(12,24,36)] |>
+    (\(plot_data)
+      {
+	plot_data[,cause:=factor(cause,levels=c("cause1","cause2"),labels=c("Tumor recurrence","Death"))]
+	ggplot(plot_data, aes(x = time, y = est, col=cause)) +
+	  geom_errorbar(linewidth=1.5, aes(ymin = lower, ymax = upper), width = 3, position=position_dodge(width = 7)) + 
+	  geom_point(position=position_dodge(width = 7)) +
+	  geom_hline(yintercept = 0, linetype = 2) +
+	  theme_bw() +
+	  theme(legend.position="top") +
+	  ## facet_wrap( ~ cause) +
+	  xlab("Months after baseline") + ylab("ATE of hormone therapy") +
+	  scale_x_continuous(breaks = seq(12,36,12)) +
+	  scale_y_continuous(labels = scales::percent) +
+	    scale_color_manual("Cause", values=c(ku_red, nice_blue)) +
+	  theme(plot.margin = unit(c(-.3,0,0,0), "cm"))
+      })()
+#+END_SRC
+
+#+RESULTS[(2024-04-08 00:18:57) 11d871322da0dbb961be30d743bedb7ff9e83728]:
+[[file:zelefsky-data-target-par.pdf]]
+
+
+
