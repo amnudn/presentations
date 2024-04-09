@@ -194,20 +194,17 @@
 
 \begin{abstract}
 
-  The super learner is a machine learning algorithm which combines a library of
-  prediction models into a meta learner based on cross-validated loss.
-  Unfortunately, when data are right-censored the commonly used partial
-  likelihood loss is not suited for super learning, and inverse probability of
-  censoring weighted loss functions require a prespecified estimator of the
-  censoring distribution. To relax this, we introduce the state learner, a new
-  super learner for survival analysis, which evaluates the loss based on the
-  observed data simultaneously using libraries of predictions models for the
-  event(s) of interest and the censoring distribution. We establish an oracle
-  inequality for the state learner and investigate its performance through
-  numerical experiments. We illustrate how the state learner allows us to
-  estimate causal effects in a competing risks setting without having to
-  prespecify models for neither the cause-specific hazard functions nor the
-  censoring distribution.
+  The super learner is a machine learning algorithm which combines a
+  library of prediction models into a meta learner based on
+  cross-validated loss.  We introduce the state learner, a new super
+  learner for survival analysis, which evaluates the loss based on the
+  observed data simultaneously using libraries of predictions models
+  for the events of interest and the censoring distribution. We
+  establish an oracle inequality for the state learner and investigate
+  its performance through numerical experiments. We illustrate how the
+  state learner allows us to estimate causal effects in a competing
+  risks setting without having to prespecify models for neither the
+  cause-specific hazard functions nor the censoring distribution.
 \end{abstract}
 
 %----------------------------------------------------------------------------------------
@@ -218,10 +215,10 @@
 
 \section*{Motivation}
 
-Prespecification of estimators for survival and censoring probabilities can be
-difficult with observational data. Super learning uses the data to decides which
-estimators best fit the data. Targeted learning can correct the bias stemming
-from this data-adaptive model selection step, providing valid post-selection
+Super learning uses cross-validation to decides which estimators best
+fit the data. In survival analysis the result of super learning can be
+a risk prediction model. Targeted learning can integrate super
+learning of nuisance parameters and provide valid post-selection
 inference for causal parameters.
 
 \begin{center}
@@ -275,8 +272,8 @@ and the censoring probability. Assuming coarsening at random
 \cite{gill1997coarsening,van2003unified}, the cause-specific hazard functions
 and the censoring probability can be estimated based on samples from \( P \).
 Many existing methods are available for this task, including the Nelson-Aalen
-estimator, Cox models, random survival forests, Poisson regression, neural
-networks, and many others. % These methods will be
+estimator, Cox models, random survival forests, Poisson regression, and neural
+networks. % These methods will be
 % valid under different assumptions.
 
 A super learner can be used to data-adaptively select an estimator (called a
@@ -331,19 +328,21 @@ estimator of the censoring probability.
 
 \section*{Existing methods}
 
-A commonly used loss function in survival analysis is the negative partial
-log-likelihood loss. This loss is unsuited for super learner because many common
-survival estimators will have infinite loss in any hold out sample as
-illustrated in the figure below to the left. Alternative methods such as
-inverse probability of censoring weighting
-\cite{graf1999assessment,gonzalez2021stacked}, pseudo-observations
-\cite{andersen2003generalised,sachs2019ensemble}, and censoring unbiased
-transformations \cite{steingrimsson2019censoring} rely on a prespecified
-estimator of the censoring probability. This can lead to a circular reasoning as
-illustrated in the figure below to the right. A recent proposal in a context
-without competing events is based on iterative estimation of the survival and
-the censoring probabilities in the hope that this is not a vicious circle
-\cite{westling2021inference}.
+A commonly used loss function in survival analysis is the negative
+partial log-likelihood loss. This loss is not perfectly suited for
+super learning because many common survival estimators have infinite
+loss in a hold out sample. This is illustrated in the figure below to
+the left. Alternative methods such as inverse probability of censoring
+weighting \cite{graf1999assessment,gonzalez2021stacked},
+pseudo-observations \cite{andersen2003generalised,sachs2019ensemble},
+and censoring unbiased transformations
+\cite{steingrimsson2019censoring} rely on a prespecified estimator of
+the censoring probability. This can lead to a circular reasoning as
+illustrated in the figure below to the right. A recent proposal is to
+iteratively estimate the survival and the censoring probabilities
+\cite{westling2021inference}. However, no general theoretical guarantees
+seem to exist for this procedure, and it has not yet been extended to
+the situation with competing risks.
 
 % \setlength{\columnseprule}{0pt}
 % \setlength{\columnsep}{30pt}
@@ -426,10 +425,12 @@ the censoring probabilities in the hope that this is not a vicious circle
 
 \section*{The state learner}
 
-The state learner models the observed system as an \textit{artificial}
-multi-state system where censoring is considered a state. After baseline the
-observed data can be encoded by the process \( \eta(t) \in \{-1, 0, 1,2\} \)
-defined as
+The state learner is a new super learner for survival analysis with
+competing risks. The input to the state learner are libraries of
+learners for all transitions of the multi-state model where censoring
+is considered a state. The observed data can be regarded as
+realizations of the process \( \eta(t) \in \{-1, 0, 1,2\} \) defined
+by
 \begin{equation*}
   \eta(t) = \1{
     \left\{
@@ -464,8 +465,8 @@ probability function,
   % w \in \mathcal{W},
   % a \in \{0,1\}.
 \end{equation*}
-Performance of a model for \( F \) can be estimated directly in the observed
-data, e.g., using the integrated Brier score,
+Performance of a learner for \( F \) is cross-validated in the
+observed data using the integrated Brier score:
 \begin{equation*}
   \bar B_\tau( F,O) = \int_0^{\tau} B_t(F,O) \diff t,
   \quad \text{where} \quad 
@@ -477,12 +478,13 @@ data, e.g., using the integrated Brier score,
 
 \section*{Building a library for state learning}
 
-Learners of \( F \) are not directly available. However, given libraries of
-learners of cause-specific cumulative hazard functions \( \Lambda_{1} \) and
+Learners of \( F \) are obtained using libraries of learners of the
+cause-specific cumulative hazard functions \( \Lambda_{1} \) and
 \( \Lambda_{2} \), and a library for learning the cumulative hazard of
-censoring, denoted by $\Gamma$, we can obtain a library of learners for \( F \)
-using the relations below. Most existing survival estimators provide estimates
-of cumulative hazard functions, so these learner are easily available.
+censoring, denoted by $\Gamma$:
+% Most existing survival estimators
+% provide estimates of cumulative hazard functions, so these learner are
+% easily available.
 \begin{align*}
   F(t, 0, w,a)
   &= P{\left( \tilde{T}>t \midd W=w,A=a \right)}
