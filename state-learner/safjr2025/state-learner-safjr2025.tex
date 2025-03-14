@@ -1,4 +1,4 @@
-% Created 2025-03-14 Fri 12:20
+% Created 2025-03-14 Fri 23:17
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -33,11 +33,14 @@ basewidth={0.5em,0.4em},
 \tikzstyle{startstop} = [rectangle, minimum width=1cm, minimum height=1cm,text centered, align=center]
 \tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black]
 \tikzstyle{arrow} = [thick,->,>=stealth]
+\usepackage{caption}
+\captionsetup{labelformat=empty,font={color=gray,footnotesize}}
 \usepackage{prodint}
 \setbeamertemplate{footline}[frame number]
 \beamertemplatenavigationsymbolsempty
 \usepackage{appendixnumberbeamer}
-\setbeamercolor{gray}{bg=white!95!black}
+\definecolor{lightblue}{RGB}{240, 240, 250}
+\setbeamercolor{gray}{bg=lightblue}
 \setbeamertemplate{itemize items}{$\circ$}
 \lstset{basicstyle=\ttfamily\footnotesize}
 \RequirePackage{fancyvrb}
@@ -45,6 +48,8 @@ basewidth={0.5em,0.4em},
 \renewcommand*{\thefootnote}{\fnsymbol{footnote}}
 \setbeamerfont{footnote}{size=\scriptsize}
 \definecolor{bblue}{rgb}{0.2,0.2,0.7}
+\definecolor{darkgreen}{RGB}{0,100,0}
+\hypersetup{colorlinks=true,allcolors=darkgreen}
 \newcommand{\E}{{\ensuremath{\mathop{{\mathbb{E}}}}}}
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\N}{\mathbb{N}}
@@ -93,7 +98,9 @@ basewidth={0.5em,0.4em},
 
 \maketitle
 
-\begin{frame}[label={sec:org3c06c93}]{Targeted or debiased machine learning}
+\begin{frame}[label={sec:org040975f}]{Targeted or debiased machine learning\footnote{\citep{van2011targeted,chernozhukov2018double}}}
+\vspace{.3cm}
+
 Low-dimensional target parameter
 \begin{equation*}
   \Psi \colon \mathcal{P}
@@ -106,11 +113,16 @@ for high-dimensional nuisance parameters \(\nu_1, \dots,
 \nu_B\).
 
 \vfill
+\pause
 
-(Picture from PhD with multi-state model)
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{./targeted-learning-illu.pdf}
+\caption{Adapted from Figure 4 in \citep{munch2023targeted}.}
+\end{figure}
 \end{frame}
 
-\begin{frame}[label={sec:orgea38621}]{Examples of estimands}
+\begin{frame}[label={sec:orgee618ca}]{Examples of estimands}
 Available data \(O = (X, \tilde{T}, \tilde{D}) \sim P \in
 \mathcal{P}\), where
 \begin{align*}
@@ -177,7 +189,7 @@ event indicator.
 \end{overlayarea}
 \end{frame}
 
-\begin{frame}[label={sec:org2118e05}]{Targeted learning with super learning}
+\begin{frame}[label={sec:orgde3c8f5}]{Targeted learning with super learning}
 \begin{equation*}
   \Psi(P) = \E_{P}{
     \left[
@@ -214,6 +226,8 @@ can be written as
 \end{beamercolorbox}
 
 \begin{block}{}
+\vspace{-.2cm}
+
 Asymptotic valid inference and \(\bigO_P(n^{-1/2})\) convergence
 for \(\hat{\Psi}_n^*\) if
 \begin{equation*}
@@ -223,14 +237,15 @@ for \(\hat{\Psi}_n^*\) if
   \hat{\pi}_n \}.
 \end{equation*}
 
-\vfill
-
-To achieve this we can use a super learner to data-adaptively
-select an estimator from a library of candidates.
+\pause
 \end{block}
+
+\begin{beamercolorbox}[rounded=true]{gray}
+\centering Attempt to achieve this using a super learner.
+\end{beamercolorbox}
 \end{frame}
 
-\begin{frame}[label={sec:org3012b9a}]{Super learning\footnote{\cite{stone1974cross,geisser1975predictive,wolpert1992stacked,breiman1996stacked,van2007super}}}
+\begin{frame}[label={sec:org8577a4f}]{Super learning\footnote{\cite{stone1974cross,geisser1975predictive,wolpert1992stacked,breiman1996stacked,van2007super}}}
 \begin{onlyenv}<1>
 
 \begin{center}
@@ -328,20 +343,26 @@ select an estimator from a library of candidates.
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org29d1562}]{\color{white} breaker}
+\begin{frame}[label={sec:org0266a17}]{\color{white} breaker}
 \begin{beamercolorbox}[rounded=true]{gray}
-\centering \Large Evaluating performance in hold-out folds is
-a challenge with right-censored data
+\Large
+
+\begin{center}
+  Evaluating performance in hold-out folds is a challenge
+  with right-censored data
+\end{center}
+\vspace{.2cm}
 \end{beamercolorbox}
 \end{frame}
 
-\begin{frame}[label={sec:org8427469}]{The negative log-likelihood is unsuited for super learning}
+
+\begin{frame}[label={sec:org4356ead}]{The negative log-likelihood is unsuited for super learning}
 \begin{center}
 \includegraphics[width=0.9\textwidth]{./sl-hold-out-sample.pdf}
 \end{center}
 \end{frame}
 
-\begin{frame}[label={sec:org18db45c}]{\large IPCW and pseudo-outcome require pre-specified censoring estimator}
+\begin{frame}[label={sec:org1a8d427}]{\large IPCW and pseudo-outcome require pre-specified censoring estimator}
 \def\shift{3}
 \def\ls{}
 \def\lw{.5mm}
@@ -359,7 +380,9 @@ a challenge with right-censored data
 \end{frame}
 
 
-\begin{frame}[label={sec:org2d13ae0}]{The state learner: Model all `states' of the \emph{observed} data}
+\begin{frame}[label={sec:org7089033}]{The state learner: Model all `states' of the \emph{observed} data}
+\vspace{-1cm}
+
 \begin{equation*}
   N(t) = \1{
     \{
@@ -369,22 +392,33 @@ a challenge with right-censored data
   % \in \{-1, 0, 1, 2\}
 \end{equation*}
 
-\vfil
-
 \begin{center}
-\includegraphics[width=0.5\textwidth]{./multi-state-data-3-up.pdf}
+\includegraphics[width=0.45\textwidth]{./observed-multi-state.pdf}
 \end{center}
 
-\vfil
+\pause
 
 Build a super learner for the function
 \begin{equation*}
     F(t, k, w,a) = P(N(t) = k \mid W=w, A=a).
 \end{equation*}
+
+\pause \vspace{.2cm}
+
+\begin{beamercolorbox}[rounded=true]{gray}
+\begin{equation*}
+  L(F,O) =  \int_0^{\tau} \sum_{j=-1}^{2}
+  \Bigl(
+    F(t,j,W,A) - \1{\{N(t)=j\}}
+    \Bigr)^2
+    \diff t.
+\end{equation*}
+\end{beamercolorbox}
 \end{frame}
 
-\begin{frame}[label={sec:org68e1cbf}]{Back and forth calculations}
-Use
+
+\begin{frame}[label={sec:org530332d}]{Building a library for \(F\)}
+The formulas
 \begin{align*}
   F(t, 0, w,a)
   &
@@ -408,44 +442,59 @@ Use
     % P{\left( \tilde{T} \leq t, \Delta=0 \midd W=w, A=a \right)}
     = \int_0^tF(t-,0, w,a)  \Gamma(\diff s \mid w,a),
 \end{align*}
-to build a library for \(F\) from libraries for \(\Lambda_1\), \(\Lambda_2\), \(\Gamma\),
+can be used to build a library for \(F\) from libraries for \(\Lambda_1\), \(\Lambda_2\), \(\Gamma\),
 \begin{equation*}
   \mathcal{F}(\mathcal{A}, \mathcal{B}, \mathcal{C})
   = \{ F_{a, b, c} : a \in \mathcal{A}, b \in \mathcal{B},
   c \in \mathcal{C}\}.
 \end{equation*}
 
-\pause
+\vfill
 
-\begin{beamercolorbox}[rounded=true]{gray}
-\begin{equation*}
-  L(F,O) =  \int_0^{\tau} \sum_{j=-1}^{2}
-  \Bigl(
-    F(t,j,W,A) - \1{\{N(t)=j\}}
-    \Bigr)^2
-    \diff t.
-\end{equation*}
-\end{beamercolorbox}
+Similarly, we can obtain \(\Lambda_j\) and \(\Gamma\) from \(F\).
 \end{frame}
 
-\begin{frame}[label={sec:org419040c}]{Illustration with data from a prostate cancer study\footnote{\cite{kattan2000pretreatment}.}}
+
+
+\begin{frame}[label={sec:org0ebe6cf}]{Illustration with data from a prostate cancer study\footnote{\cite{kattan2000pretreatment}.}}
 \begin{onlyenv}<1>
+The learners selected by the state learner.
+
 \begin{center}
 \includegraphics[width=1\textwidth]{./real-data-state-learner.pdf}
 \end{center}
 \end{onlyenv}
 
 \begin{onlyenv}<2>
+The estimated average treatment effect of hormone therapy.
+
+\vfill
+
 \begin{center}
 \includegraphics[width=1\textwidth]{./real-data-target.pdf}
 \end{center}
 \end{onlyenv}
 \end{frame}
 
-\begin{frame}[label={sec:orgbcd1621}]{Theoretical results etc -- reference to paper Github}
+\begin{frame}[label={sec:org84bcd9c}]{Additional details}
+\cite{munch2024state} provide
+\begin{itemize}
+\item a consistency result
+\item a finite sample oracle inequality
+\item details for the targeting step
+\end{itemize}
+
+\vfill
+
+Prototype available at \url{https://github.com/amnudn/statelearner}.
+
+\vfill
+
+\flushright \color{bblue} Thank you for the attention!
 \end{frame}
 
-\begin{frame}[label={sec:orgc4aaa09}]{References}
+
+\begin{frame}[label={sec:org22d632a}]{References}
 \footnotesize \bibliography{bib.bib}
 \end{frame}
 \end{document}

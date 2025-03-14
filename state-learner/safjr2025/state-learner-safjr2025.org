@@ -2,7 +2,9 @@
 #+Author: Anders Munch \newline \small joint work with Thomas Gerds \newline \newline Section of Biostatistics, UCPH
 #+Date: March 20, 2025
 
-* Targeted or debiased machine learning
+* Targeted or debiased machine learning[fn:tl]
+
+\vspace{.3cm}
 
 Low-dimensional target parameter
 \begin{equation*}
@@ -16,8 +18,13 @@ for high-dimensional nuisance parameters $\nu_1, \dots,
 \nu_B$.
 
 \vfill
+\pause
 
-(Picture from PhD with multi-state model)
+#+CAPTION: Adapted from Figure 4 in \citep{munch2023targeted}.
+#+ATTR_LATEX: :width 0.9\textwidth
+[[./targeted-learning-illu.pdf]]
+
+[fn:tl] \citep{van2011targeted,chernozhukov2018double}
 
 * Examples of estimands
 
@@ -133,6 +140,8 @@ can be written as
 
 ** 
 
+\vspace{-.2cm}
+
 Asymptotic valid inference and $\bigO_P(n^{-1/2})$ convergence
 for $\hat{\Psi}_n^*$ if
 \begin{equation*}
@@ -142,10 +151,15 @@ for $\hat{\Psi}_n^*$ if
   \hat{\pi}_n \}.
 \end{equation*}
 
-\vfill
+\pause
 
-To achieve this we can use a super learner to data-adaptively
-select an estimator from a library of candidates.
+** gray                                                    :B_beamercolorbox:
+:PROPERTIES:
+:BEAMER_env: beamercolorbox
+:BEAMER_opt: rounded=true
+:END:
+
+\centering Attempt to achieve this using a super learner.
 
 * Super learning[fn:1]
 
@@ -284,8 +298,16 @@ select an estimator from a library of candidates.
 :BEAMER_opt: rounded=true
 :END:
 
-\centering \Large Evaluating performance in hold-out folds is
-a challenge with right-censored data
+\Large
+
+#+begin_export latex
+  \begin{center}
+    Evaluating performance in hold-out folds is a challenge
+    with right-censored data
+  \end{center}
+  \vspace{.2cm}
+#+end_export
+
 
 * The negative log-likelihood is unsuited for super learning
 
@@ -313,6 +335,7 @@ a challenge with right-censored data
 
 
 * The state learner: Model all `states' of the /observed/ data
+\vspace{-1cm}
 
 \begin{equation*}
   N(t) = \1{
@@ -323,20 +346,34 @@ a challenge with right-censored data
   % \in \{-1, 0, 1, 2\}
 \end{equation*}
 
-\vfil
+#+ATTR_LATEX: :width 0.45\textwidth
+[[./observed-multi-state.pdf]]
 
-#+ATTR_LATEX: :width 0.5\textwidth
-[[./multi-state-data-3-up.pdf]]
-
-\vfil
+\pause
 
 Build a super learner for the function
 \begin{equation*}
     F(t, k, w,a) = P(N(t) = k \mid W=w, A=a).
 \end{equation*}
 
-* Back and forth calculations
-Use
+\pause \vspace{.2cm}
+
+*** gray                                        :B_beamercolorbox:
+:PROPERTIES:
+:BEAMER_env: beamercolorbox
+:BEAMER_opt: rounded=true
+:END:
+\begin{equation*}
+  L(F,O) =  \int_0^{\tau} \sum_{j=-1}^{2}
+  \Bigl(
+    F(t,j,W,A) - \1{\{N(t)=j\}}
+    \Bigr)^2
+    \diff t.
+\end{equation*}
+
+
+* Building a library for \( F \)
+The formulas
 \begin{align*}
   F(t, 0, w,a)
   &
@@ -360,7 +397,7 @@ Use
     % P{\left( \tilde{T} \leq t, \Delta=0 \midd W=w, A=a \right)}
     = \int_0^tF(t-,0, w,a)  \Gamma(\diff s \mid w,a),
 \end{align*}
-to build a library for \(F\) from libraries for \( \Lambda_1
+can be used to build a library for \(F\) from libraries for \( \Lambda_1
 \), $\Lambda_2$, $\Gamma$,
 \begin{equation*}
   \mathcal{F}(\mathcal{A}, \mathcal{B}, \mathcal{C})
@@ -368,20 +405,11 @@ to build a library for \(F\) from libraries for \( \Lambda_1
   c \in \mathcal{C}\}.
 \end{equation*}
 
-\pause
+\vfill
 
-*** gray                                        :B_beamercolorbox:
-:PROPERTIES:
-:BEAMER_env: beamercolorbox
-:BEAMER_opt: rounded=true
-:END:
-\begin{equation*}
-  L(F,O) =  \int_0^{\tau} \sum_{j=-1}^{2}
-  \Bigl(
-    F(t,j,W,A) - \1{\{N(t)=j\}}
-    \Bigr)^2
-    \diff t.
-\end{equation*}
+Similarly, we can obtain $\Lambda_j$ and $\Gamma$ from $F$.
+
+
 
 * Illustration with data from a prostate cancer study[fn:kattan]
 
@@ -390,6 +418,8 @@ to build a library for \(F\) from libraries for \( \Lambda_1
 :BEAMER_act: <1>
 :BEAMER_env: onlyenv
 :END:
+
+The learners selected by the state learner.
 
 #+ATTR_LATEX: :width 1\textwidth
 [[./real-data-state-learner.pdf]]
@@ -400,15 +430,249 @@ to build a library for \(F\) from libraries for \( \Lambda_1
 :BEAMER_env: onlyenv
 :END:
 
+The estimated average treatment effect of hormone therapy.
+
+\vfill
+
 #+ATTR_LATEX: :width 1\textwidth
 [[./real-data-target.pdf]]
 
 [fn:kattan] \cite{kattan2000pretreatment}.
 
-* Theoretical results etc -- reference to paper Github
+* Additional details
+
+\cite{munch2024state} provide
+- a consistency result
+- a finite sample oracle inequality
+- details for the targeting step
+
+\vfill
+
+Prototype available at [[https://github.com/amnudn/statelearner]].
+
+\vfill
+
+\flushright \color{bblue} Thank you for the attention!
+
 
 * References
 \footnotesize \bibliography{bib.bib}
+
+* Make figures :noexport:
+** Packages and setup
+#+PROPERTY: header-args:R :async :results output verbatim  :exports results  :session *R* :cache yes
+
+#+BEGIN_SRC R
+  library(survival)
+  library(prodlim)
+  library(riskRegression)
+  library(randomForestSRC)
+  library(data.table)
+  library(ggplot2)
+  library(gridExtra)
+  library(latex2exp)
+  library(MetBrewer)
+  library(targets)
+
+  ## Load results from zelefsky study
+  tar_load(c("zelefsky_statelearner", "ate_est_inter_eff"), store = "~/Documents/phd/statelearner/zelefsky-case-study/_targets/")
+
+  ## Load results from simulation study
+  tar_load(names = c("ipcw_fail_sim0", "zel_sim2_1"), store = "~/Documents/phd/statelearner/experiments/_targets/")
+
+  ## Load results from idm paper
+  dep_cens_sim <- readRDS(file=system(paste("ls -t", paste0("~/Documents/phd/idm-state-efficiency/results/sim-results/sim-experiment-target-dep-cens*")), intern = TRUE)[1])
+
+  ## Put figures the right place
+  setwd("~/Documents/presentations/state-learner/safjr2025/")
+
+  ku_red <- rgb(144/255,26/255,30/255)
+  nice_blue <- "#006dd8"
+  nice_orange <- "#E69F00"
+#+END_SRC
+
+#+RESULTS[(2025-03-14 21:46:15) 1f3165739d7cb31e88e03ae1a33f3a32b695b0c7]:
+: riskRegression version 2023.12.21
+: 
+:  randomForestSRC 3.2.3 
+:  
+:  Type rfsrc.news() to see new features, changes, and bug fixes. 
+:  
+: 
+: data.table 1.15.4 using 4 threads (see ?getDTthreads).  Latest news: r-datatable.com
+: Need help getting started? Try the R Graphics Cookbook: https://r-graphics.org
+
+** IDM targeting illustration
+
+#+BEGIN_SRC R :results graphics file :exports results :file "targeted-learning-illu.pdf" :height 4 :width 8
+  dat_use <- dep_cens_sim[cond.cens.haz %in% dep_cens_sim[, unique(cond.cens.haz)][c(1, 3, 5)] &
+                          nObs %in% c(500, 1500, 5000)]
+  dat_use[,cond.cens.haz.fac:=factor(cond.cens.haz,levels=c("0.02","0.11","0.2"),labels=c("High","Medium","None"))]
+  dat_use[,nObs.fac:=factor(nObs,levels=c("500","1500","5000"),labels=paste(c("500","1500","5000")))]
+  dat_use[,type:=factor(type,levels=c("Aa-J","cv_glmnet_saturated_naiv","cv_glmnet_saturated_eif"),labels=c("Aa-J","naiv","eif"))]
+  setnames(dat_use, c("est", "type"), c("Estimate", "Method"))
+  plot_dat <- dat_use[!grepl("Medium", cond.cens.haz.fac)]
+  plot_dat[,cond.cens.haz.fac:=factor(cond.cens.haz.fac,levels=c("None","Medium","High"),labels=c("Yes","Medium","No"))]
+  plot_dat[,Method:=factor(Method,levels=c("Aa-J","naiv","eif"),labels=c("Traditional (Aa-J)","Naive machine learning","Targeted learning"))]
+  ggplot(plot_dat, aes(x=nObs.fac, y=Estimate, fill=factor(cond.cens.haz.fac))) +
+      geom_hline(yintercept = dep_cens_sim[1,true], size=1, linetype = 1) +
+      geom_boxplot() +
+      facet_wrap(~Method, nrow=1) +
+      theme_bw() +
+      theme(legend.position="top",text = element_text(size=17)) +
+      guides(fill=guide_legend(title="Independent censoring:")) +
+      xlab("Sample size") +
+      scale_y_continuous(labels = function(...) scales::percent(accuracy=1, ...)) +
+      scale_fill_manual(values = c("lightblue", nice_orange))
+  ## scale_fill_grey(start = .9, end = .5) 
+#+END_SRC
+
+#+RESULTS[(2025-03-14 22:05:38) 7264fa2aa3e713c6c4ece72a241a4b70a9218cd2]:
+[[file:targeted-learning-illu.pdf]]
+
+
+** Hold-out sample problem
+#+BEGIN_SRC R :results graphics file :exports results :file "sl-hold-out-sample.pdf" :height 2.5 :width 4
+  simd <- function(n = 500, p = 5, q = 2){
+    covars0 = cbind(data.table(matrix(rnorm(n*p), nrow = n)),
+		    data.table(matrix(1*(runif(n*q)<.4), nrow = n)))
+    names(covars0) = c(paste0("X", 1:p), paste0("D", 1:q))
+    out = cbind(covars0,
+		data.table(t = rweibull(n, shape = 2, scale = 1),
+			   c = rweibull(n, shape = 2, scale = 1.7)))
+    out[, ":="(t_obs = pmin(t,c), event = 1*(t < c))]
+    return(out[])
+  }
+  set.seed(41)
+  pp0 <- 7
+  qq0 <- 3
+  nn0 <- 50
+  train_dat <- simd(n = nn0, p = pp0, q = qq0)
+  form0 <- as.formula(paste("Surv(t_obs, event) ~ ", paste(c(paste0("X", 1:pp0), paste0("D", 1:qq0)), collapse = "+")))
+  models <- list(KM = prodlim(Hist(t_obs, event)~1, data = train_dat),               
+		 cox = coxph(form0, data = train_dat,x = TRUE),
+		 cox_strati = coxph(update(form0, ~ . - D1 + strata(D1)), data = train_dat, x = TRUE),
+		 rf = rfsrc(form0, data = train_dat, ntree = 500))
+  test_dat <- simd(n = 1, p = pp0, q = qq0)
+  pred_times <- sort(c(seq(0.1, 2, length.out = 50),train_dat[event == 1, t_obs]))
+  pred_times <- pred_times[0.2 < pred_times & pred_times < 1]
+  model_preds <- do.call(rbind, lapply(seq_along(models), function(m_ind){
+    data.table(Model = names(models)[m_ind],
+	       time = pred_times,
+	       risk = as.numeric(predictRisk(models[[m_ind]], newdata = test_dat, times = pred_times))) 
+  }))
+  model_preds[,Model:=factor(Model,levels=c("cox","cox_strati","KM","rf"),
+			     labels=c("Cox","Stratified Cox","KM","RF"))]
+  ggplot(model_preds, aes(x = time, y = 1-risk)) +
+    geom_step(linewidth=.8, aes(col = Model)) +
+    theme_classic(base_size =10) +
+    ## labs(y = TeX("$P(T > t \\, | \\,  X = X_{new})$"), x = "") +
+    labs(y = "Survival probability", x = "") +
+    theme(legend.position = "top",axis.ticks.x=element_blank()) +
+    geom_rug(data = train_dat[0.2 < t_obs & t_obs<1 & event == 1], aes(x = t_obs, y = 0.5), sides = "b") +
+    scale_y_continuous(expand = c(0.01 , 0),lim = c(0,1)) + 
+    scale_colour_grey("", start = 0, end = 0.8) +
+    geom_point(aes(x = .7, y = 0), col = nice_blue, size=1.3, shape=19) +
+    ## geom_vline(xintercept = .7, linetype=2, col = ku_red)   +
+    geom_segment(x = .7, xend = .7, y = 0, yend = .9,linetype=2, col = nice_blue)   +
+    theme(axis.text.y=element_blank(),
+	  axis.ticks.y=element_blank(),
+	  axis.text.x=element_blank(),
+	  axis.ticks.x=element_blank(),
+	  plot.margin = unit(c(0,0,-.3,0), "cm")) 
+#+END_SRC
+
+#+RESULTS[(2025-03-14 22:06:54) ec1650a7a8f16cc890b7ad53fcdf1b4e8ee2edb9]:
+[[file:sl-hold-out-sample.pdf]]
+
+
+** Observed process
+
+#+BEGIN_SRC R  :results graphics file :exports results :file "./observed-multi-state.pdf" :height 3 :width 6
+    set.seed(2)
+    obs_dat <- data.table(subject=1:5,
+			  last_time=runif(5, min=.1, max=1.9),
+			  event=TRUE)
+    obs_dat[subject==5, ":="(last_time=0.5, event=FALSE)]
+    obs_dat[subject==3, ":="(last_time=1, event=FALSE)]
+
+    tilde_plot <- ggplot(obs_dat, aes(y=subject)) +
+      theme_classic(base_size =20)  + xlab(TeX("$t$")) + ylab("Subjects") +
+      geom_segment(data=obs_dat, aes(yend=subject, x=0, xend=last_time), linewidth=5) + 
+      theme(axis.text.x=element_blank(),
+	    axis.ticks.x=element_blank(),
+	    axis.ticks.y=element_blank(),
+	    axis.text.y=element_blank()) +
+      theme(plot.margin = unit(c(0,0,0,0), "cm")) +
+      scale_x_continuous(expand = c(0.0 , 0),lim = c(0,1.5))
+    
+    death_dat <- obs_dat[event == TRUE]
+    death_dat[, ":="(start = last_time, end = 1.5)]
+    cens_dat <- obs_dat[event == FALSE]
+    cens_dat[, ":="(start = last_time, end = 1.5)]
+    
+    tilde_plot +
+        geom_segment(data=death_dat[2], aes(yend=subject, x=start, xend=end), col = nice_blue,linewidth=5) +
+        ## geom_point(data=death_dat[2], aes(x=start,y=subject+0.3), size=5.5, shape=3, stroke=4, fill="black") +
+        geom_segment(data=death_dat[2], aes(y=subject+.55, yend=subject-.2, x=start, xend=start),linewidth=3) +
+        geom_segment(data=death_dat[2], aes(y=subject+.35, yend=subject+.35, x=start-.04, xend=start+.04),linewidth=3) + 
+        geom_segment(data=death_dat[c(1,3)], aes(yend=subject, x=start, xend=end), col = nice_orange,linewidth=5) +
+        geom_point(data=death_dat[c(1,3)], aes(x=start), size=5.5, shape=21, stroke=2, fill="black") + 
+        geom_segment(data=cens_dat, aes(yend=subject, x=start, xend=end), col = "gray",linewidth=5) +
+        geom_point(data=cens_dat, aes(x=start), size=5.5, shape=21, stroke=2, fill="white") +
+        ylim(c(0.9,5.1))
+#+END_SRC
+
+#+RESULTS[(2025-03-14 22:15:00) 3ffa911ea48c5cbc2840b8fb684982bedbd59b88]:
+[[file:./observed-multi-state.pdf]]
+
+
+** Real data state learner
+
+#+BEGIN_SRC R :results graphics file :exports both :file real-data-state-learner.pdf :width 7 :height 3.5
+  zel_real_plot_dt <- copy(zelefsky_statelearner$cv_fit)[cause1 != "cox_elastic" & cause2 != "cox_elastic" & censor != "cox_elastic"]
+  learners_levels <- c("km","cox_strata_stage","cox_lasso","rf")
+  learners_labels <- c("N-Aa","strat Cox","LASSO","RF")
+  zel_real_plot_dt[,cause1:=factor(cause1,levels=learners_levels,labels=learners_labels)]
+  zel_real_plot_dt[,cause2:=factor(cause2,levels=learners_levels,labels=learners_labels)]
+  zel_real_plot_dt[,censor:=factor(censor,levels=learners_levels,labels=paste("Censoring learner\n", learners_labels))]
+
+  ggplot(zel_real_plot_dt, aes(x = cause1, y = loss, col = cause2)) +
+    geom_point(position=position_dodge(width=.8), size=1.5) +
+    ## geom_errorbar(aes(ymin = loss-2*sd, ymax = loss+2*sd), width = .4,
+    ##     	  position=position_dodge(width=.7)) +
+    theme_bw() + ylab("Integrated Brier score") +
+    theme(legend.position="top",
+	  axis.text.x = element_text(angle = 45, vjust = .8)) +
+    xlab("Tumor learner") +
+    facet_grid( ~ censor) +
+    scale_colour_grey("Mortality learner", start = 0, end = 0.7)
+#+END_SRC
+
+#+RESULTS[(2025-03-14 22:22:43) 9d2cbc51da7d891ac7b0046d83948c139134d627]:
+[[file:real-data-state-learner.pdf]]
+
+** Real data target
+
+#+BEGIN_SRC R :results graphics file :exports both :file real-data-target.pdf  :width 6 :height 2.7
+  ate_est_inter_eff[effect == "ATE" & est_type == "one-step"] |>
+    (\(plot_data)
+      {
+	plot_data[,cause:=factor(cause,levels=c("cause1","cause2"),labels=c("Tumor recurrence","Death"))]
+	ggplot(plot_data, aes(x = time, y = est)) +
+	  geom_errorbar(aes(ymin = lower, ymax = upper), width = 1.2) + 
+	  geom_point(size = 2) +
+	  geom_hline(yintercept = 0, linetype = 2) +
+	  theme_bw() +
+	  facet_wrap( ~ cause) +
+	  xlab("Months after baseline") + ylab("Average treatment effect") +
+	  scale_x_continuous(breaks = seq(6,36,12)) +
+	  scale_y_continuous(labels = scales::percent)
+      })()
+#+END_SRC
+
+#+RESULTS[(2025-03-14 22:33:34) 66010e1fcb3d29981bbbac3e3bda678e64dd9a3a]:
+[[file:real-data-target.pdf]]
 
 * HEADER :noexport:
 #+LANGUAGE:  en
@@ -425,6 +689,10 @@ to build a library for \(F\) from libraries for \( \Lambda_1
 #+LaTeX_HEADER: \tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black]
 #+LaTeX_HEADER: \tikzstyle{arrow} = [thick,->,>=stealth]
 
+# Remove figure from caption
+#+latex_header: \usepackage{caption}
+#+latex_header: \captionsetup{labelformat=empty,font={color=gray,footnotesize}}
+
 #+LaTeX_HEADER: \usepackage{prodint}
 
 # Beamer settins:
@@ -432,7 +700,10 @@ to build a library for \(F\) from libraries for \( \Lambda_1
 #+LaTeX_HEADER: \setbeamertemplate{footline}[frame number]
 #+LaTeX_HEADER: \beamertemplatenavigationsymbolsempty
 #+LaTeX_HEADER: \usepackage{appendixnumberbeamer}
-#+LaTeX_HEADER: \setbeamercolor{gray}{bg=white!95!black}
+# #+LaTeX_HEADER: \setbeamercolor{gray}{bg=white!95!black}
+#+LaTeX_HEADER: \definecolor{lightblue}{RGB}{240, 240, 250} 
+#+LaTeX_HEADER: \setbeamercolor{gray}{bg=lightblue}
+
 #+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
 #+LATEX_HEADER: \setbeamertemplate{itemize items}{$\circ$}
 
@@ -447,6 +718,9 @@ to build a library for \(F\) from libraries for \( \Lambda_1
 
 # Matching beamer blue color
 #+LaTeX_HEADER: \definecolor{bblue}{rgb}{0.2,0.2,0.7}
+#+LaTeX_HEADER: \definecolor{darkgreen}{RGB}{0,100,0}
+
+#+LaTeX_HEADER: \hypersetup{colorlinks=true,allcolors=darkgreen}
 
 # For handout mode: (check order...)
 # #+LATEX_CLASS_OPTIONS: [handout]
