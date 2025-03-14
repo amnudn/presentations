@@ -1,0 +1,24 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file /home/amnudn/Documents/presentations/regularity-adaptive-dml-journal-club/regularity-adaptive-dml.org
+
+
+*                                                                   :B_quote:
+:PROPERTIES:
+:BEAMER_env: quote
+:ARCHIVE_TIME: 2024-05-07 Tue 23:42
+:ARCHIVE_FILE: ~/Documents/presentations/regularity-adaptive-dml-journal-club/regularity-adaptive-dml.org
+:ARCHIVE_OLPATH: Quotes about regularity
+:ARCHIVE_CATEGORY: regularity-adaptive-dml
+:END:
+
+Although super-eﬃcient estimators exist, they are unnatural and have undesirable
+local properties associated with them. Therefore, in order to avoid problems
+associated with super-efficient estimators, we will impose some additional
+regularity conditions on the class of estimators that will exclude such
+estimators. [...] From now on, we will restrict ourselves to regular estimators
+[...]
+
+\flushrigh \cite{tsiatis2007semiparametric}
+

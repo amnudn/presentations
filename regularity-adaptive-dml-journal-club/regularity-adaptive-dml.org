@@ -1,0 +1,737 @@
+#+TITLE: Regularity and adaptive debiased machine learning \newline
+#+SUBTITLE: Journal club'ish inspired by \newline /Adaptive debiased machine learning using data-driven model selection techniques/ \citep*{van2023adaptive}
+#+Author: Anders Munch
+#+Date: May 8, 2024
+
+* Short experience with +Twitter+
+
+#+ATTR_LATEX: :width 1\textwidth
+[[./twitter-laan-quote.png]]
+
+* Motivation
+
+Build /practically/ useful estimators that can be used with high-dimensional
+longitudinal register data. Is the targeted learning philosophy sometimes too
+much "asymptopia" (mathematically correct limit results, but practically
+useless)?
+
+\vfill
+
+Understand of regularity.
+
+
+* The targeted learner and the modeler
+
+#+begin_export latex
+\begin{minipage}[t]{.8\linewidth}
+  Specify your target parameter and your model. Also pre-specify your estimator.
+\end{minipage}
+\vfill
+\begin{flushright}
+  \begin{minipage}[t]{.8\linewidth}
+    I don't yet know enough about the data, I need to estimate some models and
+    see which fit.
+  \end{minipage}
+\end{flushright}
+\vfill
+\begin{minipage}[t]{0.8\linewidth}
+  You shouldn't do that, use a super learner to let the computer decide these
+  things instead.
+\end{minipage}
+\vfill
+\begin{flushright}
+  \begin{minipage}[t]{.8\linewidth}
+    I am not sure if that will work in practice. I will start with a simple
+    model, and if that looks OK, I will stick with it.
+  \end{minipage}
+\end{flushright}
+\vfill
+\begin{minipage}[t]{0.8\linewidth}
+  Your approach leads to invalid statistical inference!
+\end{minipage}
+\vfill
+\begin{flushright}
+  \begin{minipage}[t]{.8\linewidth}
+    Your approach is too likely to lead to enormous CI or even estimates that
+    are \texttt{NA}!
+  \end{minipage}
+\end{flushright}
+#+end_export
+
+* Acknowledge limitations of "off the shelf" TL
+
+#+begin_export latex
+
+  Simple stating that we estimate $\Psi \colon \mathcal{M} \rightarrow \R$ under
+  a non-parametric model might be too optimistic/simplistic.
+
+#+end_export
+
+\vfill
+
+There can be problems that we had not thought about (e.g., positivity problems
+for specific subgroups).
+
+\vfill
+
+For complex data with many variables (e.g., longitudinal register data), we
+might not be able to solve this problem well enough for practical sample sizes.
+
+\vfill
+
+It might not be possible to construct an estimator which is valid across the
+fully nonparametric model /and/ works well in practice for reasonable sample
+sizes.
+
+
+* From the abstract
+
+** Abstract                                                         :B_quote:
+:PROPERTIES:
+:BEAMER_env: quote
+:END:
+
+Debiased machine learning estimators for nonparametric inference of smooth
+functionals of the data-generating distribution can suffer from excessive
+variability and instability. For this reason, practitioners may resort to
+simpler models based on parametric or semiparametric assumptions. However, such
+simplifying assumptions may fail to hold, and estimates may then be biased due
+to model misspecification. To address this problem, we propose Adaptive Debiased
+Machine Learning (ADML) [...]. By learning model structure directly from data,
+ADML avoids the bias introduced by model misspecification and remains free from
+the restrictions of parametric and semiparametric models. [...]
+
+\flushright \cite{van2023adaptive}
+
+# a nonparametric framework that combines data-driven model selection and
+# debiased machine learning techniques to construct asymptotically linear,
+# adaptive, and superefficient estimators for pathwise differentiable
+# functionals.
+
+
+* \color{white} breaker
+
+\huge\centering \color{bblue} Intermezzo on semi-parametric efficiency theory
+
+* RAL estimators and semi-parametric efficiency theory
+
+#+begin_export latex
+
+  An estimator \( \hat{\Psi}_n \) of $\Psi \colon \mathcal{M} \rightarrow \R$ is
+  \textit{asymptotically linear} (AL) if for all \( P \in \mathcal{M} \) there
+  is a function \( \phi(\blank; P) \in \mathcal{L}_P^2 \) with
+  \( P{[\phi(\blank; P)]}=0 \) such that
+  \begin{equation*}
+    \hat{\Psi}_n - \Psi(P) = \frac{1}{n} \sum_{i=1}^{n} \phi(X_i; P) + \smallO_P{(n^{-1/2})}.
+  \end{equation*}
+  The function \( \phi(\blank; P) \) is the \textit{influence function} (IF) of
+  the estimator.
+
+#+end_export
+
+\vfill
+
+AL estimators can compared by comparing the norm of their IFs. The /efficient
+influence function/ (EIF) is the IF with smallest norm.
+
+\vfill
+
+Expect that an estimator which has the EIF as its IF is "optimal" in some sense.
+
+\vfill
+
+A further regularity condition is needed for this to be true -- the estimator
+should be /regular/.
+
+* Regularity
+
+
+** gray                                                    :B_beamercolorbox:
+:PROPERTIES:
+:BEAMER_env: beamercolorbox
+:BEAMER_opt: rounded=true
+:END:
+
+#+begin_export latex
+
+  \centering An estimator \( \hat{\Psi}_n \) of
+  $\Psi \colon \mathcal{M} \rightarrow \R$ is \textit{regular} if its asymptotic
+  distribution is invariant to local perturbations of the data generating
+  mechanism.
+    
+#+end_export
+
+** 
+\small
+#+begin_export latex
+
+  % Formally: Let \(\mathcal{M} \) be a collection of probability measure and
+  % $\Psi \colon \mathcal{M} \rightarrow \R$ a parameter of interest.
+
+  % \hfill
+
+  Formally: A one-dimensional submodel \( \{P_t : t \in \R\} \subset \mathcal{M} \)
+  through \( P \) at \( t=0 \) is \textit{regular} if it is differentiable in
+  quadratic mean at \( t=0 \).
+
+  \hfill
+
+  For \( h \in \R \) and a regular submodel \( \{P_t : t \in \R\} \), the
+  sequence \( P_{h n^{-1/2}} \) is a local perturbation of \( P \).
+
+  \hfill
+  
+  An estimator $\hat{\Psi}_n$ is regular for the parameter $\Psi$ with respect
+  to the local perturbation \( P_{h n^{-1/2}} \) if
+  \begin{equation*}
+    \sqrt{n}(\hat{\Psi}_n - \Psi(P_{h n^{-1/2}})) \rightsquigarrow \mathcal{L}_P,
+  \end{equation*}
+  for some distribution \( \mathcal{L}_P \) that does not depend on \( h \) or
+  the path \( \{P_t : t \in \R\} \), when \( \hat{\Psi}_n \) is constructed with
+  samples from taken from \( P_{h n^{-1/2}} \).
+
+  \hfill
+  
+  An estimator $\hat{\Psi}_n$ is \( P \)-regular for the parameter $\Psi$ over
+  \( \mathcal{M} \) if it is regular with respect to all local perturbation of
+  \( P \) within \( \mathcal{M} \).
+  
+#+end_export
+
+
+
+* Hodges' classical example of a non-regular estimator
+
+#+begin_export latex
+
+  Following \cite[][chapter~3.1]{tsiatis2007semiparametric}, let
+  \( X_i \sim \mathcal{N}(\mu, 1) \), $\mu \in \R$, be iid.\ for
+  \( i=1, \dots, n \). Let \( \bar{X}_n = \frac{1}{n}\sum_{i=1}^{n}X_i \) and
+  define
+  \begin{equation*}
+    \hat{\mu}_n = 
+      \begin{cases}
+        \hat{X}_n & \text{if } |\hat{X}_n| > n^{-1/4} \\
+        0 & \text{if } |\hat{X}_n| \leq n^{-1/4}
+      \end{cases}.
+  \end{equation*}
+  \vfill
+ 
+  \( \sqrt{n}(\bar{X}_n-\mu) \) has limiting distribution \( \mathcal{N}(0,1) \) for all
+  $\mu$; as this is the MLE it is efficient.
+
+  \vfill
+
+  However, $\sqrt{n}(\hat{\mu}_n-\mu)$ has the same asymptotic distribution for
+  all $\mu \not = 0$, and asymptotic distribution \( \mathcal{N}(0,0) = 0 \) for
+  $\mu=0$.
+
+  \vfill
+
+  $\hat{\mu}_n$ appears to beat the MLE \( \bar{X}_n \) -- it is
+  \textit{super-efficient}.
+  
+#+end_export
+
+* Super-efficient estimators and irregularity
+
+Picture from \cite{wiki:Hodges'_estimator}
+
+#+CAPTION: The mean square error (times n) of Hodges' estimator as a function of $\mu$. Blue curve corresponds to \( n = 5 \), purple to \( n = 50 \), and olive to \( n = 500 \).
+#+ATTR_LATEX: :width .5\textwidth 
+[[./Hodges-estimator-risk-function.png]]
+
+
+* Data-adaptive estimators and irregular estimators
+
+#+begin_export latex
+  \begin{equation*}
+    \hat{\mu}_n = 
+      \begin{cases}
+        \hat{X}_n & \text{if } |\hat{X}_n| > n^{-1/4} \\
+        0 & \text{if } |\hat{X}_n| \leq n^{-1/4}
+      \end{cases}.
+  \end{equation*}
+#+end_export
+
+\vfill
+
+Think of the Hodges' estimator as a /data-adaptive estimator/ that work in two
+steps:
+1. Conduct a test for whether the mean is 0.
+2. If we accept, return 0, otherwise return the empirical average.
+
+\vfill
+
+\cite{leeb2005model} argues that post-model selection estimators are versions of
+Hodges' estimator.
+
+* Revisit (annoying) regularity condition
+
+Asymptotic linearity is easy to motivate. Regularity not so much: "Why should we
+care about data coming from a local perturbation -- we usually just assume that
+data are iid.\space{}from some fixed \( P \)?" ... 
+
+\vfill
+
+
+** overlay block 
+:PROPERTIES:
+:BEAMER_act: <1>
+:BEAMER_env: onlyenv
+:END:
+
+#+ATTR_LATEX: :width 0.7\textwidth
+[[./sweep-carpet.png]]
+
+** overlay block 
+:PROPERTIES:
+:BEAMER_act: <2>
+:BEAMER_env: onlyenv
+:END:
+
+#+ATTR_LATEX: :width 0.7\textwidth
+[[./sweep-carpet2.png]]
+
+
+* Quotes about regularity
+
+\small
+
+**                                  :B_quote:
+:PROPERTIES:
+:BEAMER_env: quote
+:END:
+
+Although super-eﬃcient estimators exist, they are unnatural and have undesirable
+local properties associated with them. [...] From now on, we will restrict
+ourselves to regular estimators. \flushright \cite{tsiatis2007semiparametric}
+
+**                                                                  :B_quote:
+:PROPERTIES:
+:BEAMER_env: quote
+:END:
+This type of regularity is common and is often considered desirable: A small
+change in the parameter should not change the distribution of the estimator too
+much; a disappearing small change should not change the (limit) distribution at
+all. However, some estimator sequences of interest, such as shrinkage
+estimators, are not regular. \flushright \cite{van2000asymptotic}
+
+**                                                                  :B_quote:
+:PROPERTIES:
+:BEAMER_env: quote
+:END:
+[...] the suggested estimator [...] will -- although being consistent -- not be
+close to the finite-sample distribution uniformly in the unknown parameters,
+thus providing a rather useless estimator. \flushright \cite{leeb2005model}
+
+**                                                                  :B_quote:
+:PROPERTIES:
+:BEAMER_env: quote
+:END:
+Such criticisms of superefficient estimators may not be as applicable in
+situations in which regular nonparametric estimators do not exist or are too
+variable for reliable inference. \flushright \cite{van2023adaptive}
+
+* \color{white} breaker
+
+\huge\centering \color{bblue} Back to the paper
+
+* ADMLE -- the central idea
+
+Let $\Psi$ be a target parameter defined on a collection of probability measures
+$\mathcal{M}$.
+
+\vfill
+
+We assume that \( P_0 \in \mathcal{M}_0 \) for some /oracle submodel/ \(
+\mathcal{M}_0 \subset \mathcal{M} \), but we don't know \( \mathcal{M}_0 \).
+
+\vfill
+
+Estimate the submodel \( \mathcal{M}_0 \) from data with \( \mathcal{M}_n \) and
+define a projected target parameter \( \Psi_n \) data-adaptively using \(
+\mathcal{M}_n \).
+
+\vfill
+
+Construct an efficient estimator of the data-adaptive parameter \( \Psi_n \).
+
+\vfill
+
+If \( \mathcal{M}_0 \) is much smaller than \( \mathcal{M} \) we expect a
+sizable decrease in variance.
+
+* Example of oracle model
+
+#+begin_export latex
+
+  Assume that the data is \( X = (Y, A, W) \) and that we want to estimate the
+  average treatment effect
+  \begin{equation*}
+    \Psi(P) = \E_P{\left[ \E_P{\left[Y \mid A=1, W \right]} - \E_P{\left[Y \mid A=0, W \right]} \right]}
+  \end{equation*}
+
+  \vfill
+
+  An oracle model could be
+  \begin{equation*}
+    \mathcal{M}_0 =
+    \begin{Bmatrix}
+            \E_P{\left[Y \mid A=a, W=w \right]}
+      = \alpha a + \beta^T w
+      : \alpha \in \R, \beta \in \R^d,
+       \\
+      P(\diff a, \diff w) \text{ unspecified}
+    \end{Bmatrix}
+  \end{equation*}
+
+  \vfill
+
+  Important point is that we do not assume a known model \( \mathcal{M}_0 \),
+  but only that assume that the data-generating distribution \( P_0 \) actually
+  belongs to some (unknown) smaller model
+  \( \mathcal{M}_0 \subset \mathcal{M} \).
+
+#+end_export
+
+
+* ADMLE -- more formally
+
+
+1. Specify data-adaptive working models \( \mathcal{M}_n \subset \mathcal{M} \)
+   intended to approximate \( \mathcal{M}_0 \).
+2. For some loss function \( \ell \colon \R^d \times \mathcal{M} \rightarrow \R
+   \), define the projection of \( P \) onto the working model \( \mathcal{M}_n
+   \) as
+   #+begin_export latex
+
+     \begin{equation*}
+       \Pi_n(P) = \argmin_{Q \in \mathcal{M}_n}\int \ell(x; Q) P(\diff x).
+     \end{equation*}
+     
+   #+end_export
+3. Define the data-adaptive target parameter $\Psi_n = \Psi \circ \Pi_n \colon
+   \mathcal{M} \rightarrow \R$.
+4. Construct an efficient estimator of \( \Psi_n \).
+
+\vfill
+#+begin_export latex
+
+  An ADMLE \( \hat{\Psi}_n \) is an estimator that satisfies the asymptotic
+  expansion
+  \begin{equation*}
+    \hat{\Psi}_n  =  \Psi(P_0) + (\empmeas - P_0){[D_{n,P_0}]} + \smallO_P{(n^{-1/2})}
+  \end{equation*}
+  where \( D_{n,P_0} \) is the nonparametric efficient influence function of the
+  data-adaptive target parameter $\Psi_n$.
+  
+#+end_export
+
+* /Data-adaptive/ and /oracle/ target parameters
+Different target parameters are in play:
+
+- $\Psi \colon \mathcal{M} \rightarrow \R$ :: The original target parameter.
+- $\Psi_n = \Psi \circ \Pi_n$ :: Data-adaptive target parameter
+- $\Psi_0 = \Psi \circ \Pi$ :: Oracle project-based target parameter.
+
+\vfill
+
+The operator \( \Pi \) is defined as the projection onto the true (but unknown)
+oracle submodel,
+#+begin_export latex
+
+  \begin{equation*}
+    \Pi(P) = \argmin_{Q \in \mathcal{M}_0}\int \ell(x; Q) P(\diff x).
+  \end{equation*}
+     
+#+end_export
+
+* The oracle target parameter
+
+Model selection is known to produce irregular estimators, even when the model
+selection step is consistent \citep{leeb2005model}.
+
+\vfill
+
+\cite{van2023adaptive} circumvent this issue by redefining the target to be the
+/oracle target parameter/ $\Psi_0 = \Psi \circ \Pi$.
+
+\vfill
+
+While an ADMLE is irregular for the original parameter $\Psi$, they show that it
+is RAL for \( \Psi_0 \) (at any \( P_0 \in \mathcal{M}_0 \)).
+
+\vfill
+
+\( \Psi_0 \) is involves the projection onto the /unknown/ oracle model \(
+\mathcal{M}_0 \). If we don't know \( \mathcal{M}_0 \) we don't really know
+$\Psi_0$ -- is that weird?
+
+\vfill
+
+Maybe not if we accept that we are trying to "learn what can be learned" from
+the data.
+
+* One of the main results
+
+** Theorem 5                                                      :B_theorem:
+:PROPERTIES:
+:BEAMER_env: theorem
+:END:
+
+Suppose that the working model \( \mathcal{M}_n \) approximates \( \mathcal{M}_0
+\) fast enough (sort of like at \( \approx n^{-1/4} \) rate) and that additional
+regularity conditions hold. Then, the ADMLE \( \hat{\Psi}_n \) is a \( P_0
+\)-asymptotically linear estimator for $\Psi_0$ with influence function equal to
+the efficient influence function of $\Psi_0 \colon \mathcal{M}_{\mathrm{np}}
+\rightarrow \R$ at \( P_0 \) relative to the nonparametric model \(
+\mathcal{M}_{\mathrm{np}} \).
+
+\vspace{.5cm}
+
+**                                                                  :B_quote:
+:PROPERTIES:
+:BEAMER_env: quote
+:END:
+
+\small
+
+An important consequence of Theorem 5 is that an ADMLE is a \( P_0 \)-regular
+estimator for $\Psi_0$ relative to the nonparametric model \( \mathcal{M} \).
+Hence, even under sampling from a worst-case local perturbation of \( P_0 \), an
+ADMLE allows locally uniformly valid nonparametric inference on the oracle
+parameter $\Psi_0$. This implies that, at least in a local asymptotic sense,
+there is no loss in performance of the ADMLE from empirically learning \(
+\mathcal{M}_0 \) compared to the oracle that knows \( \mathcal{M}_0 \) or
+$\Psi_0$.
+
+\flushright \cite{van2023adaptive}
+
+* The estimator -- details are lacking
+
+**                                                                  :B_quote:
+:PROPERTIES:
+:BEAMER_env: quote
+:END:
+#+begin_export latex
+
+  Formally, an ADMLE \( \hat{\Psi}_n \) is an estimator that satisfies the
+  asymptotic expansion
+  \begin{equation*}
+    \hat{\Psi}_n  =  \Psi(P_0) + (\empmeas - P_0){[D_{n,P_0}]} + \smallO_P{(n^{-1/2})}
+  \end{equation*}
+  where \( D_{n,P_0} \) is the nonparametric efficient influence function of
+  $\Psi_n$.
+  
+#+end_export
+
+\flushright \cite{van2023adaptive}
+
+\vfill
+
+** 
+Not so clear how to implement an ADML in practice. Example with relaxed lasso
+in + standard model robust sandwich estimator of the variance.
+
+* Model selection
+
+**                                                                  :B_quote:
+:PROPERTIES:
+:BEAMER_env: quote
+:END:
+Suppose that we can employ data-driven model selection techniques to learn a
+working statistical model $\mathcal{M}_n \subset \mathcal{M}$ that sufficiently
+approximates some unknown submodel $\mathcal{M}_0 \subset \mathcal{M}$. Although
+the working model \( \mathcal{M}_n \) may not contain the true data-generating
+distribution \( P_0 \) for any \( n \), we assume that \( \mathcal{M}_0 \) is a
+smooth statistical model containing \( P_0 \). The smoothness condition on \(
+\mathcal{M}_0 \) rules out degenerate models such as \( \mathcal{M}_0 = \{P_0\}
+\).
+
+\flushright \cite{van2023adaptive}
+
+** 
+
+When to stop? How do we make sure not to be to aggressive in the model selection
+step? Nor to conservative?
+
+\hfill
+
+What to do if we are willing to accept an approximate model \( \mathcal{M}_n \)
+that does not contain \( P_0 \)?
+
+\hfill
+
+For any \( P_0 \) there are many smooth models (nested and non-nested) which can
+be assumed to contain \( P_0 \).
+
+
+* What is the cost of giving up regularity?
+
+Imposing a smaller submodel \( \mathcal{M}_0 \) can introduce bias but reduces
+variance $\rightarrow$ classic bias-variance trade-off.
+
+\vfill
+
+Working with the projection-based oracle parameter $\Psi_0$ brings the deal back
+to a classic bias-variance trade-off.
+
+\vfill
+
+If we consider the original target parameter $\Psi$, the ADMLE will be irregular
+$\rightarrow$ here we are trading variance for something else -- irregularity.
+
+\vfill
+
+**                                                                  :B_quote:
+:PROPERTIES:
+:BEAMER_env: quote
+:END:
+Sacrificing some regularity can be justifiable to achieve efficiency gains,
+especially when nonparametric regular estimators for $\Psi$ are unavailable,
+such as when the ATE is nonparametrically unidentifiable.
+
+\flushright \cite{van2023adaptive}
+
+** 
+What is the cost? What deal are we making?
+
+* Is regularity a binary concept?
+
+** Theorem 6                                                      :B_theorem:
+:PROPERTIES:
+:BEAMER_env: theorem
+:END:
+
+#+begin_export latex
+
+  ... $\hat{\Psi}_n$ (the ADMLE) is \( P_0 \)-regular for $\Psi$ (the original
+  target parameter) over all local alternatives \( P_{0,h n^{-1/2}} \) in the
+  oracle submodel \( \mathcal{M}_0 \). Consequently,
+  \( \sqrt{n}(\hat{\Psi}_n-\Psi_0) \rightsquigarrow \mathcal{N}(0,
+  \V{[D_{0,P_0}(O)]}) \), even under sampling from local perturbations of
+  \( P_0 \) remaining in \( \mathcal{M}_0 \).
+  
+#+end_export
+
+\hfill
+
+**                                                                  :B_quote:
+:PROPERTIES:
+:BEAMER_env: quote
+:END:
+Theorem 6 shows that the regularity and superefficiency of ADMLEs fall in a
+continuous spectrum driven by the size of the oracle model.
+
+\flushright \cite{van2023adaptive}
+
+** 
+Maybe Hodge's estimator is extreme with \( \mathcal{M}_0 = \{P_0\} \). Can we
+expect less irregularity if \( \mathcal{M}_0 \) is large? Could it be OK to give
+up some regularity, i.e., not be stable under all local perturbations but under
+some?
+
+
+* Conclusions
+
+- It might be "asymptopia" to say that we estimate ATE in the non-parametric
+  model when we have high-dimensional longitudinal data.
+- Sometimes we will be forced to impose restrictions/constraints to make things
+  work in practice (and maybe even in theory).
+- Can we ask the data how complex the questions we ask can be?
+- Is it a good idea to try to automate an formalize this process -- or should we
+  just work heuristically?
+- Should we be willing to give up (some degree of) regularity?
+
+
+* Notes :noexport:
+- End up fitting a so-called relaxed LASSO and then use model robust sandwich
+  estimator to get a variance estimate. Does not seem very fancy or new, but
+  they aim at providing a general framework for this setup.
+  - Based on the examples, however, it is not obvious that the generally is
+    needed? Does it become difficult to find the EIF in the data-adaptively
+    learned models in more general examples?
+- Why is the approach any different from standard/traditional approaches that is
+  typically critizied (e.g., in Leeb)?
+
+Can be "asymptopia" to say that we estimate ATE in the non-parametric model
+based on high-dimensional longitudinal register data. Should acknowledge the
+complexity and be more modest.
+
+- How to be more modest? How to we decide how ambitious we can be?
+- Good idea to "formalize/automate" this? Or should we just acknowledge that
+  some bias will get in...
+- Sometimes we will be "forced" to impose restrictions/constraints to make
+  things work in practice (and maybe even in theory).
+- If we impose restriction out of necessity and/or for computational reason, we
+  should make use of the benefits -- namely that we might be able to decrease
+  the variance by taking the assumption we (need to) make serious as model
+  constraints.
+
+* References
+\footnotesize \bibliography{bib.bib}
+
+* HEADER :noexport:
+#+LANGUAGE:  en
+#+OPTIONS:   H:1 num:t toc:nil ':t ^:t
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LATEX_CLASS_OPTIONS: [smaller]
+#+LaTeX_HEADER: \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+#+LaTeX_HEADER: \bibliographystyle{abbrvnat}
+#+BIBLIOGRAPHY: bib plain
+
+# Beamer settins:
+# #+LaTeX_HEADER: \usefonttheme[onlymath]{serif} 
+#+LaTeX_HEADER: \setbeamertemplate{footline}[frame number]
+#+LaTeX_HEADER: \beamertemplatenavigationsymbolsempty
+#+LaTeX_HEADER: \usepackage{appendixnumberbeamer}
+#+LaTeX_HEADER: \setbeamercolor{gray}{bg=white!90!black}
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+LATEX_HEADER: \setbeamertemplate{itemize items}{$\circ$}
+
+# Setting size of code block
+#+LaTeX_HEADER: \lstset{basicstyle=\ttfamily\footnotesize}
+# Using when output of code is verbatim
+#+LATEX_HEADER: \RequirePackage{fancyvrb}
+#+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\footnotesize}
+
+# Matching beamer blue color
+#+LaTeX_HEADER: \definecolor{bblue}{rgb}{0.2,0.2,0.7}
+
+# For handout mode: (check order...)
+# #+LATEX_CLASS_OPTIONS: [handout]
+# #+LaTeX_HEADER: \pgfpagesuselayout{4 on 1}[border shrink=1mm]
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{1}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{2}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{3}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{4}{border code=\pgfusepath{stroke}}
+
+# Common command
+#+LaTeX_HEADER: \newcommand{\E}{{\ensuremath{\mathop{{\mathbb{E}}}}}} 
+#+LaTeX_HEADER: \newcommand{\R}{\mathbb{R}}
+#+LaTeX_HEADER: \newcommand{\N}{\mathbb{N}}
+#+LaTeX_HEADER: \newcommand{\blank}{\makebox[1ex]{\textbf{$\cdot$}}}
+#+LaTeX_HEADER: \newcommand\independent{\protect\mathpalette{\protect\independenT}{\perp}}
+#+LaTeX_HEADER: \def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
+#+LaTeX_HEADER: \renewcommand{\phi}{\varphi}
+#+LaTeX_HEADER: \renewcommand{\epsilon}{\varepsilon}
+#+LaTeX_HEADER: \newcommand*\diff{\mathop{}\!\mathrm{d}}
+#+LaTeX_HEADER: \newcommand{\weakly}{\rightsquigarrow}
+#+LaTeX_HEADER: \newcommand\smallO{\textit{o}}
+#+LaTeX_HEADER: \newcommand\bigO{\textit{O}}
+#+LaTeX_HEADER: \newcommand{\midd}{\; \middle|\;}
+#+LaTeX_HEADER: \newcommand{\1}{\mathds{1}}
+#+LaTeX_HEADER: \usepackage{ifthen} %% Empirical process with default argument
+#+LaTeX_HEADER: \newcommand{\G}[2][n]{{\ensuremath{\mathbb{G}_{#1}}{\left[#2\right]}}}
+#+LaTeX_HEADER: \DeclareMathOperator*{\argmin}{\arg\!\min}
+#+LaTeX_HEADER: \DeclareMathOperator*{\argmax}{\arg\!\max}
+#+LaTeX_HEADER: \newcommand{\V}{\mathrm{Var}} % variance
+#+LaTeX_HEADER: \newcommand{\eqd}{\stackrel{d}{=}} % equality in distribution
+#+LaTeX_HEADER: \newcommand{\arrow}[1]{\xrightarrow{\; {#1} \;}}
+#+LaTeX_HEADER: \newcommand{\arrowP}{\xrightarrow{\; P \;}} % convergence in probability
+#+LaTeX_HEADER: \newcommand{\KL}{\ensuremath{D_{\mathrm{KL}}}}
+#+LaTeX_HEADER: \newcommand{\leb}{\lambda} % the Lebesgue measure
+#+LaTeX_HEADER: \DeclareMathOperator{\TT}{\Psi} % target parameter
+#+LaTeX_HEADER: \newcommand{\empmeas}{\ensuremath{\mathbb{P}_n}} % empirical measure

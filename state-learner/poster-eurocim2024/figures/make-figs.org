@@ -165,14 +165,17 @@ Remember to exceture (C-c C-c) the following line:
     scale_y_continuous(expand = c(0.01 , 0),lim = c(0,1)) + 
     scale_colour_grey("", start = 0, end = 0.8) +
     geom_point(aes(x = .7, y = 0), col = ku_red, size=1.3, shape=19) +
-    geom_vline(xintercept = .7, linetype=2, col = ku_red)   +
+    ## geom_vline(xintercept = .7, linetype=2, col = ku_red)   +
+    geom_segment(x = .7, xend = .7, y = 0, yend = .9,linetype=2, col = ku_red)   +
     theme(axis.text.y=element_blank(),
-	    axis.ticks.y=element_blank(),
+	  axis.ticks.y=element_blank(),
 	  axis.text.x=element_blank(),
-	    axis.ticks.x=element_blank()) 
+	  axis.ticks.x=element_blank(),
+	  plot.margin = unit(c(0,0,-.3,0), "cm")) +
+    annotate("text", label="0 probability event", x = .7, y = .95, col = ku_red, size = 3)
 #+END_SRC
 
-#+RESULTS[(2024-04-07 22:44:47) 35ee63004d417f63675ba2e05b11b461fa3736ec]:
+#+RESULTS[(2024-04-09 14:24:12) 6ccad8a2e3b6d46584f00ec0db009b36ac727942]:
 [[file:sl-hold-out-sample.pdf]]
 
 

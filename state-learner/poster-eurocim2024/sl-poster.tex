@@ -41,7 +41,12 @@
 \usepackage{graphicx} % Required for including images
 \graphicspath{{figures/}} % Location of the graphics files
 \usepackage{booktabs} % Top and bottom rules for table
-\usepackage[font=small,labelfont=bf]{caption} % Required for specifying captions to tables and figures
+
+\usepackage[font={color=DarkSlateGray,small},bf,justification=raggedright,singlelinecheck = false]{caption} % Required for specifying captions to tables
+% and figures
+\renewcommand{\thefigure}{\Roman{figure}}
+\renewcommand{\figurename}{}
+
 \usepackage{amsfonts, amsmath, amsthm, amssymb, dsfont} % For math fonts, symbols and environments
 \usepackage{wrapfig} % Allows wrapping text around tables and figures
 \definecolor{ku}{RGB}{144,26,30}
@@ -230,24 +235,24 @@ inference for causal parameters.
 \setlength{\columnseprule}{0pt}
 \setlength{\columnsep}{30pt}
 \begin{multicols}{2}
-  \begin{tcolorbox}[width=\linewidth,colframe=white, title={\center \textbf{Ideal data: \( \left(W,
-      T^{0}, D^{0}, T^{1}, D^{1}\right) \sim Q \)}}, coltitle=black, colbacktitle=white]
-\( W \in \mathcal{W} \subset \R^d \) is a vector of covariates,
-\( T^{a} \in [0, \tau] \) is a counterfactual time to event variable under
-treatment \( a \), and \( D^{a} \times \{1,2\} \) denotes the cause of the
-event. The maximal length of followup is $\tau <\infty$.
+  \begin{tcolorbox}[width=\linewidth,colframe=white, title={\center \textbf{Ideal data: \( \bigl(W,
+      T^{0}, D^{0}, T^{1}, D^{1}\bigr) \sim Q \)}}, coltitle=black, colbacktitle=white]
+  \( W \in \mathcal{W} \subset \R^d \) is a vector of covariates,
+  \( T^{a} \in [0, \tau] \) is a counterfactual time to event variable under
+  treatment \( a \), and \( D^{a} \times \{1,2\} \) denotes the cause of the
+  event. The maximal length of followup is $\tau <\infty$.
 \end{tcolorbox}
 
 \begin{tcolorbox}[width=\linewidth,colframe=white, title={\center\textbf{
-      Observed data: \( O= (W,
-    A, \tilde T, \tilde D) \sim P \)}}, coltitle=black,
+      Observed data: \( O= \bigl(W,
+    A, \tilde T, \tilde D \bigr) \sim P \)}}, coltitle=black,
   colbacktitle=white]
   \( A \in {\{0,1\}} \) is a binary treatment administered in observed
   % (non-interventional)
-  data. The pair \( (\tilde T, \tilde D) \) is the censored
-  outcome variable, defined as \( \tilde T = T^a \wedge C^a \) and
-  \( \tilde D^a = \1{\{T^a \leq C^a\}} D^a \), when \( A=a \), for some
-  censoring time \( C^a \).
+  data. The pair \( (\tilde T, \tilde D) \) is the censored outcome variable,
+  defined as \( \tilde T = T^a \wedge C \) and
+  \( \tilde D^a = \1{\{T^a \leq C\}} D^a \), when \( A=a \), for some censoring
+  time \( C \).
 \end{tcolorbox}
 \end{multicols}
 
@@ -328,21 +333,19 @@ estimator of the censoring probability.
 
 \section*{Existing methods}
 
-A commonly used loss function in survival analysis is the negative
-partial log-likelihood loss. This loss is not perfectly suited for
-super learning because many common survival estimators have infinite
-loss in a hold out sample. This is illustrated in the figure below to
-the left. Alternative methods such as inverse probability of censoring
-weighting \cite{graf1999assessment,gonzalez2021stacked},
-pseudo-observations \cite{andersen2003generalised,sachs2019ensemble},
-and censoring unbiased transformations
-\cite{steingrimsson2019censoring} rely on a prespecified estimator of
-the censoring probability. This can lead to a circular reasoning as
-illustrated in the figure below to the right. A recent proposal is to
+A commonly used loss function in survival analysis is the negative partial
+log-likelihood loss. This loss is not perfectly suited for super learning
+because many common survival estimators have infinite loss in a hold out sample
+(Figure~\ref{fig:hold-out}). Alternative methods such as inverse probability of
+censoring weighting \cite{graf1999assessment,gonzalez2021stacked},
+pseudo-observations \cite{andersen2003generalised,sachs2019ensemble}, and
+censoring unbiased transformations \cite{steingrimsson2019censoring} rely on a
+prespecified estimator of the censoring probability. This can lead to a circular
+reasoning as illustrated in Figure~\ref{fig:ipcw-circl}. A recent proposal is to
 iteratively estimate the survival and the censoring probabilities
-\cite{westling2021inference}. However, no general theoretical guarantees
-seem to exist for this procedure, and it has not yet been extended to
-the situation with competing risks.
+\cite{westling2021inference}. However, no general theoretical guarantees seem to
+exist for this procedure, and it has not yet been extended to the situation with
+competing risks.
 
 % \setlength{\columnseprule}{0pt}
 % \setlength{\columnsep}{30pt}
@@ -355,12 +358,17 @@ the situation with competing risks.
 %     \end{center}
 % \end{multicols}
 
-\begin{minipage}[c]{0.5\linewidth}
+\begin{minipage}[t]{0.5\linewidth}
   \includegraphics[width=.9\linewidth]{sl-hold-out-sample.pdf}
+\vspace{-11.3cm}
+  \captionof{figure}{}\label{fig:hold-out}
 \end{minipage}
-\begin{minipage}[c]{.5\linewidth}
-\begin{center}
-  \includegraphics[width=1\linewidth]{ipcw-circle.pdf}
+\begin{minipage}[t]{.5\linewidth}
+  \begin{center}
+    \vspace{-8cm}
+    \includegraphics[width=1\linewidth]{ipcw-circle.pdf}
+    \vspace{-10.3cm}
+        \captionof{figure}{}\label{fig:ipcw-circl}
 \end{center}
 \end{minipage}
 
@@ -517,13 +525,15 @@ censoring, denoted by $\Gamma$:
   that uses a correctly specified model to estimate inverse probability of
   censoring weights. The state learner learns the correct censoring model from
   the data at the same time as learning the outcome model. This is illustrated
-  in the figure to the right.
+  in Figure~\ref{fig:sim-fig}.
 
   \vfill\null \columnbreak
   
   \begin{center}
     % {\color{white}dummy} \vspace{-10cm}
-  \includegraphics[width=1\linewidth]{experiment-fig-sl-ipcw.pdf} 
+    \includegraphics[width=1\linewidth]{experiment-fig-sl-ipcw.pdf}
+    \vspace{-12.4cm}
+      \captionof{figure}{}\label{fig:sim-fig}
 \end{center}
 
 \end{multicols}
@@ -539,17 +549,17 @@ censoring, denoted by $\Gamma$:
   % \noindent
   % {\color{white}dummy} \vspace{0em}
   
-  We apply the state learner to data from an observational prostate
-  cancer study \cite{kattan2000pretreatment}. The state learner's ranking of all
-  triples of learners from the provided libraries are visualized in the figure
-  below. In \cite{munch2024} we show how estimators of the average treatment
-  effect of hormone therapy on tumor recurrence and death can be obtained from
-  the output of the state learner. The results are shown in the figure to the
-  right. \vfill\null \columnbreak
+  We apply the state learner to data from an observational prostate cancer study
+  \cite{kattan2000pretreatment}. The state learner's ranking of all triples of
+  learners from the provided libraries are visualized in
+  Figure~\ref{fig:zel-target}. In \cite{munch2024} we show how estimators of the
+  average treatment effect of hormone therapy on tumor recurrence and death can
+  be obtained from the output of the state learner. The results are shown in
+  Figure~\ref{fig:zel-sl}. \vfill\null \columnbreak
 \begin{center}
   \includegraphics[width=1\linewidth]{zelefsky-data-target-par.pdf}
-    % \captionof{figure}{}
-    % \label{fig:zelefski-target}
+  \vspace{-12.3cm}
+  \captionof{figure}{}\label{fig:zel-target}
 \end{center}
   
 \end{multicols}
@@ -564,15 +574,15 @@ censoring, denoted by $\Gamma$:
 
 \begin{center}
   \includegraphics[width=1\linewidth]{zelefski-real-data.pdf}
-  % \captionof{figure}{}
-  % \label{fig:zelefski-state-learner}
+  \vspace{-13.5cm}
+  \captionof{figure}{}\label{fig:zel-sl}
 \end{center}
 
 
 \end{multicols}
 \end{minipage}
 
-\vspace{3em} % \vfill 
+\vspace{5em} % \vfill 
 
 \color{DarkSlateGray} % Set the color back to DarkSlateGray for the rest of the content
 
