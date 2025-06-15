@@ -1,4 +1,4 @@
-% Created 2025-03-14 Fri 23:17
+% Created 2025-03-19 Wed 23:57
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller]{beamer}\usepackage{listings}
 \usepackage{color}
@@ -92,13 +92,13 @@ basewidth={0.5em,0.4em},
 \usepackage{hyperref}
 \usetheme{default}
 \author{Anders Munch \newline \small joint work with Thomas Gerds \newline \newline Section of Biostatistics, UCPH}
-\date{March 20, 2025}
+\date{SAfJR 2025}
 \title{Targeted learning with right-censored data using the state learner}
 \begin{document}
 
 \maketitle
 
-\begin{frame}[label={sec:org040975f}]{Targeted or debiased machine learning\footnote{\citep{van2011targeted,chernozhukov2018double}}}
+\begin{frame}[label={sec:orgeabe21f}]{Targeted or debiased machine learning\footnote{\cite{van2011targeted,chernozhukov2018double}}}
 \vspace{.3cm}
 
 Low-dimensional target parameter
@@ -122,7 +122,7 @@ for high-dimensional nuisance parameters \(\nu_1, \dots,
 \end{figure}
 \end{frame}
 
-\begin{frame}[label={sec:orgee618ca}]{Examples of estimands}
+\begin{frame}[label={sec:org7f38ce5}]{Examples of estimands}
 Available data \(O = (X, \tilde{T}, \tilde{D}) \sim P \in
 \mathcal{P}\), where
 \begin{align*}
@@ -146,7 +146,11 @@ event indicator.
         % =
         % \E_Q{[Q(T > t \mid X)]}
         \stackrel{(!)}{=}
-        \E_P{[e^{-\Lambda_P(t \mid X)}]},
+        \E_P{
+          \left[
+            \prodi_0^t\left( 1 - \Lambda_P(\diff s \mid X) \right)
+            % e^{-\Lambda_P(t \mid X)}
+          \right]},
         \quad (T,X) \sim Q,
       \end{equation*}
       where
@@ -161,6 +165,7 @@ event indicator.
 
   \only<3>{
     \begin{beamercolorbox}[rounded=true]{gray}
+      \small
       Use \( \{(T^a, D^a) : a \in \{0,1\}\} \sim Q\), to
       denote potential outcomes.
       \begin{equation*}
@@ -172,8 +177,11 @@ event indicator.
         % P_W(\diff w)
         \E_{P}{
           \left[
-            \int_0^t e^{-[\Lambda_{1,P}+\Lambda_{2,P}](u \mid
-              a, W)} \Lambda_{1,P}(\diff u \mid a, W)
+            \int_0^t
+            \prodi_0^u\left( 1 -
+              [\Lambda_{1,P}+\Lambda_{2,P}](\diff s \mid a, W) \right)
+            % e^{-[\Lambda_{1,P}+\Lambda_{2,P}](u \mid a, W)}
+            \Lambda_{1,P}(\diff u \mid a, W)
           \right]},
       \end{equation*}
       % where
@@ -189,13 +197,21 @@ event indicator.
 \end{overlayarea}
 \end{frame}
 
-\begin{frame}[label={sec:orgde3c8f5}]{Targeted learning with super learning}
+\begin{frame}[label={sec:orgdd198a9}]{Targeted learning with super learning}
 \begin{equation*}
-  \Psi(P) = \E_{P}{
-    \left[
-      \int_0^t e^{-[\Lambda_{1,P}+\Lambda_{2,P}](u \mid
-        a, W)} \Lambda_{1,P}(\diff u \mid a, W)
-    \right]}  
+  \Psi(P) =
+  \E_{P}{
+          \left[
+            \int_0^t
+            \prodi_0^u\left( 1 -
+              [\Lambda_{1,P}+\Lambda_{2,P}](\diff s \mid a, W) \right)
+            \Lambda_{1,P}(\diff u \mid a, W)
+          \right]}
+    %     \E_{P}{
+    % \left[
+    %   \int_0^t e^{-[\Lambda_{1,P}+\Lambda_{2,P}](u \mid
+    %     a, W)} \Lambda_{1,P}(\diff u \mid a, W)
+    % \right]}  
 \end{equation*}
 can be written as
 \begin{equation*}
@@ -245,7 +261,7 @@ for \(\hat{\Psi}_n^*\) if
 \end{beamercolorbox}
 \end{frame}
 
-\begin{frame}[label={sec:org8577a4f}]{Super learning\footnote{\cite{stone1974cross,geisser1975predictive,wolpert1992stacked,breiman1996stacked,van2007super}}}
+\begin{frame}[label={sec:org651c276}]{Super learning\footnote{\cite{stone1974cross,geisser1975predictive,wolpert1992stacked,breiman1996stacked,van2007super}}}
 \begin{onlyenv}<1>
 
 \begin{center}
@@ -343,7 +359,7 @@ for \(\hat{\Psi}_n^*\) if
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org0266a17}]{\color{white} breaker}
+\begin{frame}[label={sec:orgebe2da2}]{\color{white} breaker}
 \begin{beamercolorbox}[rounded=true]{gray}
 \Large
 
@@ -356,13 +372,13 @@ for \(\hat{\Psi}_n^*\) if
 \end{frame}
 
 
-\begin{frame}[label={sec:org4356ead}]{The negative log-likelihood is unsuited for super learning}
+\begin{frame}[label={sec:org439e673}]{The negative log-likelihood is unsuited for super learning}
 \begin{center}
 \includegraphics[width=0.9\textwidth]{./sl-hold-out-sample.pdf}
 \end{center}
 \end{frame}
 
-\begin{frame}[label={sec:org1a8d427}]{\large IPCW and pseudo-outcome require pre-specified censoring estimator}
+\begin{frame}[label={sec:orgf952fcf}]{\large IPCW and pseudo-outcome require pre-specified censoring estimator}
 \def\shift{3}
 \def\ls{}
 \def\lw{.5mm}
@@ -380,7 +396,7 @@ for \(\hat{\Psi}_n^*\) if
 \end{frame}
 
 
-\begin{frame}[label={sec:org7089033}]{The state learner: Model all `states' of the \emph{observed} data}
+\begin{frame}[label={sec:org7ea3ea3}]{The state learner: Model all `states' of the \emph{observed} data}
 \vspace{-1cm}
 
 \begin{equation*}
@@ -400,7 +416,7 @@ for \(\hat{\Psi}_n^*\) if
 
 Build a super learner for the function
 \begin{equation*}
-    F(t, k, w,a) = P(N(t) = k \mid W=w, A=a).
+    F(t, k, x) = P(N(t) = k \mid X=x).
 \end{equation*}
 
 \pause \vspace{.2cm}
@@ -409,7 +425,7 @@ Build a super learner for the function
 \begin{equation*}
   L(F,O) =  \int_0^{\tau} \sum_{j=-1}^{2}
   \Bigl(
-    F(t,j,W,A) - \1{\{N(t)=j\}}
+    F(t,j,X) - \1{\{N(t)=j\}}
     \Bigr)^2
     \diff t.
 \end{equation*}
@@ -417,30 +433,30 @@ Build a super learner for the function
 \end{frame}
 
 
-\begin{frame}[label={sec:org530332d}]{Building a library for \(F\)}
+\begin{frame}[label={sec:org091fd93}]{Building a library for \(F\)}
 The formulas
 \begin{align*}
-  F(t, 0, w,a)
+  F(t, 0, x)
   &
   % =P{\left( \tilde{T}>t \midd W=w,A=a \right)}
     = \Prodi_0^t
     \left( 1 - 
     \left[\Lambda_{1} + \Lambda_{2} + \Gamma
-    \right](\diff s \mid w,a) \right),
+    \right](\diff s \mid x) \right),
   \\
-  F(t, j, w,a)
+  F(t, j, x)
   &
   % = P{\left(
     % \tilde{T} \leq t, \Delta=j \midd W=w, A=a
     % \right)}
-    = \int_0^t F(t-,0, w,a)  \Lambda_{j}(\diff s \mid w,a),
+    = \int_0^t F(t-,0, x)  \Lambda_{j}(\diff s \mid x),
     \quad  j \in \{1,2\},
   \\
-  F(t, -1, w,a)
+  F(t, -1, x)
   &
   % =
     % P{\left( \tilde{T} \leq t, \Delta=0 \midd W=w, A=a \right)}
-    = \int_0^tF(t-,0, w,a)  \Gamma(\diff s \mid w,a),
+    = \int_0^tF(t-,0, x)  \Gamma(\diff s \mid x),
 \end{align*}
 can be used to build a library for \(F\) from libraries for \(\Lambda_1\), \(\Lambda_2\), \(\Gamma\),
 \begin{equation*}
@@ -456,7 +472,7 @@ Similarly, we can obtain \(\Lambda_j\) and \(\Gamma\) from \(F\).
 
 
 
-\begin{frame}[label={sec:org0ebe6cf}]{Illustration with data from a prostate cancer study\footnote{\cite{kattan2000pretreatment}.}}
+\begin{frame}[label={sec:org087695b}]{Illustration with data from a prostate cancer study\footnote{\cite{kattan2000pretreatment}.}}
 \begin{onlyenv}<1>
 The learners selected by the state learner.
 
@@ -466,7 +482,7 @@ The learners selected by the state learner.
 \end{onlyenv}
 
 \begin{onlyenv}<2>
-The estimated average treatment effect of hormone therapy.
+The target parameter was the average treatment effect of hormone therapy.
 
 \vfill
 
@@ -476,7 +492,7 @@ The estimated average treatment effect of hormone therapy.
 \end{onlyenv}
 \end{frame}
 
-\begin{frame}[label={sec:org84bcd9c}]{Additional details}
+\begin{frame}[label={sec:orge07070d}]{Additional details}
 \cite{munch2024state} provide
 \begin{itemize}
 \item a consistency result
@@ -494,7 +510,7 @@ Prototype available at \url{https://github.com/amnudn/statelearner}.
 \end{frame}
 
 
-\begin{frame}[label={sec:org22d632a}]{References}
+\begin{frame}[label={sec:org0e4de4e}]{References}
 \footnotesize \bibliography{bib.bib}
 \end{frame}
 \end{document}
