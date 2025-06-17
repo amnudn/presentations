@@ -1,0 +1,114 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file /home/amnudn/Documents/presentations/cate-sublevel-sets-biostat-jc/cate-sublevel-sets-biostat-jc.org
+
+
+* Illustrations of the function $\gamma(P) \colon [-1,1] \rightarrow [0,1]$
+:PROPERTIES:
+:ARCHIVE_TIME: 2025-06-17 Tue 10:58
+:ARCHIVE_FILE: ~/Documents/presentations/cate-sublevel-sets-biostat-jc/cate-sublevel-sets-biostat-jc.org
+:ARCHIVE_CATEGORY: cate-sublevel-sets-biostat-jc
+:END:
+
+#+BEGIN_SRC R :results silent
+  library(data.table)
+  library(here)
+  setwd(here("cate-sublevel-sets-biostat-jc"))
+
+  n <- 100000
+  dd <- data.table(Age = rnorm(n),
+		   FEV = runif(n),
+		   Sex = 1*(runif(n)<0.3))
+
+  ## Some functions we use
+  expit <- function(x) 1/(1+exp(-x))
+  calc_ate_levels <- function(ites, aa = seq(-1, 1, length = 2000)){
+    ites = sort(ites)
+    ff = sapply(aa, function(a) mean(ites < a))
+    data.table(effect = aa, prop = ff)
+  }
+  make_gamma_plot <- function(ites, aa = seq(-1, 1, length = 2000)){
+    ites = sort(ites)
+    ff = sapply(aa, function(a) mean(ites < a))
+    plot(aa, ff, type = "l", xlab = expression("Effect size " * (alpha)), ylab = expression("Size of levels set " * (gamma)), lwd = 2)
+    abline(v = mean(ites), col = "blue", lty = 1, lwd = 1)
+    text(x = mean(ites), y = .9, labels = "ATE", pos = 2, col = "blue")
+  }
+
+  dd[, ite1 := expit(.1*Age+Age*1+Sex+0.4*1) - expit(.1*Age+Sex)]
+  dd[, ite2 := expit(.1*Age-2*Age*1+Sex+2*Sex*1+0.4*1) - expit(.1*Age+Sex)]
+  dd[, ite3 := expit(0.5*Age+Sex+1) - expit(0.5*Age+Sex)]
+  dd[, ite4 := expit(0*Age+Sex+1) - expit(0*Age+Sex)]
+#+END_SRC
+
+** overlay block 
+:PROPERTIES:
+:BEAMER_act: <1>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_CENTER
+\texttt{Y $\sim$ age * A + sex}
+#+END_CENTER
+
+#+BEGIN_SRC R :results graphics file :exports results :file "curve-illu-v1.pdf" :height 5
+make_gamma_plot(dd$ite1)
+#+END_SRC
+
+#+RESULTS[(2025-06-17 10:25:57) 2ad2958ef78f5a34014d4be63e7cf1d53da5dd7b]:
+[[file:curve-illu-v1.pdf]]
+
+
+** overlay block 
+:PROPERTIES:
+:BEAMER_act: <2>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_CENTER
+\texttt{Y $\sim$ age * A + sex * A}
+#+END_CENTER
+
+#+BEGIN_SRC R :results graphics file :exports results :file "curve-illu-v2.pdf" :height 5
+make_gamma_plot(dd$ite2)
+#+END_SRC
+
+#+RESULTS[(2025-06-17 10:15:21) 7dee44bab19811bd2e62e6d974484f924f80721e]:
+[[file:curve-illu-v2.pdf]]
+
+** overlay block 
+:PROPERTIES:
+:BEAMER_act: <3>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_CENTER
+\texttt{Y $\sim$ age + sex + A}
+#+END_CENTER
+
+#+BEGIN_SRC R :results graphics file :exports results :file "curve-illu-v3.pdf" :height 5
+make_gamma_plot(dd$ite3)
+#+END_SRC
+
+#+RESULTS[(2025-06-17 10:19:06) b753a82f67fed7f975140346b33da1362e69e4b8]:
+[[file:curve-illu-v3.pdf]]
+
+** overlay block 
+:PROPERTIES:
+:BEAMER_act: <4>
+:BEAMER_env: onlyenv
+:END:
+
+#+BEGIN_CENTER
+\texttt{Y $\sim$ sex + A}
+#+END_CENTER
+
+#+BEGIN_SRC R :results graphics file :exports results :file "curve-illu-v4.pdf" :height 5
+make_gamma_plot(dd$ite4)
+#+END_SRC
+
+#+RESULTS[(2025-06-17 10:19:56) e39175bfcd72a6dcebaffbd53ac203576be7fe82]:
+[[file:curve-illu-v4.pdf]]
+
+
