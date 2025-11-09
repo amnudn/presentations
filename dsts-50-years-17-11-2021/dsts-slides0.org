@@ -1,0 +1,106 @@
+
+* Presentation
+** 
+
+#+begin_export latex
+\large
+\alt<4>{{\color{red}Efficient estimation}}{Efficient estimation}
+of
+\alt<3>{{\color{red}target parameters}}{target parameters}
+in
+\alt<2>{{\color{red}multi-state models}}{multi-state models}
+\normalsize
+\vfill
+#+end_export
+
+  
+*** Data visualization 1                                          :B_onlyenv:
+    :PROPERTIES:
+    :BEAMER_act: <2>
+    :BEAMER_env: onlyenv
+    :END:   
+
+    #+begin_export latex
+    \begin{center}
+    \includegraphics[page=1,width=0.7\textwidth,trim={1cm 5cm 6cm 3cm},clip]{./Multi-State-illustration.pdf}
+    \end{center}
+    #+end_export
+
+*** Data visualization 2                                          :B_onlyenv:
+    :PROPERTIES:
+    :BEAMER_act: <3-4>
+    :BEAMER_env: onlyenv
+    :END:
+    
+
+
+    #+begin_export latex
+    \begin{center}
+    \includegraphics[page=2,width=0.7\textwidth,trim={1cm 5cm 6cm 3cm},clip]{./Multi-State-illustration.pdf}
+    \end{center}
+    #+end_export
+
+*** Data visualization 1                                          :B_onlyenv:
+    :PROPERTIES:
+    :BEAMER_act: <5->
+    :BEAMER_env: onlyenv
+    :END:
+    
+
+
+    #+begin_export latex
+    \begin{center}
+    \includegraphics[page=3,width=0.7\textwidth,trim={1cm 5cm 6cm 3cm},clip]{./Multi-State-illustration.pdf}
+    \end{center}
+    #+end_export
+
+
+*** Topics                                                        :B_onlyenv:
+    :PROPERTIES:
+    :BEAMER_act: <2->
+    :BEAMER_env: onlyenv
+    :END:
+    \vfill
+    #+begin_export latex
+    \begin{itemize}
+    \item<4-> Non-parametric efficiency theory $\rightarrow$ machine learning and inference
+    \item<6-> "Sensible/meaningful" causal questions in this setting?
+    \item<7-> Non-parametric estimation of conditional hazard functions?
+    \end{itemize}
+    #+end_export
+
+
+* HEADER :noexport:
+#+TITLE: Young statistical research in Denmark
+#+Author: Young Statisticians Denmark (YSD)
+#+Date: DSTS 50 years anniversary -- November 17, 2021
+
+#+LANGUAGE:  en
+#+OPTIONS:   H:2 num:t toc:nil ':t ^:t
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LATEX_CLASS_OPTIONS: [smaller]
+#+LaTeX_HEADER: \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+#+LaTeX_HEADER: \bibliographystyle{abbrvnat}
+#+LaTeX_HEADER: \input{./latex-settings/standard-commands.tex}
+
+# Beamer settins:
+# #+LaTeX_HEADER: \usefonttheme[onlymath]{serif} 
+# #+LaTeX_HEADER: \setbeamertemplate{footline}[frame number]
+#+LaTeX_HEADER: \beamertemplatenavigationsymbolsempty
+#+LaTeX_HEADER: \usepackage{appendixnumberbeamer}
+#+LaTeX_HEADER: \setbeamercolor{gray}{bg=white!90!black}
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+
+#+LATEX_HEADER: \setbeamertemplate{itemize items}{$\circ$}
+
+# Check this:
+# #+LaTeX_HEADER: \lstset{basicstyle=\ttfamily\small}
+
+# For handout mode: (check order...)
+# #+LATEX_CLASS_OPTIONS: [handout]
+# #+LaTeX_HEADER: \pgfpagesuselayout{4 on 1}[border shrink=1mm]
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{1}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{2}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{3}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{4}{border code=\pgfusepath{stroke}}

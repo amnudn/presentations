@@ -1,0 +1,101 @@
+% Created 2021-11-15 Mon 18:14
+% Intended LaTeX compiler: pdflatex
+\documentclass[smaller]{beamer}\usepackage{listings}
+\usepackage{color}
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage[T1]{fontenc}
+\usepackage{natbib}
+\lstset{
+keywordstyle=\color{blue},
+commentstyle=\color{red},stringstyle=\color[rgb]{0,.5,0},
+literate={~}{$\sim$}{1},
+basicstyle=\ttfamily\small,
+columns=fullflexible,
+breaklines=true,
+breakatwhitespace=false,
+numbers=left,
+numberstyle=\ttfamily\tiny\color{gray},
+stepnumber=1,
+numbersep=10pt,
+backgroundcolor=\color{white},
+tabsize=4,
+keepspaces=true,
+showspaces=false,
+showstringspaces=false,
+xleftmargin=.23in,
+frame=single,
+basewidth={0.5em,0.4em},
+}
+\usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+\bibliographystyle{abbrvnat}
+\input{./latex-settings/standard-commands.tex}
+\beamertemplatenavigationsymbolsempty
+\usepackage{appendixnumberbeamer}
+\setbeamercolor{gray}{bg=white!90!black}
+\setbeamertemplate{itemize items}{$\circ$}
+
+\renewcommand*\familydefault{\sfdefault}
+\itemsep2pt
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\usetheme{default}
+\author{Young Statisticians Denmark (YSD)}
+\date{DSTS 50 years anniversary -- November 17, 2021}
+\title{Young statistical research in Denmark}
+\begin{document}
+
+\maketitle
+\section{Presentation}
+\label{sec:org73ea23f}
+\begin{frame}[label={sec:org2e9e86b}]{}
+\large
+\alt<4>{{\color{red}Efficient estimation}}{Efficient estimation}
+of
+\alt<3>{{\color{red}target parameters}}{target parameters}
+in
+\alt<2>{{\color{red}multi-state models}}{multi-state models}
+\normalsize
+\vfill
+
+
+\begin{onlyenv}<2>
+\begin{center}
+\includegraphics[page=1,width=0.7\textwidth,trim={1cm 5cm 6cm 3cm},clip]{./Multi-State-illustration.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<3-4>
+\begin{center}
+\includegraphics[page=2,width=0.7\textwidth,trim={1cm 5cm 6cm 3cm},clip]{./Multi-State-illustration.pdf}
+\end{center}
+\end{onlyenv}
+
+\begin{onlyenv}<5->
+\begin{center}
+\includegraphics[page=3,width=0.7\textwidth,trim={1cm 5cm 6cm 3cm},clip]{./Multi-State-illustration.pdf}
+\end{center}
+\end{onlyenv}
+
+
+\begin{onlyenv}<2->
+\vfill
+\begin{itemize}
+\item<4-> Non-parametric efficiency theory $\rightarrow$ machine learning and inference
+\item<6-> "Sensible/meaningful" causal questions in this setting?
+\item<7-> Non-parametric estimation of conditional hazard functions?
+\end{itemize}
+\end{onlyenv}
+\end{frame}
+\end{document}

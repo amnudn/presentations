@@ -1,0 +1,36 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file /home/amnudn/Documents/presentations/hte-chernozhukov-fisher-schultz-paper/presentation.org
+
+
+* Definition and interpretation of the estimand -- my attempt
+:PROPERTIES:
+:ARCHIVE_TIME: 2025-11-07 fre 15:09
+:ARCHIVE_FILE: ~/Documents/presentations/hte-chernozhukov-fisher-schultz-paper/presentation.org
+:ARCHIVE_CATEGORY: presentation
+:END:
+
+#+begin_export latex
+Define the data-dependent parameter $\theta(P, \text{Data}_a)$ as
+\begin{equation*}
+  \theta(P; \text{Data}_a) = \text{BLP}_P[s_0(Z) \mid S(Z; \text{Data}_a)].
+\end{equation*}
+The data-dependent ``median'' parameter $\theta_{\text{M}}(P,
+\text{Data})$ is defined as
+\begin{equation*}
+  \theta_{\text{M}}(P, \text{Data}) = \text{Median}_{A \sim U(\mathcal{A})}(\theta(P; \text{Data}_A) \mid \text{Data}).
+\end{equation*}
+
+\vfill
+
+Would the parameter \( \theta(P; \text{Data}) \) be more
+interesting, i.e., easier to interpret?
+
+\vfill
+
+Would we expect the parameter \( \theta_{\text{M}}(P; \text{Data}_a) \) to
+be close to \( \theta(P; \text{Data}) \)?
+#+end_export
+
+

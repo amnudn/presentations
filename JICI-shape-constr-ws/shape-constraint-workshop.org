@@ -1,0 +1,380 @@
+* Motivation
+
+The road map of causal learning tells us to incorporate all the knowledge that we have
+  into the statistical model for the distribution of the data
+\vfill
+
+In many real applications, subject matter knowledge is available
+  regarding the shape of the underlying conditional density and
+  regression functions
+\vfill
+
+Examples of biologically motivated shapes are
+  - risk of disease is not decreasing with age (given other covariates)
+  - The risk of disease should be a monotone function of age (given other covariates)
+  - The number of comorbidities increases the risk of disease
+  - the effect of a biomarker on the risk of disease is an unimodal function (given other covariates)
+
+* Target and nuisance parameters
+
+Consider a real-valued target parameter \(\psi: \mathcal P\to\R\) 
+
+#+begin_export latex
+\begin{equation*}
+\psi(\mathrm P_{Q,G}) = \nu(Q)
+\end{equation*}
+#+end_export
+
+for some functional \(\nu:\mathcal Q\to\R\) such that \(G\) and 'all
+other parts' of \(Q\) are nuisance parameters.
+\vfill
+
+Shape constraints on a function-valued target parameter have been
+considered by many, e.g.,
+\citet[][]{groeneboom2014nonparametric,westling2020unified,wu2022nonparametric}. 
+\vfill
+
+Today, we will mostly discuss imposing shape-constraints on nuisance
+parameters.
+
+* 
+
+** Working hypotheses
+- Shape constraints can be incorporated into machine learning for nuisance parameters
+- Biologically motivated shape constraints 
+  may lead to improved estimators
+
+\vspace{4em}
+ 
+** Goal for the workshop
+- Discuss some initial hypotheses and ideas
+- Help us move in the right research direction
+  
+* Multivariate shape constraints
+
+#+BEGIN_SRC R :results file graphics :file ./a.pdf :exports none :session *R* :cache yes
+library(data.table)
+library(ggplot2)
+setwd("~/research/SuperVision/Anders/presentations/jici-workshop-september-2023/")
+dgm <- function(Age, Parasites) expit(-3.5-.3*Age+.85*Parasites+0.35*Age*Parasites)
+simulateMalariaData <- function(N){
+  expit <- function(x){exp(x)/(1+exp(x))}
+  Age <- runif(N,.5,15)
+  Parasites <- rnorm(N,mean=3.5-0.03*Age)
+  Fever <- rbinom(N,1,dgm(Age,Parasites))
+  data.table(Fever,Age,Parasites)
+}
+grid <- expand.grid(Age = seq(0.5, 15, length.out = 50),Parasites = seq(0, 7, length.out = 50))
+setDT(grid)
+grid[,ps:=dgm(Age, Parasites)]
+ggplot(grid, aes(x = Age, y = Parasites, fill = ps)) + 
+  theme_bw() +
+  theme(text = element_text(size=17),
+        axis.text.x = element_text(angle=0, hjust=1))+
+  geom_tile() +
+  theme(legend.position="bottom")+
+  scale_fill_gradientn(limits = c(0, 1), colors = c("blue", "green", "red")) + 
+  xlab("Age") + 
+  ylab("Biomarker") + 
+  ggtitle("The data-generating regression function") +
+  labs(fill = "Probability")
+#+END_SRC
+
+#+RESULTS[(2023-09-07 12:25:10) 0717d7b031fbba39e3af1f48c3d40a054e8a2978]:
+[[file:./a.pdf]]
+
+#+name: fig:1
+#+ATTR_LATEX: :width 0.7\textwidth
+#+CAPTION:
+[[file:./a.pdf]]
+
+* Machine learning (from the shelf)
+
+
+#+BEGIN_SRC R :results file graphics :file ./b.pdf :exports none :session *R* :cache yes
+setwd("~/research/SuperVision/Anders/presentations/jici-workshop-september-2023/")
+library(data.table)
+library(ggplot2)
+library(randomForestSRC)
+set.seed(13)
+dgm <- function(Age, Parasites) expit(-3.5-.3*Age+.85*Parasites+0.35*Age*Parasites)
+simulateMalariaData <- function(N){
+  expit <- function(x){exp(x)/(1+exp(x))}
+  Age <- runif(N,.5,15)
+  Parasites <- rnorm(N,mean=3.5-0.03*Age)
+  Fever <- rbinom(N,1,dgm(Age,Parasites))
+  data.table(Fever=factor(Fever),Age,Parasites)
+}
+d=simulateMalariaData(471)
+fit=rfsrc(Fever~Age+Parasites,data=d)
+grid[,rf:=predictRisk(fit,newdata=grid)]
+ggplot(grid, aes(x = Age, y = Parasites, fill = rf)) + 
+  theme_bw() +
+  theme(text = element_text(size=20),
+        axis.text.x = element_text(angle=0, hjust=1))+
+  theme(legend.position="bottom")+
+  geom_tile() +
+  scale_fill_gradientn(limits = c(0, 1), colors = c("blue", "green", "red")) + 
+  xlab("Age") + 
+  ylab("Biomarker") + 
+  ggtitle("Random forest fit without tuning") +
+  labs(fill = "Probability")
+#+END_SRC
+
+#+RESULTS[(2023-09-07 12:25:49) b57d674237fb5d7fabc89f797c056f1eb607415c]:
+[[file:./b.pdf]]
+
+#+name: fig:1
+#+ATTR_LATEX: :width 0.7\textwidth
+#+CAPTION:
+[[file:./b.pdf]]
+* Shape constraints
+** Examples
+- Monotonicity
+- Unimodality
+- Convexity
+- Log-concave density
+
+** Tools to incorporate shape constraints into machine learning
+
+- Model specification/architecture
+- Internal parameter tuning
+- External penalty/loss function
+- Smoothing applied to the fitted object
+- Log-concave sampling
+- what else?
+  
+* Information bounds
+** Conjecture 1                                                :B_alertblock:
+:PROPERTIES:
+:BEAMER_env: alertblock
+:END:
+
+Some shape constraints will not restrict the tangent space, and hence
+imposing such shape constraints does not change the information bound
+for the statistical estimation problem.
+
+- Which shape constraints satisfy this when imposed on G and/or Q?
+- Can we still improve a targeted minimum loss estimator (TMLE) by
+  imposing such shape constraints on the nuisance parameters?
+
+** Conjecture 2                                                       :B_alertblock:
+:PROPERTIES:
+:BEAMER_env: alertblock
+:END:
+Constructing a TMLE under a shape constrained model will typically result in a
+sub-model that is not contained in the shape constrained model (c.f.,
+\cite{van1989asymptotic}).
+
+** Conjecture 3                                                :B_alertblock:
+:PROPERTIES:
+:BEAMER_env: alertblock
+:END:
+Imposing shape constraints can improve the convergence rates of machine learning
+\cite[e.g.,][]{fang2021multivariate}.
+
+* (Un)necessary restrictions on nuisance parameters?
+
+** Undersmoothing
+It has been shown that undersmoothing of the estimators of the
+nuisance parameters is needed when they are 'plugged-in' to estimate a
+low-dimensional target parameter
+\citep[e.g.,][]{goldstein1996efficient,hjort2001note,van2022efficient}.
+\vspace{1em}
+
+*Could shape constraints induce unnecessary/unfortunate smoothing?*
+
+
+** Biologically reasonable nuisance parameter estimators?
+
+Should we pay attention to whether nuisance parameters are estimated
+by biologically meaningful estimators? \vspace{1em}
+
+Should we accept a biologically unreasonable estimator of a nuisance parameter
+as long as it provides a good estimator of the target parameter?
+
+
+* Estimating a cumulative distribution function
+\small
+
+- \color{red}ECDF :: Empirical cumulative distribution function
+- \color{orange}kernCDF :: Estimator based on smoothed kernel density estimator
+- \color{blue}logConCDF :: Estimator based on log-concave density estimator
+  \citep{dumbgen2009maximum,Rufibach_Duembgen_2023}
+
+#+ATTR_LATEX: :width 1\textwidth :center
+[[./cdf-estimators.pdf]]
+
+
+* Challenges for future research
+
+- Should we distinguish between learning Q vs G parts of a causal
+  model/information loss model?
+
+- How do we translate "marginal" smoothness constraints into 
+  constraints on a multivariate function?
+  
+- In longitudinal settings, need to discuss shape-constraints on the
+  history (filtration): an older value of a variable (such as A1c in
+  diabetes) should have a lower effect than a newer value of the same
+  variable.
+
+* References
+:PROPERTIES:
+:UNNUMBERED: t
+:END:
+\footnotesize \bibliography{./latex-settings/default-bib.bib}
+
+* R and figures                                                    :noexport:
+Remember to exceture (C-c C-c) the following line:
+#+PROPERTY: header-args:R :async :results output verbatim  :exports results  :session *R* :cache yes
+
+** Simulate
+#+BEGIN_SRC R
+  try(setwd("~/Documents/presentations/JICI-shape-constr-ws/"))
+  library(logcondens)
+  library(data.table)
+  library(parallel)
+  library(ggplot2)
+  library(gridExtra)
+
+  ## Get some test data
+  x <- rgamma(1000, 2, 1)
+
+  ## Fitter
+  dens_est <- function(data, points = 1:4){
+      ## Emp. CDF
+      e_cdf = sapply(points, function(pp) mean(data <= pp))
+      ## Kernel-based (Gaussian)
+      auto_bw = density(data)$bw
+      kern_cdf = sapply(points, function(pp) mean(pnorm((pp-data)/auto_bw)))
+      ## log-concave based
+      log_con_fit = logConDens(data, smoothed = FALSE)
+      log_con_cdf = as.numeric(evaluateLogConDens(points, log_con_fit)[, "CDF"])
+      est_list = list(ECDF = e_cdf, kernCDF = kern_cdf, logConCDF = log_con_cdf)
+      out = do.call(rbind, lapply(seq_along(est_list), function(ii){
+	  data.table(type = names(est_list)[ii],
+		     point = points,
+		     estimate = est_list[[ii]])
+      }))
+      ## out = data.table(type = c("ECDF", "kernCDF", "logConCDF"),
+      ##                  estimate = c(e_cdf, kern_cdf, log_con_cdf))
+      return(out[])    
+  }
+
+  sim_est <- function(ns, simulator, nsim = 200, points = 1:4,ncores = 6){
+      out = do.call(rbind, mclapply(X = 1:nsim, mc.cores = ncores, FUN = function(mm){
+	  sim0 = do.call(rbind, lapply(ns, function(nn){
+	      dat0 = simulator(n = nn)
+	      set0 = dens_est(data = dat0, points = points)
+	      set0[, n := nn]
+	  }))
+	  sim0[, sim_id := mm]
+	  return(sim0)
+      }))
+      return(out)
+  }
+
+  sim1 <- sim_est(ns = round(10^(seq(log10(100), log10(2000), length.out = 4))),
+		  nsim = 1000,
+		  points=2:3,
+		  simulator = function(n) rgamma(n, 2,1))
+
+  true_vals <- data.table(point = 2:3)
+  true_vals[, target := pgamma(point, 2,1)]
+
+  sim1_scaled <- merge(sim1, true_vals, by = "point", all.x = TRUE)
+  sim1_scaled[, stand_est := (estimate-target)*sqrt(n)]
+
+    mse1 <- sim1_scaled[, .(bias = mean(estimate-target),
+			  abs_bias = abs(mean(estimate-target)),
+			  sd = sd(estimate),
+			  MSE = mean((estimate-target)^2)),
+		      .(type, point, n)]
+
+#+END_SRC
+
+#+RESULTS[(2023-09-08 09:00:14) 6e21a975093932b5a19fc25f33bedcd530a37572]:
+#+begin_example
+   point    target
+1:     2 0.5939942
+2:     3 0.8008517
+       point      type  estimate    n sim_id    target   stand_est
+    1:     2      ECDF 0.6400000  100      1 0.5939942  0.46005850
+    2:     2   kernCDF 0.6170187  100      1 0.5939942  0.23024555
+    3:     2 logConCDF 0.5995028  100      1 0.5939942  0.05508646
+    4:     2      ECDF 0.5977860  271      1 0.5939942  0.06242136
+    5:     2   kernCDF 0.5792081  271      1 0.5939942 -0.24340915
+   ---                                                            
+23996:     3   kernCDF 0.7879053  737   1000 0.8008517 -0.35146561
+23997:     3 logConCDF 0.7934478  737   1000 0.8008517 -0.20100086
+23998:     3      ECDF 0.7970000 2000   1000 0.8008517 -0.17225445
+23999:     3   kernCDF 0.7962275 2000   1000 0.8008517 -0.20679967
+24000:     3 logConCDF 0.8005211 2000   1000 0.8008517 -0.01478776
+#+end_example
+
+** Make figure
+#+BEGIN_SRC R :results graphics file :exports results :file cdf-estimators.pdf  :width 8 :height 4
+  grid.arrange(
+    ggplot(mse1[point == 2], aes(x = n, y = sd^2*n, col = type)) +
+    geom_line(linewidth=1) + geom_point(size=2) +
+    ylab("Var * n") +
+    theme_bw() +
+    theme(legend.position = "top") +
+    scale_color_manual(values=c("red", "orange", "blue")) + 
+    scale_x_continuous(trans='log10'),
+    ggplot(mse1[point == 2], aes(x = n, y = bias^2*n, col = type)) +
+  geom_line(linewidth=1) + geom_point(size=2) +
+  theme_bw() +
+  theme(legend.position = "top") +
+  scale_color_manual(values=c("red", "orange", "blue")) + 
+  scale_x_continuous(trans='log10'),    
+    ## ggplot(mse1[point == 2], aes(x = n, y = MSE*n, col = type)) +
+    ## geom_line() + geom_point() +
+    ## theme_bw() +
+    ## theme(legend.position = "top") + 
+    ## scale_x_continuous(trans='log10'),
+    nrow = 1
+  )
+#+END_SRC
+
+#+RESULTS[(2023-09-08 09:16:45) d9ca62d62d624424aee730f5648b774d63b43e42]:
+[[file:cdf-estimators.pdf]]
+
+
+
+
+* HEADER                                                           :noexport:
+#+TITLE: Targeted learning under shape constraints
+#+Author: Anders Munch and Thomas Gerds
+#+Date: September 11, 2023
+
+#+LANGUAGE:  en
+#+OPTIONS:   H:1 num:t toc:nil ':t ^:t
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LATEX_CLASS_OPTIONS: [smaller]
+#+LaTeX_HEADER: \usepackage{natbib, dsfont, pgfpages, tikz,amssymb, amsmath,xcolor}
+#+LaTeX_HEADER: \bibliographystyle{abbrvnat}
+#+LaTeX_HEADER: \input{./latex-settings/standard-commands.tex}
+#+BIBLIOGRAPHY: ./latex-settings/default-bib plain
+
+# Beamer settins:
+# #+LaTeX_HEADER: \usefonttheme[onlymath]{serif} 
+#+LaTeX_HEADER: \setbeamertemplate{footline}[frame number]
+#+LaTeX_HEADER: \beamertemplatenavigationsymbolsempty
+#+LaTeX_HEADER: \usepackage{appendixnumberbeamer}
+#+LaTeX_HEADER: \setbeamercolor{gray}{bg=white!90!black}
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+LATEX_HEADER: \setbeamertemplate{itemize items}{$\circ$}
+
+# Check this:
+# #+LaTeX_HEADER: \lstset{basicstyle=\ttfamily\small}
+
+# For handout mode: (check order...)
+# #+LATEX_CLASS_OPTIONS: [handout]
+# #+LaTeX_HEADER: \pgfpagesuselayout{4 on 1}[border shrink=1mm]
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{1}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{2}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{3}{border code=\pgfusepath{stroke}}
+# #+LaTeX_HEADER: \pgfpageslogicalpageoptions{4}{border code=\pgfusepath{stroke}}

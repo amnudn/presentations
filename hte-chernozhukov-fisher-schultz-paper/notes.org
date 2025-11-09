@@ -1,0 +1,42 @@
+
+*Two* points of the paper:
+- *Features* of CATE (p. 3), reference to Genovese and Wasserman,
+  adaptive confidence bands.
+- Using ML *proxies* of the CATE instead of the CATE itself.
+
+
+NB: In an RCT setting!
+
+
+Additional point: Even in RCTs (i.e., no confounding), OLS does not
+give the best CATE approximation -- should do something other
+weighting. Important point -- but that's all, not so surprising that
+it is possible to learn a good appoximation. An the other papers the
+compare to are (I think?) concerned with the observational data
+setting.
+
+
+The empirical application/motivation: Do they have a binary treatment
+variable or not?
+
+
+Could be cool to try out to see the difference between condition on
+the data set and not...
+
+
+Horvitz-Thompson (HT) transform... Did not known about this.
+
+
+Sect. 3.2: Understand this point that we cannot just do OLS on using
+the proxies... How/why can that be? (What is actually meant by doing
+OLS here?)
+
+
+Confusing/misleading because that sometimes shift in and out of the
+RCT setting.
+
+
+Table 2 perhaps somewhat interesting. (But again, recall that we are
+assuming an RCT.) (Note to self: Think about how validation of
+CATE-learners /trained on observational data/ could be done using data
+from RCTs.)

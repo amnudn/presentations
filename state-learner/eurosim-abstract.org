@@ -1,0 +1,23 @@
+#+TITLE: Data-adaptive inference for causal parameters in right-censored competing risk data using the state learner
+#+Author: Anders Munch
+#+Date: \today
+#+OPTIONS: H:1 num:t toc:nil ':t
+
+The framework of targeted machine learning provides a general methodology for
+obtaining valid statistical inference for causal parameters when data-adaptive
+methods are used. In particular, a super learner can be used to perform model
+selection, providing a general method for obtaining valid statistical inference
+without relying on a single pre-specified model. Super learning assesses model
+performance using cross-validation. Cross-validation based on right-censored
+data typically relies on a pre-specified model for the censoring distribution,
+which can be difficult to provide, especially for observational data. To
+alleviate this, we propose a new super learner, the state learner, which jointly
+assesses the performance of models for both the outcome and the censoring
+distributions. The state learner uses the data to select a pair of models that
+are optimal for predicting the state-occupation probabilities that characterize
+the observed data distribution. The state learner readily extends to settings
+with competing risks and is particularly well suited to be used in combination
+with targeted learning. We demonstrate how the state learner can be used to
+obtain estimates of various low-dimensional target parameters defined in a
+competing risks model. We apply our method to analyze the causal effect of
+bystander interventions on out-of-hospital cardiac arrest.
