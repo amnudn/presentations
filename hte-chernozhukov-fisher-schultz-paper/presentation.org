@@ -45,8 +45,9 @@ Estimands that depend on machine learning \textbf{proxies} of CATE
 
 * Motivation
 
-Estimation of CATE (or even low-dimensional features of it) is too
-hard.
+Investigate/test for heterogeneity of treatment in RCT setting with
+high-dimensional covariate vector. Estimation of CATE (or even
+low-dimensional features of it) is too hard.
 
 \vfill
 

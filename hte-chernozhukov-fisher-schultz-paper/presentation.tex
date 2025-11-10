@@ -1,4 +1,4 @@
-% Created 2025-11-09 søn 21:23
+% Created 2025-11-10 man 09:38
 % Intended LaTeX compiler: pdflatex
 \documentclass[smaller, aspectratio=169]{beamer}
 \usepackage[utf8]{inputenc}
@@ -54,7 +54,7 @@
 
 \maketitle
 
-\begin{frame}[label={sec:orge5199cf}]{Paper}
+\begin{frame}[label={sec:org3afacc4}]{Paper}
 \begin{block}{Generic machine learning inference on heterogeneous treatment effects in randomized experiments, with an application to immunization in India}
 by Victor Chernozhukov, Mert Demirer, Esther Duflo, and Iván
 Fernández-Val
@@ -67,7 +67,7 @@ Fernández-Val
 \end{block}
 \end{frame}
 
-\begin{frame}[label={sec:org2f2f31c}]{Focus}
+\begin{frame}[label={sec:orgad2fa60}]{Focus}
 Conceptual focus.
 
 \vfill
@@ -81,7 +81,7 @@ More focus on the interpretation of the estimand and null hypotheses
 that these estimators targets.
 \end{frame}
 
-\begin{frame}[label={sec:orgc953463}]{Major points}
+\begin{frame}[label={sec:org6229ac7}]{Major points}
 Target \textbf{features} of CATE
 
 \vfill
@@ -95,9 +95,10 @@ Estimands that depend on machine learning \textbf{proxies} of CATE
 
 
 
-\begin{frame}[label={sec:orgcb97bcc}]{Motivation}
-Estimation of CATE (or even low-dimensional features of it) is too
-hard.
+\begin{frame}[label={sec:org7d4cc0e}]{Motivation}
+Investigate/test for heterogeneity of treatment in RCT setting with
+high-dimensional covariate vector. Estimation of CATE (or even
+low-dimensional features of it) is too hard.
 
 \vfill
 
@@ -121,7 +122,7 @@ predictors for the objects of interest. (p.8)
 \end{frame}
 
 
-\begin{frame}[label={sec:orgda49040}]{Some notation and setup}
+\begin{frame}[label={sec:org52bfb86}]{Some notation and setup}
 Potential outcomes \( Y(0) \) and \( Y(1) \), binary treatment
 indicator \( D \), and high-dimensional covariate vector \( Z \).
 
@@ -161,21 +162,21 @@ is \textbf{known}, i.e., RCT setting.
 \end{frame}
 
 
-\begin{frame}[label={sec:orgd521204}]{Stage 1 \small (p.9)}
+\begin{frame}[label={sec:org06ff19d}]{Stage 1 \small (p.9)}
 \begin{center}
 \includegraphics[width=1\textwidth]{./paper-ss/ss-p9-step1.png}
 \end{center}
 \end{frame}
 
 
-\begin{frame}[label={sec:orgec5cff9}]{Stage 2 \small (p.9)}
+\begin{frame}[label={sec:org036b12f}]{Stage 2 \small (p.9)}
 \begin{center}
 \includegraphics[width=1\textwidth]{./paper-ss/ss-p9-step2.png}
 \end{center}
 \end{frame}
 
 
-\begin{frame}[label={sec:orgf291cfc}]{Summary of the proposal}
+\begin{frame}[label={sec:org63321c8}]{Summary of the proposal}
 Split data into main and auxiliary samples.
 
 \vfill
@@ -198,7 +199,7 @@ splits into main and auxiliary samples.
 \end{frame}
 
 
-\begin{frame}[label={sec:org3bcfe8c}]{Conditional (data-adaptive) estimands \small (p.12)}
+\begin{frame}[label={sec:org96a3470}]{Conditional (data-adaptive) estimands \small (p.12)}
 \begin{center}
 \includegraphics[width=1\textwidth]{./paper-ss/ss-p12-cond-data.png}
 \end{center}
@@ -206,7 +207,7 @@ splits into main and auxiliary samples.
 
 
 
-\begin{frame}[label={sec:org453accb}]{Example of feature: Best Linear Prediction (BLP) \small (compare p.12)}
+\begin{frame}[label={sec:org02c277e}]{Example of feature: Best Linear Prediction (BLP) \small (compare p.12)}
 \begin{definition}[BLP]
 The best linear predictor of \( s_P(Z) \) by \( S(Z) = s_A(Z) = S(Z ; \text{Data}_A) \) is the
 solution to
@@ -234,7 +235,7 @@ according to which the ``true'' CATE \(s_0\) is defined.
 \end{frame}
 
 
-\begin{frame}[label={sec:org1872d02}]{Why conditioning on data?}
+\begin{frame}[label={sec:orgea8fd40}]{Why conditioning on data?}
 They are discussing \textbf{two} things to address the \emph{``fundamental
 impossibilities in non-parametric inference [of CATE estimation]''}
 (p.3).
@@ -277,14 +278,14 @@ post-selection inference interpretations.
 
 
 
-\begin{frame}[label={sec:orgfa782db}]{Definition and interpretation of the estimand \small (p.21)}
+\begin{frame}[label={sec:org79e4aea}]{Definition and interpretation of the estimand \small (p.21)}
 \begin{center}
 \includegraphics[width=1\textwidth]{./paper-ss/ss-p21-median-random-est.png}
 \end{center}
 \end{frame}
 
 
-\begin{frame}[label={sec:org271a8f7}]{Definition and interpretation of the estimand -- my attempt}
+\begin{frame}[label={sec:orgb05fc38}]{Definition and interpretation of the estimand -- my attempt}
 Define the data-dependent parameter $\theta(P, \text{Data}_a)$ as
 \begin{equation*}
   \theta(P; S, \text{Data}_a) = \text{BLP}_P[s_0(Z) \mid S(Z; \text{Data}_a)].
@@ -313,26 +314,26 @@ Can we relate the interpretation of this to the type of performance measures we 
 \end{frame}
 
 
-\begin{frame}[label={sec:orga48cbb4}]{Interpretation of null hypothesis}
+\begin{frame}[label={sec:org12fdc86}]{Interpretation of null hypothesis}
 \begin{center}
 \includegraphics[width=1\textwidth]{./paper-ss/ss-p23-null-hypo.png}
 \end{center}
 \end{frame}
 
 
-\begin{frame}[label={sec:org222659a}]{Applied analysis}
+\begin{frame}[label={sec:orgaa93f31}]{Applied analysis}
 Immunization (vaccination?) of children i North India (against
 measles?).
 \end{frame}
 
-\begin{frame}[label={sec:org8debfe4}]{Interpretation of results}
+\begin{frame}[label={sec:org0a46b80}]{Interpretation of results}
 \begin{center}
 \includegraphics[width=1\textwidth]{./paper-ss/ss-table2.png}
 \end{center}
 \end{frame}
 
 
-\begin{frame}[label={sec:org3f7fc47}]{Interpretation of results}
+\begin{frame}[label={sec:orgaad71cd}]{Interpretation of results}
 \begin{center}
 \includegraphics[width=.7\textwidth]{./paper-ss/ss-table3.png}
 \end{center}
@@ -343,7 +344,7 @@ measles?).
 \end{frame}
 
 
-\begin{frame}[label={sec:org1778ada}]{Addendum: Best approximation of CATE (in RCTs)}
+\begin{frame}[label={sec:org6f2e7d1}]{Addendum: Best approximation of CATE (in RCTs)}
 Getting the best approximation of CATE \(s_0\) based on the proxy \(S\) is not just OLS -- need to use weight based on the propensity
 score.
 
